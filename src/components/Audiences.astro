@@ -1,0 +1,53 @@
+---
+import { audiences } from '../content/site.ts';
+---
+
+<section class="section section--light audiences" id="who-we-work-with" aria-labelledby="audiences-title">
+  <div class="container">
+    <p class="eyebrow">{audiences.eyebrow}</p>
+    <h2 class="section-heading" id="audiences-title">{audiences.heading}</h2>
+
+    <ul role="list" class="audiences__list">
+      {
+        audiences.groups.map((group) => (
+          <li class="audience">
+            <h3 class="audience__title">{group.title}</h3>
+            <p class="audience__body">{group.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .audiences__list {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  }
+
+  .audience {
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--sgi-navy);
+  }
+
+  .audience__title {
+    font-size: var(--text-h3);
+    line-height: 1.2;
+    max-width: 20ch;
+  }
+
+  .audience__body {
+    margin-top: 0.75rem;
+    max-width: 24rem;
+    color: var(--text-on-light-muted);
+  }
+
+  @media (min-width: 48em) {
+    .audiences__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+    }
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+/**
+ * Closing call to action. The button only renders once an approved booking
+ * destination is configured (PUBLIC_BOOKING_URL). Until then a clearly
+ * marked pre-launch notice is shown instead of an invented link.
+ */
+import CtaButton from './CtaButton.astro';
+import { bookingUrl } from '../config/env.ts';
+import { closing } from '../content/site.ts';
+---
+
+<section class="section section--dark closing on-dark" id="book" aria-labelledby="book-title">
+  <div class="container closing__inner">
+    <p class="eyebrow">{closing.eyebrow}</p>
+    <h2 class="closing__title" id="book-title">{closing.heading}</h2>
+    <p class="closing__body">{closing.body}</p>
+    <div class="closing__action">
+      {
+        bookingUrl ? (
+          <CtaButton size="large" />
+        ) : (
+          <p class="closing__pending" role="note" data-booking-pending>
+            {closing.pendingNotice}
+          </p>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .closing {
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    background:
+      radial-gradient(ellipse 45% 55% at 50% 100%, rgb(34 100 210 / 0.2), transparent 72%),
+      var(--sgi-navy);
+    border-top: 1px solid var(--hairline-on-dark);
+  }
+
+  .closing__inner {
+    display: grid;
+    justify-items: center;
+  }
+
+  .closing__title {
+    margin-top: 0.85rem;
+    font-size: clamp(2.125rem, 1.4rem + 3vw, 3.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--sgi-white);
+  }
+
+  .closing__body {
+    max-width: 32rem;
+    margin-top: 1.25rem;
+    font-size: var(--text-lg);
+    color: var(--text-on-dark-muted);
+  }
+
+  .closing__action {
+    margin-top: 2.25rem;
+  }
+
+  .closing__pending {
+    max-width: 30rem;
+    padding: 0.9rem 1.25rem;
+    font-size: var(--text-sm);
+    color: var(--text-on-dark-muted);
+    border: 1px dashed rgb(112 191 255 / 0.55);
+    border-radius: var(--radius-md);
+  }
+</style>

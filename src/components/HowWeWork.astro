@@ -1,0 +1,121 @@
+---
+import { howWeWork } from '../content/site.ts';
+---
+
+<section class="section section--dark how on-dark" id="how-we-work" aria-labelledby="how-title">
+  <div class="container">
+    <p class="eyebrow">{howWeWork.eyebrow}</p>
+    <h2 class="section-heading" id="how-title">{howWeWork.heading}</h2>
+
+    <ol role="list" class="steps">
+      {
+        howWeWork.steps.map((step, index) => (
+          <li class="step">
+            <span class="step__node" aria-hidden="true" />
+            <span class="step__index" aria-hidden="true">
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <h3 class="step__title">{step.title}</h3>
+            <p class="step__body">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .how {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 50% 60% at 0% 100%, rgb(34 100 210 / 0.12), transparent 70%),
+      var(--sgi-navy);
+  }
+
+  .steps {
+    --rail: 1.25rem;
+    position: relative;
+    display: grid;
+    gap: 2.25rem;
+    margin-top: clamp(2.75rem, 5vw, 4rem);
+    padding-left: calc(var(--rail) + 1rem);
+  }
+
+  /* The flow line the steps sit on (vertical on small screens). */
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: calc(var(--rail) / 2);
+    width: 1px;
+    background: linear-gradient(to bottom, var(--sgi-electric), rgb(243 248 255 / 0.18) 40%, rgb(243 248 255 / 0.18));
+  }
+
+  .step {
+    position: relative;
+  }
+
+  .step__node {
+    position: absolute;
+    top: 0.35rem;
+    left: calc(-1 * (var(--rail) / 2 + 1rem) - 4.5px);
+    width: 9px;
+    height: 9px;
+    background: var(--sgi-navy);
+    border: 1px solid rgb(243 248 255 / 0.85);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--sgi-navy);
+  }
+
+  .step:first-child .step__node {
+    background: var(--sgi-electric);
+    border-color: var(--sgi-electric);
+  }
+
+  .step__index {
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--accent-on-dark);
+  }
+
+  .step__title {
+    margin-top: 0.5rem;
+    font-size: var(--text-h3);
+    line-height: 1.2;
+    color: var(--sgi-white);
+  }
+
+  .step__body {
+    margin-top: 0.6rem;
+    max-width: 22rem;
+    color: var(--text-on-dark-muted);
+  }
+
+  @media (min-width: 60em) {
+    .steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: clamp(1.5rem, 3vw, 2.5rem);
+      padding-left: 0;
+      padding-top: 2.25rem;
+    }
+
+    .steps::before {
+      top: 0;
+      bottom: auto;
+      left: 0;
+      right: 0;
+      width: auto;
+      height: 1px;
+      background: linear-gradient(to right, var(--sgi-electric), rgb(243 248 255 / 0.18) 30%, rgb(243 248 255 / 0.18));
+    }
+
+    .step__node {
+      top: calc(-2.25rem - 4.5px);
+      left: 0;
+    }
+  }
+</style>

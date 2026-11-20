@@ -1,0 +1,43 @@
+/*
+ * Self-hosted brand fonts, built from the SGI brand pack by
+ * scripts/brand/build-fonts.py (Latin subset, WOFF2). Both families are
+ * SIL Open Font License 1.1; the licences ship alongside in /fonts.
+ * Self-hosting avoids third-party requests (no visitor data sent to a font CDN).
+ */
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/space-grotesk-latin-var.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/archivo-latin-var.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Metric-matched fallbacks (values computed by build-fonts.py against Arial
+ * metrics) so text keeps its size and line breaks while the web fonts load.
+ */
+@font-face {
+  font-family: 'Space Grotesk Fallback';
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 109.76%;
+  ascent-override: 89.65%;
+  descent-override: 26.6%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 100.38%;
+  ascent-override: 87.47%;
+  descent-override: 20.92%;
+  line-gap-override: 0%;
+}
