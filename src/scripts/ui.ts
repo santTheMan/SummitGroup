@@ -165,6 +165,21 @@ function initInlineScenes() {
   });
 }
 
+/* Floating illustrations run only while their container is on screen
+   (they start paused in the HTML; the keyframes live in global.css). */
+function initFloating() {
+  $$('[data-floats]').forEach((el) =>
+    inView(
+      el,
+      () => {
+        el.removeAttribute('data-float-paused');
+        return () => el.setAttribute('data-float-paused', '');
+      },
+      { margin: '80px 0px' },
+    ),
+  );
+}
+
 /* FAQ rows */
 function initFaq() {
   $$<HTMLButtonElement>('[data-faq]').forEach((btn) => {
@@ -360,6 +375,7 @@ initSheet();
 initPanel();
 initStage();
 initInlineScenes();
+initFloating();
 initFaq();
 initHeatmap();
 initMerge();

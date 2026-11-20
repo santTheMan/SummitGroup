@@ -113,6 +113,22 @@ test.describe('SGI home page', () => {
     await expect(stage).toHaveAttribute('data-scene', '0');
   });
 
+  test('the illustrations float while on screen and rest off screen', async ({ page }) => {
+    const playing = (sel: string) =>
+      page.$eval(sel, (el) => el.getAnimations().some((a) => a.playState === 'running'));
+    const cards = page.locator('#who-we-work-with .cards');
+    await expect(cards).toHaveAttribute('data-float-paused', '');
+    expect(await playing('#who-we-work-with .tz.floating')).toBe(false);
+    await cards.scrollIntoViewIfNeeded();
+    await expect(cards).not.toHaveAttribute('data-float-paused', /.*/);
+    expect(await playing('#who-we-work-with .tz.floating')).toBe(true);
+    if (isDesktop(page)) {
+      await page.locator('#business-sales').scrollIntoViewIfNeeded();
+      await expect(page.locator('[data-stage]')).not.toHaveAttribute('data-float-paused', /.*/);
+      expect(await playing('[data-stage] .rep-card.floating')).toBe(true);
+    }
+  });
+
   test('marks previews noindex by default', async ({ page }) => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
   });
@@ -232,6 +248,14 @@ test.describe('reduced motion', () => {
     await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
     await expect(page.locator('[data-count]').first()).toHaveText('450+');
     await expect(page.locator('.dash [data-gauge]')).toHaveAttribute('aria-valuenow', '75');
+    // No floating: the illustrations hold still.
+    await page.locator('#who-we-work-with .cards').scrollIntoViewIfNeeded();
+    const moving = await page.$$eval('.floating', (els) =>
+      els.some((el) =>
+        el.getAnimations().some((a) => a.playState === 'running' && a.effect?.getTiming().iterations === Infinity),
+      ),
+    );
+    expect(moving).toBe(false);
   });
 });
 

@@ -7,6 +7,8 @@
  *     with the hours they share;
  *   partners: your organisation and SGI on one talent pipeline.
  * States are driven by src/scripts/motion.ts (entrances) and ui.ts (clock).
+ * Each illustration floats over a soft ground shadow, its inner pieces on
+ * their own timings (.floating in global.css).
  * Without JavaScript or with reduced motion every card shows its end state.
  */
 import iconColour from '../assets/brand/SGI-icon-colour.svg';
@@ -52,7 +54,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
       <h2 class="h2" id="aud-title">{audiences.heading}</h2>
     </div>
 
-    <ul class="cards">
+    <ul class="cards" data-floats data-float-paused>
       {
         audiences.groups.map((g, i) => (
           <li class:list={['card', i === 0 ? 'card--light' : 'card--dark on-dark']}>
@@ -70,7 +72,8 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
                     {v.suppliers.toggle.map((label) => <span>{label}</span>)}
                   </span>
                 </div>
-                <div class="merge-stage" aria-hidden="true">
+                <div class="float-unit merge-float">
+                <div class="merge-stage floating" aria-hidden="true" style="--f-amp:7px; --f-dur:6.4s">
                 <ul class="merge-before">
                   {v.suppliers.before.map((name, j) => (
                     <li class="row" style={`--shift:${(1 - j) * 60 + 12 + j * 9}px; --s:${0.95 - j * 0.04}; --o:${1 - j * 0.15}; --z:${3 - j}; --d:${j * 40}ms`}>
@@ -85,7 +88,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
                     </li>
                   ))}
                 </ul>
-                <div class="row merge-after">
+                <div class="row merge-after floating" style="--f-amp:4px; --f-dur:4.8s; --f-delay:-1.4s">
                   <span class="row-ic row-ic--sgi">
                     <img src={iconColour.src} width="22" height="11" alt="" />
                   </span>
@@ -99,11 +102,14 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
                   </span>
                 </div>
                 </div>
+                <span class="float-shadow" style="--f-dur:6.4s; --f-shadow-y:-1rem" />
+                </div>
               </div>
             )}
 
             {i === 1 && (
-              <div class="tz" data-tz data-on data-overlap-label={v.timezones.overlap} aria-hidden="true">
+              <div class="float-unit" style="--f-shadow: rgb(0 0 0 / 0.5)">
+              <div class="tz floating" data-tz data-on data-overlap-label={v.timezones.overlap} aria-hidden="true" style="--f-amp:8px; --f-dur:6.9s; --f-delay:-2.2s; --f-rot:-0.35deg">
                 <p class="tz-k">
                   <i class="tz-live" />
                   {v.timezones.label}
@@ -132,16 +138,19 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
                 ))}
                 <p class="tz-cap">{v.timezones.caption}</p>
               </div>
+              <span class="float-shadow" style="--f-dur:6.9s; --f-delay:-2.2s" />
+              </div>
             )}
 
             {i === 2 && (
-              <div class="pipe" data-pipe data-on aria-hidden="true">
+              <div class="float-unit" style="--f-shadow: rgb(0 0 0 / 0.5)">
+              <div class="pipe floating" data-pipe data-on aria-hidden="true" style="--f-amp:8px; --f-dur:7.3s; --f-delay:-4.1s; --f-rot:0.35deg">
                 <div class="pipe-orgs">
-                  <span class="org">{v.pipeline.partner}</span>
+                  <span class="org floating" style="--f-amp:3px; --f-dur:4.6s; --f-delay:-0.8s">{v.pipeline.partner}</span>
                   <svg class="pipe-link" viewBox="0 0 60 10" preserveAspectRatio="none">
                     <path d="M2 5h56" />
                   </svg>
-                  <span class="org org--sgi">
+                  <span class="org org--sgi floating" style="--f-amp:3px; --f-dur:5.1s; --f-delay:-2.9s">
                     <img src={iconReversed.src} width="20" height="10" alt="" />
                     SGI
                   </span>
@@ -162,6 +171,8 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
                     </li>
                   ))}
                 </ol>
+              </div>
+              <span class="float-shadow" style="--f-dur:7.3s; --f-delay:-4.1s" />
               </div>
             )}
 
@@ -334,8 +345,14 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     gap: 1.25rem;
   }
 
+  .merge-float {
+    display: block;
+    justify-items: stretch;
+  }
+
   .merge-stage {
     position: relative;
+    width: 100%;
     display: grid;
     place-items: center;
     min-height: 12.5rem;
@@ -449,6 +466,11 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
   }
 
   /* ---- 2. Live working hours ---- */
+  .tz,
+  .pipe {
+    width: 100%;
+  }
+
   .tz {
     display: flex;
     flex-direction: column;

@@ -23,7 +23,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     <div class="feat-grid">
       <div class="stage-col" aria-hidden="true">
-        <div class="stage" data-stage data-scene="0">
+        <div class="stage" data-stage data-scene="0" data-floats data-float-paused>
           {
             businesses.map((b, i) => (
               <div class="stage-layer" data-layer={i} data-on={i === 0 ? '' : undefined}>
@@ -47,7 +47,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
               data-on={i === 0 ? '' : undefined}
               style={`--c: var(--c-${b.id}); --ci: var(--c-${b.id}-ink)`}
             >
-              <div class:list={['feat-inline', i === 0 && 'feat-inline--deep']} aria-hidden="true" data-on>
+              <div class:list={['feat-inline', i === 0 && 'feat-inline--deep']} aria-hidden="true" data-on data-floats data-float-paused>
                 <Scene which={b.id} />
               </div>
               <p class="feat-n">{pad(i + 1)}</p>

@@ -3,6 +3,8 @@
  * One illustrated scene per business, shown in the sticky stage on wide
  * screens and inline above each business on small ones. Decorative: the
  * business copy beside it carries the content, so scenes are aria-hidden.
+ * Every scene floats: the main card levitates over a breathing ground shadow
+ * and the smaller pieces drift on their own timings (.floating in global.css).
  */
 import { illustrations } from '../content/site.ts';
 import Gauge from './Gauge.astro';
@@ -21,15 +23,16 @@ const maxBar = Math.max(...s.sales.chart);
   which === 'institute' && (
     <div class="scene scene-phone">
       <div class="bokeh" />
-      <span class="chip chip-a">
+      <span class="chip chip-a floating" style="--f-amp:7px; --f-dur:5.2s; --f-delay:-1s">
         <Icon name="check" size={14} />
         {s.institute.chips[0]}
       </span>
-      <span class="chip chip-b">
+      <span class="chip chip-b floating" style="--f-amp:9px; --f-dur:5.9s; --f-delay:-3.4s">
         <Icon name="check" size={14} />
         {s.institute.chips[1]}
       </span>
-      <div class="phone">
+      <div class="float-unit" style="--f-shadow: rgb(0 0 0 / 0.55); --f-shadow-y: -2.25rem">
+      <div class="phone floating" style="--f-amp:11px; --f-dur:6.6s; --f-rot:-0.6deg">
         <div class="phone-screen">
           <div class="phone-status">
             <span>9:41</span>
@@ -64,6 +67,8 @@ const maxBar = Math.max(...s.sales.chart);
           <span class="phone-btn">{s.institute.button}</span>
         </div>
       </div>
+      <span class="float-shadow" style="--f-dur:6.6s" />
+      </div>
     </div>
   )
 }
@@ -71,8 +76,9 @@ const maxBar = Math.max(...s.sales.chart);
 {
   which === 'sales' && (
     <div class="scene">
-      <div class="rep-card rep-back" />
-      <div class="rep-card">
+      <div class="rep-card rep-back floating" style="--f-amp:5px; --f-dur:7.6s; --f-delay:-2.6s; --f-rot:0.4deg" />
+      <div class="float-unit">
+      <div class="rep-card floating" style="--f-amp:9px; --f-dur:6.2s; --f-rot:-0.3deg">
         <div class="rep-head">
           <b>{s.sales.title}</b>
           <span class="pill">{s.sales.period}</span>
@@ -96,6 +102,8 @@ const maxBar = Math.max(...s.sales.chart);
           ))}
         </div>
       </div>
+      <span class="float-shadow" style="--f-dur:6.2s" />
+      </div>
     </div>
   )
 }
@@ -103,13 +111,14 @@ const maxBar = Math.max(...s.sales.chart);
 {
   which === 'pathways' && (
     <div class="scene">
-      <div class="setup-card">
+      <div class="float-unit">
+      <div class="setup-card floating" style="--f-amp:9px; --f-dur:6.4s; --f-delay:-1.2s; --f-rot:0.3deg">
         <div class="setup-head">
           <span>
             <small>{s.pathways.title}</small>
             <b>{s.pathways.role}</b>
           </span>
-          <span class="setup-btn">
+          <span class="setup-btn floating" style="--f-amp:3px; --f-dur:4.4s; --f-delay:-0.6s">
             {s.pathways.button}
             <Icon name="arrow" size={14} />
           </span>
@@ -133,6 +142,8 @@ const maxBar = Math.max(...s.sales.chart);
           </span>
           {s.pathways.steps.length - 1} {s.pathways.progress}
         </div>
+      </div>
+      <span class="float-shadow" style="--f-dur:6.4s; --f-delay:-1.2s" />
       </div>
     </div>
   )
@@ -314,22 +325,6 @@ const maxBar = Math.max(...s.sales.chart);
   .chip-b {
     right: 7%;
     bottom: 18%;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .chip {
-      animation: bob 5s ease-in-out infinite;
-    }
-
-    .chip-b {
-      animation-delay: -2.5s;
-    }
-  }
-
-  @keyframes bob {
-    50% {
-      transform: translateY(-8px);
-    }
   }
 
   /* Sales: report cards */
