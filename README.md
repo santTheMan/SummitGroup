@@ -24,7 +24,7 @@ This repository is the production code. It is **not deployed** yet: see
 | `npm run preview`       | Serve the production build locally                                    |
 | `npm run lint`          | ESLint (TypeScript and Astro files)                                   |
 | `npm run typecheck`     | `astro check` type and template diagnostics                           |
-| `npm test`              | Unit tests: funnel geometry, copy governance, release gate            |
+| `npm test`              | Unit tests: copy governance, release gate                             |
 | `npm run test:e2e`      | Builds, serves and runs Playwright on desktop, tablet and mobile      |
 | `npm run verify`        | All of the above in order                                             |
 | `npm run check:release` | Lists everything that must be resolved before publishing (exits 1)    |
@@ -37,7 +37,7 @@ Copy `.env.example` to `.env`. Every value is optional for local work.
 
 | Variable                | Purpose                                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `PUBLIC_BOOKING_URL`    | Approved destination for every "Book a conversation" button (`https:` or `mailto:`). Until set, buttons scroll to the closing section, which shows a pre-launch notice instead of a link. |
+| `PUBLIC_BOOKING_URL`    | Approved booking link for every "Book a conversation" button (`https:` or `mailto:`), for example a Calendly or HubSpot Meetings page. Until set, buttons scroll to the closing section, which shows a pre-launch notice. It may contain a `{needs}` placeholder (for example a Calendly prefill, `...?a1={needs}`): the closing section's button fills it with what the visitor picked ("Recruit, Manage"); every other button leaves it empty. |
 | `PUBLIC_SITE_URL`       | Production origin. Enables canonical and social-preview URLs.                                                            |
 | `PUBLIC_ALLOW_INDEXING` | `true` only for the approved launch build. Otherwise pages carry `noindex, nofollow`.                                    |
 
@@ -50,10 +50,14 @@ src/
   config/env.ts           Booking destination, origin and indexing switch
   lib/release.ts          Release gate used by check:release and the tests
   styles/                 Design tokens (brand palette, type scale), fonts, base styles
-  components/             Header, Hero, About, Businesses, HowWeWork, Audiences, Closing, Footer
-  scripts/funnel/         Hero motif: geometry.ts (pure maths), renderer.ts (canvas), index.ts (lifecycle)
-  scripts/header.ts       Scrolled header state and the small-screen menu
-  assets/brand/           SGI logo artwork (interim PNGs, see HANDOFF.md)
+  components/             Nav, Hero (+ BriefPanel, Gauge), Statement, Businesses (+ Scene), HowWeWork
+                          (+ Heatmap), Audiences, Faq, Closing, TalentNote, Footer, CtaButton, Icon
+  scripts/ui.ts           Header, businesses menu, small-screen sheet, brief panel, sticky stage, FAQ,
+                          heatmap, cards, booking picker, talent chooser, squircle fallback
+  scripts/motion.ts       All entrance and scroll motion (Motion), only without reduced motion
+  scripts/gauge.ts        The notched gauge sweep
+  lib/text.ts             Accent markup (*word*) and number splitting for the count-ups
+  assets/brand/           SGI logo artwork (Brand Pack v1.0 SVGs; favicons still interim)
 public/fonts/             WOFF2 brand fonts and their licences
 scripts/brand/            Rebuild fonts and favicons from the brand pack
 tests/unit, tests/e2e     Vitest and Playwright suites
@@ -71,34 +75,35 @@ superlatives, guarantees, jargon, unverified contact details).
 - Palette tokens are in `src/styles/tokens.css`: Navy, Paper and white lead; Electric is
   the action colour; Deep and Sky are small cues (business accents, highlights). `#164F8C`
   is logo artwork only and deliberately has no token.
-- The logo is the supplied artwork at its own aspect ratio, never recoloured.
-  `Logo.astro` refuses to render it narrower than 100px.
+- The logo is the supplied Brand Pack v1.0 artwork at its own aspect ratio, never recoloured
+  (colour lockup on the cream page, reversed icon on navy).
 - To install the final Brand Pack v1.0 files, follow the steps in
   `src/content/brand-assets.ts`, then rebuild fonts and favicons:
   `python3 scripts/brand/build-fonts.py "<pack>/04 Fonts"` and
   `python3 scripts/brand/build-icons.py <icon-colour> <icon-reversed>` (needs `pip install fonttools brotli pillow`).
 
-## The hero funnel
+## The page and its motion
 
-The hero motif shows SGI as the single source: fine filaments flare from a wide mouth,
-narrow to a waist behind **Book a conversation** (the one relationship), then resolve into
-three twisted branches that land on Summit Institute, Summit Sales and Summit Pathways.
-On first load the filaments flow down into the branches; afterwards the surface turns
-slowly, with a few travelling highlights and subtle pointer repulsion on desktop.
+The layout follows two templates Daniel chose (Kedhar's *Teal Treasury* and *Lilac Meadow*
+landings, MIT): Teal's cream paper, navy ink, sticky frosted nav, line-masked hero over a
+working panel, word-by-word statement, sticky feature stage, pointer-lit call to action and
+rising footer wordmark; Lilac's light-and-dark feature cards and two-column FAQ. The hero
+gauge is modelled on bklit's Gauge chart (notched arc, gradient sweep), rebuilt as plain
+SVG so the site needs no React or Tailwind.
 
-- **Positions come from the page.** The waist is the centre of the call to action and each
-  branch ends on its destination marker, so the motif stays aligned at every breakpoint.
-- **Decorative only.** The canvas is `aria-hidden` with `pointer-events: none`; every link
-  stays clickable (covered by an end-to-end test).
-- **Motion preferences.** `prefers-reduced-motion` and Save-Data get a still frame; no
-  JavaScript gets a soft CSS glow.
-- **Budget.** Strand segments are batched into eight brightness levels (eight strokes per
-  frame). Density tiers (high, medium, low) are chosen by screen size and device hints, and
-  the controller steps down if frames run slow. Phones run at 30 fps. Drawing pauses when the
-  hero is off-screen or the tab is hidden.
-- **Tuning.** Shape constants (`FLARE`, `TWIST_UPPER`, `TWIST_LOWER`, `BREATH`) and
-  `layoutFromAnchors` live in `geometry.ts`; densities, speed (`SPIN`) and brightness are in
-  `renderer.ts`. `hero.dataset.funnelState` reports `animating`, `static` or `paused`.
+- **Motion library.** [Motion](https://motion.dev) (`motion`, vanilla API): `animate`,
+  `scroll`, `inView`, `stagger` and `scopeMotion`. Scroll-linked effects use
+  `scroll(animate(...))`, which runs on the browser's ScrollTimeline where available.
+- **Reduced motion.** Everything in `motion.ts` lives in one `scopeMotion` that only runs
+  without a reduced-motion preference. The CSS pre-states (hidden headline words, panel) apply
+  only under `html[data-motion="on"]`, which the inline head script sets and withdraws if the
+  motion script has not started within three seconds. Without JavaScript the page renders in
+  its final state, gauges included.
+- **Interaction feel** follows Emil Kowalski's rules: custom ease-out curves, buttons scale to
+  0.97 on press, hover effects only on devices that hover, the businesses menu grows from its
+  trigger and closes faster than it opens, and nothing animates on keyboard actions.
+- **Illustrations.** The hero panel and the three business scenes are labelled
+  "Illustration"; their labels live in `illustrations` in `site.ts` and are not client data.
 
 ## Deployment
 

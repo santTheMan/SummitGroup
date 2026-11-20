@@ -1,0 +1,606 @@
+---
+/**
+ * The hero's working panel, in the place of Teal Treasury's dashboard: the
+ * client's view of an example brief, with SGI as their one point of contact.
+ * The work is shown by what SGI covers (Recruit, Develop, Manage), never by
+ * specialist business, so the panel never suggests more than one contact.
+ * Visitors can step through the stages and spotlight a part of the brief.
+ * All labels are illustrative (src/content/site.ts → illustrations).
+ * Behaviour: src/scripts/ui.ts (panel) and src/scripts/gauge.ts.
+ */
+import icon from '../assets/brand/SGI-icon-colour.svg';
+import { closing, illustrations } from '../content/site.ts';
+import Gauge from './Gauge.astro';
+import Icon from './Icon.astro';
+
+const p = illustrations.panel;
+const start = p.ranges.find((r) => r.id === p.defaultRange) ?? p.ranges[0]!;
+const pct = (ready: number) => Math.round((ready / p.teamSize) * 100);
+const streams = closing.needs;
+const labelOf = Object.fromEntries(streams.map((s) => [s.id, s.label]));
+/* Colour only: each part of the brief keeps a brand blue. */
+const tone = { recruit: 'pathways', develop: 'institute', manage: 'sales' } as const;
+---
+
+<div
+  class="dash"
+  data-panel
+  data-range={start.id}
+  data-team={p.teamSize}
+  data-ranges={JSON.stringify(p.ranges.map((r) => ({ id: r.id, value: pct(r.ready), ready: r.ready })))}
+>
+  <aside class="side" aria-label={p.streamsLabel}>
+    <div class="side-brand">
+      <img src={icon.src} width="22" height="11" alt="" />
+      {p.workspace}
+    </div>
+    {
+      p.nav.map((item, i) => (
+        <span class="side-item" data-on={i === 0 ? '' : undefined}>
+          {item}
+        </span>
+      ))
+    }
+    <p class="side-label">{p.streamsLabel}</p>
+    {
+      streams.map((s) => (
+        <button class="side-biz" type="button" aria-pressed="false" data-focus={s.id} style={`--c: var(--c-${tone[s.id]})`}>
+          <i />
+          <span>{s.label}</span>
+          <small>
+            {p.ranges.map((r) => (
+              <span data-r={r.id}>{p.status[s.id][r.id]}</span>
+            ))}
+          </small>
+        </button>
+      ))
+    }
+    <p class="side-foot">
+      <Icon name="contact" size={16} />
+      {p.footer}
+    </p>
+  </aside>
+
+  <div class="main">
+    <div class="crumbs">
+      <span>{p.crumbs[0]}</span>
+      <span aria-hidden="true">/</span>
+      <b>{p.crumbs[1]}</b>
+      <span class="live"><i></i>{illustrations.note}</span>
+    </div>
+
+    <div class="ov">
+      <div class="ov-brief">
+        <p class="k">{p.briefLabel}</p>
+        <p class="brief-title">{p.briefTitle}</p>
+        <p class="brief-meta">{p.teamSize} {p.teamLabel} · {p.contact} · <b>{p.speed}</b></p>
+        <div class="seg" role="group" aria-label={p.rangeLabel}>
+          {
+            p.ranges.map((r) => (
+              <button type="button" aria-pressed={r.id === start.id ? 'true' : 'false'} data-range-btn={r.id}>
+                {r.label}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+      <div class="ov-gauge">
+        <Gauge
+          value={pct(start.ready)}
+          label={p.gaugeLabel}
+          valueText={`${start.ready} of ${p.teamSize} ${p.teamLabel} ${p.gaugeLabel}`}
+          class="panel-gauge"
+          delay={1.1}
+        >
+          <b class="g-num"><span data-gauge-count data-max={p.teamSize}>{start.ready}</span><small>/{p.teamSize}</small></b>
+          <span class="g-label">{p.gaugeLabel}</span>
+        </Gauge>
+        <p class="g-cap">{p.gaugeCaption}</p>
+      </div>
+    </div>
+
+    <p class="sub">{p.streamsHeading}</p>
+    <div class="accs">
+      {
+        streams.map((s) => (
+          <button class="acc" type="button" aria-pressed="false" data-focus={s.id} style={`--c: var(--c-${tone[s.id]})`}>
+            <span class="acc-top">
+              <i />
+              {s.label}
+              <Icon name="arrow" size={14} class="acc-go" />
+            </span>
+            <span class="acc-status">
+              {p.ranges.map((r) => (
+                <span data-r={r.id}>{p.status[s.id][r.id]}</span>
+              ))}
+            </span>
+            <span class="acc-role">{s.detail}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="recent">
+      <p class="recent-head"><b>{p.activityHeading}</b></p>
+      <ul>
+        {
+          p.activity.map((row) => (
+            <li data-row-r={row.range} data-row-b={row.stream} style={`--c: var(--c-${tone[row.stream]})`}>
+              <span class="r-day">{row.time}</span>
+              <span class="r-text">{row.text}</span>
+              <span class="r-biz">
+                <i />
+                {labelOf[row.stream]}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dash {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    height: 35rem;
+    border-radius: 13px;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 0.8125rem;
+    text-align: left;
+  }
+
+  /* Side */
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 1rem 0.625rem;
+    background: color-mix(in srgb, var(--page) 70%, var(--paper));
+    border-right: 1px solid var(--rule);
+  }
+
+  .side-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2px 0.5rem 0.875rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.8125rem;
+  }
+
+  .side-brand img {
+    width: 22px;
+    height: auto;
+  }
+
+  .side-label {
+    padding: 0.75rem 0.5rem 0.375rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .side-item,
+  .side-biz {
+    display: flex;
+    align-items: center;
+    gap: 0.5625rem;
+    width: 100%;
+    padding: 0.4375rem 0.5rem;
+    border-radius: 7px;
+    text-align: left;
+    color: var(--muted);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .side-item[data-on],
+  .side-biz[aria-pressed='true'] {
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow:
+      0 1px 2px rgb(7 27 52 / 0.08),
+      0 0 0 1px var(--rule);
+  }
+
+  .side-biz i,
+  .acc-top i,
+  .r-biz i {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+    flex: none;
+    background: var(--c);
+  }
+
+  .side-biz span {
+    flex: 1;
+  }
+
+  .side-biz small {
+    font-size: 0.7rem;
+  }
+
+  .side-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding: 0.4375rem 0.5rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .side-biz:hover {
+      background: color-mix(in srgb, var(--ink) 5%, transparent);
+      color: var(--ink);
+    }
+
+    .acc:hover {
+      translate: 0 -2px;
+      border-color: color-mix(in srgb, var(--ink) 25%, transparent);
+      box-shadow: 0 14px 26px -18px rgb(7 27 52 / 0.4);
+    }
+
+    .acc:hover :global(.acc-go) {
+      opacity: 1;
+      transform: none;
+    }
+
+    .seg button:hover {
+      color: var(--ink);
+    }
+  }
+
+  /* Main */
+  .main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 1.125rem 1.625rem;
+    overflow: hidden;
+  }
+
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .crumbs b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-left: auto;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sgi-electric) 9%, transparent);
+    color: var(--accent-text);
+    font-size: 0.6875rem;
+  }
+
+  .live i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .ov {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 11.5rem;
+    gap: 1.5rem;
+    align-items: center;
+    padding-top: 1rem;
+  }
+
+  .ov-brief .k {
+    margin-bottom: 0.25rem;
+  }
+
+  .brief-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 1rem + 1.3vw, 2rem);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .brief-meta {
+    margin-top: 0.375rem;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .brief-meta b {
+    font-weight: 500;
+    color: var(--accent-text);
+  }
+
+  .seg {
+    display: inline-flex;
+    margin-top: 1rem;
+    padding: 3px;
+    border-radius: 9px;
+    background: var(--page);
+    border: 1px solid var(--rule);
+  }
+
+  .seg button {
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    transition:
+      background-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .seg button[aria-pressed='true'] {
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgb(7 27 52 / 0.12);
+  }
+
+  .ov-gauge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .g-num {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .g-num small {
+    font-size: 0.95rem;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+
+  .g-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .g-cap {
+    margin-top: 0.25rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .sub {
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .accs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.625rem;
+    margin-top: 0.5rem;
+  }
+
+  .acc {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    text-align: left;
+    transition:
+      translate 200ms var(--ease-out),
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      opacity 200ms ease;
+  }
+
+  .acc:active {
+    scale: 0.98;
+  }
+
+  .acc[aria-pressed='true'] {
+    border-color: var(--sgi-electric);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--sgi-electric) 16%, transparent);
+  }
+
+  .dash[data-spot] .acc[aria-pressed='false'] {
+    opacity: 0.5;
+  }
+
+  .acc-top {
+    display: flex;
+    align-items: center;
+    gap: 0.4375rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .acc-top :global(.acc-go) {
+    margin-left: auto;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 150ms ease,
+      transform 150ms var(--ease-out);
+  }
+
+  .acc-status {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+  }
+
+  .acc-role {
+    font-size: 0.6875rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Stage-dependent labels: only the current stage's text is rendered. */
+  [data-r] {
+    display: none;
+  }
+
+  .dash[data-range='brief'] [data-r='brief'],
+  .dash[data-range='shortlist'] [data-r='shortlist'],
+  .dash[data-range='placed'] [data-r='placed'] {
+    display: inline;
+  }
+
+  .recent {
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  .recent-head {
+    padding-bottom: 0.375rem;
+    font-size: 0.78rem;
+  }
+
+  .recent-head b {
+    font-weight: 500;
+  }
+
+  .recent li {
+    display: none;
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.4375rem 0;
+    border-top: 1px solid var(--rule);
+    font-size: 0.75rem;
+  }
+
+  .dash[data-range='brief'] li[data-row-r='brief'],
+  .dash[data-range='shortlist'] li[data-row-r='shortlist'],
+  .dash[data-range='placed'] li[data-row-r='placed'] {
+    display: grid;
+    animation: row-in 300ms var(--ease-out) both;
+  }
+
+  .recent li:nth-child(3n + 2) {
+    animation-delay: 40ms;
+  }
+
+  .recent li:nth-child(3n) {
+    animation-delay: 70ms;
+  }
+
+  .dash[data-spot='recruit'] li:not([data-row-b='recruit']),
+  .dash[data-spot='develop'] li:not([data-row-b='develop']),
+  .dash[data-spot='manage'] li:not([data-row-b='manage']) {
+    opacity: 0.35;
+  }
+
+  @keyframes row-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  .r-day {
+    color: var(--muted);
+  }
+
+  .r-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .r-biz {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 0.6875rem;
+  }
+
+  @media (max-width: 45rem) {
+    .dash {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+
+    .side {
+      display: none;
+    }
+
+    .main {
+      padding: 0.875rem;
+    }
+
+    .ov {
+      grid-template-columns: minmax(0, 1fr) 7.5rem;
+      gap: 0.75rem;
+    }
+
+    .g-num {
+      font-size: 1.4rem;
+    }
+
+    .g-cap {
+      display: none;
+    }
+
+    .accs {
+      grid-template-columns: 1fr;
+    }
+
+    .acc {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 2px 0.75rem;
+    }
+
+    .acc-top {
+      flex: 1;
+    }
+
+    .acc-role {
+      width: 100%;
+    }
+
+    .recent li {
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+    }
+
+    .r-biz {
+      display: none;
+    }
+  }
+</style>

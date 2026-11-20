@@ -1,24 +1,33 @@
 ---
-import About from '../components/About.astro';
 import Audiences from '../components/Audiences.astro';
 import Businesses from '../components/Businesses.astro';
 import Closing from '../components/Closing.astro';
+import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
-import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import HowWeWork from '../components/HowWeWork.astro';
+import Nav from '../components/Nav.astro';
+import Statement from '../components/Statement.astro';
+import TalentNote from '../components/TalentNote.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout>
-  <Header />
+  <Nav />
   <main id="main" tabindex="-1">
     <Hero />
-    <About />
+    <Statement />
     <Businesses />
     <HowWeWork />
     <Audiences />
+    <Faq />
     <Closing />
+    <TalentNote />
   </main>
   <Footer />
 </BaseLayout>
+
+<script>
+  import '../scripts/ui.ts';
+  import '../scripts/motion.ts';
+</script>

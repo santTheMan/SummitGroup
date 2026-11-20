@@ -1,10 +1,9 @@
 /*
- * SGI design tokens.
- * Palette: SGI Brand Pack (Navy = SGI, Deep = Summit Institute,
- * Electric = Summit Sales and the primary action, Sky = Summit Pathways and
- * highlights, Paper = base). Lead with Navy, Paper and white; Electric carries
- * the action; Deep and Sky are small, purposeful cues only.
- * #164F8C is logo-artwork only and is deliberately not a token.
+ * SGI design tokens, laid out on the Teal Treasury template:
+ * warm cream page, white paper, navy ink, one blue accent, a soft sky
+ * secondary and warm glows. Brand blues: Navy (SGI), Deep (Institute),
+ * Electric (Sales, accent text), Sky (Pathways, highlights).
+ * Contrast ratios are against --page (#F5F4EE) unless noted.
  */
 :root {
   /* Brand palette */
@@ -12,62 +11,74 @@
   --sgi-deep: #0c3b66;
   --sgi-electric: #2264d2;
   --sgi-sky: #70bfff;
-  --sgi-paper: #f3f8ff;
-  --sgi-white: #ffffff;
 
-  /* Surfaces and text (contrast ratios against their surface noted) */
-  --surface-dark: var(--sgi-navy);
-  --surface-light: var(--sgi-paper);
-  --text-on-dark: var(--sgi-white); /* 17.3:1 on Navy */
-  --text-on-dark-muted: rgb(243 248 255 / 0.76); /* 9.7:1 on Navy */
-  --text-on-light: var(--sgi-navy); /* 16.2:1 on Paper */
-  --text-on-light-muted: rgb(7 27 52 / 0.74); /* 7.2:1 on Paper, 7.5:1 on white */
-  --accent-on-light: var(--sgi-electric); /* 5.15:1 on Paper, 5.5:1 on white */
-  --accent-on-dark: var(--sgi-sky); /* 8.7:1 on Navy */
-  --hairline-on-dark: rgb(243 248 255 / 0.14);
-  --hairline-on-light: rgb(7 27 52 / 0.12);
+  /* Surfaces */
+  --page: #f5f4ee;
+  --page-2: #ecebe3;
+  --paper: #ffffff;
+  --rule: #e2e0d6;
 
-  /* Action */
-  --action: var(--sgi-electric); /* white text on Electric: 5.5:1 (6.5:1 on hover) */
-  --action-hover: color-mix(in srgb, var(--sgi-electric) 86%, var(--sgi-navy));
-  --focus-on-dark: var(--sgi-sky);
-  --focus-on-light: var(--sgi-electric);
+  /* Ink */
+  --ink: var(--sgi-navy); /* 16.1:1 */
+  --muted: #5b6472; /* 5.5:1 */
+  --accent-text: var(--sgi-electric); /* 4.9:1 */
 
-  /* Business accents */
-  --accent-institute: var(--sgi-deep);
-  --accent-sales: var(--sgi-electric);
-  --accent-pathways: var(--sgi-sky);
+  /* Dark surfaces */
+  --deep: var(--sgi-navy);
+  --deep-2: #0b2546;
+  --deep-ink: #eef3f9; /* 16.3:1 on navy */
+  --deep-muted: #9fb1c8; /* 8.0:1 on navy */
+  --deep-rule: rgb(238 243 249 / 0.12);
 
-  /* Typography: Space Grotesk for headlines and numbers, Archivo for body and UI */
+  /* Soft secondary (the template's lilac, in sky) */
+  --soft: #d9ebfd;
+  --soft-ink: var(--sgi-navy);
+
+  /* Action: Electric, the brand's action colour. White text 5.5:1, 6.8:1 on hover. */
+  --action: var(--sgi-electric);
+  --action-hover: #1b55b8;
+  --action-ink: #ffffff;
+
+  /* Business colours */
+  --c-institute: var(--sgi-deep);
+  --c-sales: var(--sgi-electric);
+  --c-pathways: var(--sgi-sky);
+  /* Text and icon shades on light surfaces (Sky is too pale for ink) */
+  --c-institute-ink: var(--sgi-deep);
+  --c-sales-ink: var(--sgi-electric);
+  --c-pathways-ink: #1b64a8;
+
+  /* Glows for the hero and the call to action */
+  --glow-a: #c3defb;
+  --glow-b: #f1d3c2;
+  --glow-c: #f7e6d7;
+
+  /* Gauge */
+  --gauge-off: #e4e2d9;
+  --gauge-off-deep: rgb(238 243 249 / 0.12);
+
+  /* Type */
   --font-display: 'Space Grotesk', 'Space Grotesk Fallback', ui-sans-serif, system-ui, sans-serif;
   --font-body: 'Archivo', 'Archivo Fallback', ui-sans-serif, system-ui, sans-serif;
 
-  --text-xs: 0.8125rem;
-  --text-sm: 0.9375rem;
-  --text-base: 1.0625rem;
-  --text-lg: clamp(1.125rem, 1.06rem + 0.3vw, 1.3125rem);
-  --text-h3: clamp(1.25rem, 1.15rem + 0.45vw, 1.5rem);
-  --text-h2: clamp(1.875rem, 1.35rem + 2.1vw, 3rem);
-  --text-hero: clamp(1.875rem, 1.05rem + 3.9vw, 4rem);
-  --text-stat: clamp(2.75rem, 1.9rem + 3.4vw, 4.5rem);
+  --t-h1: clamp(2.5rem, 1.4rem + 3.6vw, 4.25rem);
+  --t-h2: clamp(1.875rem, 1.2rem + 2.6vw, 3.25rem);
+  --t-h3: 1.125rem;
+  --t-statement: clamp(1.375rem, 1rem + 1.4vw, 2rem);
+  --t-stat: clamp(2.5rem, 1.6rem + 3.2vw, 3.75rem);
+  --t-body: 0.9375rem;
+  --t-small: 0.8125rem;
+  --t-k: 0.6875rem;
 
-  /* Space and layout */
-  --gutter: clamp(1rem, 0.6rem + 2vw, 2.5rem);
-  --container: 72rem;
-  --section-space: clamp(4.5rem, 3rem + 6vw, 8.5rem);
-  --header-height: 4rem;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  /* Layout */
+  --wrap: 75rem;
+  --gutter: 1.5rem;
+  --nav-h: 4rem;
+  --sec: clamp(5.25rem, 3.5rem + 5vw, 7.5rem);
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-fast: 160ms;
-  --duration-base: 260ms;
-}
-
-@media (min-width: 60em) {
-  :root {
-    --header-height: 4.5rem;
-  }
+  /* Motion (Emil's curves; durations stay short for UI) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --press: 160ms;
 }

@@ -1,74 +1,556 @@
 ---
 /**
- * Closing call to action. The button only renders once an approved booking
- * destination is configured (PUBLIC_BOOKING_URL). Until then a clearly
- * marked pre-launch notice is shown instead of an invented link.
+ * Start with a conversation: one optional question and one action.
+ * Visitors can tap what they need (Recruit, Develop, Manage); the card beside
+ * it keeps SGI as their single point of contact and turns the picks into
+ * their brief. Specialist businesses are never shown here: the client deals
+ * with SGI only. The only action is the booking link; when it carries a
+ * {needs} placeholder the picks are passed into the booking form.
+ *
+ * Teal Treasury's warm glow card is kept: glows follow the pointer and the card
+ * settles as it scrolls in (src/scripts/motion.ts). Picker: src/scripts/ui.ts.
  */
-import CtaButton from './CtaButton.astro';
+import icon from '../assets/brand/SGI-icon-colour.svg';
 import { bookingUrl } from '../config/env.ts';
 import { closing } from '../content/site.ts';
+import CtaButton from './CtaButton.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  /** On the Contact page this section opens the page, so its heading is the h1. */
+  headingLevel?: 'h1' | 'h2';
+}
+
+const { headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
+
+const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' } as const;
 ---
 
-<section class="section section--dark closing on-dark" id="book" aria-labelledby="book-title">
-  <div class="container closing__inner">
-    <p class="eyebrow">{closing.eyebrow}</p>
-    <h2 class="closing__title" id="book-title">{closing.heading}</h2>
-    <p class="closing__body">{closing.body}</p>
-    <div class="closing__action">
-      {
-        bookingUrl ? (
-          <CtaButton size="large" />
-        ) : (
-          <p class="closing__pending" role="note" data-booking-pending>
-            {closing.pendingNotice}
+<section class="cta-sec" id="book" aria-labelledby="book-title">
+  <div class="wrap">
+    <div class="cta-card" data-cta-card>
+      <span class="blob blob-a" data-blob aria-hidden="true"></span>
+      <span class="blob blob-b" data-blob aria-hidden="true"></span>
+      <span class="blob blob-c" data-blob aria-hidden="true"></span>
+      <span class="grain" aria-hidden="true"></span>
+
+      <div
+        class="cta-grid"
+        data-convo
+        data-on=""
+        data-summary={closing.call.summary}
+        data-summary-empty={closing.call.summaryEmpty}
+      >
+        <div class="cta-in">
+          <Heading class="h2 book-title" id="book-title">{closing.heading}</Heading>
+          <p class="cta-body">{closing.body}</p>
+
+          <div class="needs">
+            <p class="needs-k" id="needs-label">
+              {closing.needsLabel} <span>{closing.needsHint}</span>
+            </p>
+            <div class="chips" role="group" aria-labelledby="needs-label">
+              {
+                closing.needs.map((n) => (
+                  <button class="chip" type="button" aria-pressed="false" data-need={n.id}>
+                    <Icon name={needIcons[n.id]} size={16} class="chip-ic" />
+                    {n.label}
+                    <Icon name="check" size={14} class="chip-tick" />
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="cta-action">
+            <CtaButton size="large" withNeeds />
+            <ol class="steps">
+              {
+                closing.steps.map((step, i) => (
+                  <li>
+                    <span>{i + 1}</span>
+                    {step}
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+          {!bookingUrl && <p class="pending" role="note" data-booking-pending>{closing.pendingNotice}</p>}
+          <p class="visually-hidden" aria-live="polite" data-convo-summary>{closing.call.summaryEmpty}</p>
+        </div>
+
+        <div class="call" aria-hidden="true">
+          <div class="call-head">
+            <span class="call-ic">
+              <img src={icon.src} width="24" height="12" alt="" />
+            </span>
+            <span class="call-who">
+              <small>{closing.call.label}</small>
+              <b>{closing.call.lead}</b>
+            </span>
+            <span class="call-one">
+              <Icon name="contact" size={14} />1
+            </span>
+          </div>
+          <p class="call-k">{closing.call.brief}</p>
+          <ul class="call-rows">
+            {
+              closing.needs.map((n) => (
+                <li class="call-row" data-need-row={n.id}>
+                  <span class="row-ic">
+                    <Icon name={needIcons[n.id]} size={16} />
+                  </span>
+                  <span class="row-txt">
+                    <b>{n.label}</b>
+                    <small>{n.detail}</small>
+                  </span>
+                  <span class="row-tick">
+                    <Icon name="check" size={12} />
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="call-empty">{closing.call.empty}</p>
+          <p class="call-note">
+            <Icon name="contact" size={14} />
+            {closing.call.note}
           </p>
-        )
-      }
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  .closing {
+  .cta-sec {
+    padding-block: 2.5rem;
+  }
+
+  .cta-card {
     position: relative;
     overflow: hidden;
-    text-align: center;
-    background:
-      radial-gradient(ellipse 45% 55% at 50% 100%, rgb(34 100 210 / 0.2), transparent 72%),
-      var(--sgi-navy);
-    border-top: 1px solid var(--hairline-on-dark);
+    border-radius: 12px;
+    background: linear-gradient(120deg, var(--glow-a), var(--glow-b) 55%, var(--glow-c));
+    transform-origin: 50% 100%;
+    isolation: isolate;
   }
 
-  .closing__inner {
+  .blob {
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  .blob-a {
+    width: 32rem;
+    height: 32rem;
+    left: -7.5rem;
+    top: -11rem;
+    background: var(--glow-a);
+  }
+
+  .blob-b {
+    width: 29rem;
+    height: 29rem;
+    right: -5rem;
+    bottom: -12.5rem;
+    background: var(--glow-b);
+  }
+
+  .blob-c {
+    width: 19rem;
+    height: 19rem;
+    right: 28%;
+    top: -5.5rem;
+    background: rgb(255 255 255 / 0.55);
+  }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.35;
+    mix-blend-mode: soft-light;
+    background-image:
+      repeating-radial-gradient(circle at 17% 32%, rgb(0 0 0 / 0.18) 0 1px, transparent 1px 3px),
+      repeating-radial-gradient(circle at 73% 61%, rgb(255 255 255 / 0.3) 0 1px, transparent 1px 4px);
+    pointer-events: none;
+  }
+
+  .cta-grid {
     display: grid;
-    justify-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
+    align-items: center;
+    gap: 3rem;
+    padding: 3rem;
   }
 
-  .closing__title {
-    margin-top: 0.85rem;
-    font-size: clamp(2.125rem, 1.4rem + 3vw, 3.75rem);
-    line-height: 1.05;
-    letter-spacing: -0.025em;
-    color: var(--sgi-white);
+  .cta-in {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
-  .closing__body {
-    max-width: 32rem;
-    margin-top: 1.25rem;
-    font-size: var(--text-lg);
-    color: var(--text-on-dark-muted);
+  .cta-body {
+    max-width: 27rem;
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
   }
 
-  .closing__action {
-    margin-top: 2.25rem;
+  /* ---- Needs picker ---- */
+  .needs {
+    margin-top: 0.5rem;
   }
 
-  .closing__pending {
+  .needs-k {
+    margin-bottom: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .needs-k span {
+    font-weight: 400;
+    color: color-mix(in srgb, var(--ink) 62%, transparent);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.625rem;
+    padding: 0 1rem;
+    border-radius: 13px;
+    corner-shape: squircle;
+    background: rgb(255 255 255 / 0.6);
+    border: 1px solid rgb(255 255 255 / 0.85);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--ink);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition:
+      transform var(--press) var(--ease-out),
+      background-color 180ms ease,
+      color 180ms ease,
+      border-color 180ms ease;
+  }
+
+  @supports (corner-shape: squircle) {
+    .chip {
+      border-radius: 17px;
+    }
+  }
+
+  .chip:active {
+    transform: scale(0.97);
+  }
+
+  .chip :global(.chip-ic) {
+    color: var(--muted);
+    transition: color 180ms ease;
+  }
+
+  .chip :global(.chip-tick) {
+    display: none;
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+
+  .chip[aria-pressed='true'] :global(.chip-ic) {
+    color: var(--sgi-sky);
+  }
+
+  .chip[aria-pressed='true'] :global(.chip-tick) {
+    display: block;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .chip[aria-pressed='false']:hover {
+      background: rgb(255 255 255 / 0.85);
+    }
+  }
+
+  /* ---- Action ---- */
+  .cta-action {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem 1rem;
+    font-size: 0.78rem;
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
+  }
+
+  .steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .steps li span {
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 7px;
+    corner-shape: squircle;
+    background: rgb(255 255 255 / 0.7);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .pending {
     max-width: 30rem;
-    padding: 0.9rem 1.25rem;
-    font-size: var(--text-sm);
-    color: var(--text-on-dark-muted);
-    border: 1px dashed rgb(112 191 255 / 0.55);
-    border-radius: var(--radius-md);
+    font-size: 0.72rem;
+    color: color-mix(in srgb, var(--ink) 66%, transparent);
+  }
+
+  /* ---- Your conversation card ---- */
+  .call {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 1.25rem;
+    border-radius: 20px;
+    corner-shape: squircle;
+    background: rgb(255 255 255 / 0.82);
+    border: 1px solid rgb(255 255 255 / 0.9);
+    box-shadow: 0 30px 60px -36px rgb(7 27 52 / 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+
+  .call-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .call-ic {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+    corner-shape: squircle;
+    background: color-mix(in srgb, var(--sgi-sky) 18%, var(--paper));
+  }
+
+  .call-ic img {
+    width: 22px;
+    height: auto;
+  }
+
+  .call-who {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .call-who small {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .call-who b {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  /* "1" contact marker: the single point of contact, stated once */
+  .call-one {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: none;
+    height: 1.5rem;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sgi-electric) 10%, transparent);
+    color: var(--accent-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .call-k {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .call-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .call-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 12px;
+    border: 1px dashed var(--rule);
+    opacity: 0.45;
+    transition:
+      opacity 200ms ease,
+      border-color 200ms ease,
+      background-color 200ms ease,
+      transform 250ms var(--ease-out);
+  }
+
+  .row-ic {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9px;
+    background: var(--page);
+    color: var(--muted);
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  .row-txt {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .row-txt b {
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+
+  .row-txt small {
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .row-tick {
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--rule);
+    color: transparent;
+    transition:
+      background-color 200ms ease,
+      border-color 200ms ease,
+      color 200ms ease;
+  }
+
+  /* Picked needs join the brief */
+  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'],
+  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'],
+  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] {
+    opacity: 1;
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--sgi-electric) 30%, var(--rule));
+    background: var(--paper);
+    transform: translateX(2px);
+  }
+
+  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-ic,
+  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'] .row-ic,
+  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-ic {
+    background: color-mix(in srgb, var(--sgi-electric) 12%, var(--paper));
+    color: var(--accent-text);
+  }
+
+  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-tick,
+  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'] .row-tick,
+  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-tick {
+    background: var(--sgi-electric);
+    border-color: var(--sgi-electric);
+    color: #fff;
+  }
+
+  .call-empty {
+    margin-top: 0.875rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .cta-grid:not([data-on='']) .call-empty {
+    visibility: hidden;
+  }
+
+  .call-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .call-note :global(svg) {
+    flex: none;
+    margin-top: 1px;
+    color: var(--accent-text);
+  }
+
+  @media (max-width: 56.25rem) {
+    .cta-grid {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+  }
+
+  @media (max-width: 45rem) {
+    .cta-grid {
+      padding: 1.5rem;
+    }
+
+    .call-one {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .call-row,
+    .row-ic,
+    .row-tick,
+    .chip {
+      transition: none;
+    }
   }
 </style>

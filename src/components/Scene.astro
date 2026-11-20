@@ -1,0 +1,602 @@
+---
+/**
+ * One illustrated scene per business, shown in the sticky stage on wide
+ * screens and inline above each business on small ones. Decorative: the
+ * business copy beside it carries the content, so scenes are aria-hidden.
+ */
+import { illustrations } from '../content/site.ts';
+import Gauge from './Gauge.astro';
+import Icon from './Icon.astro';
+
+interface Props {
+  which: 'institute' | 'sales' | 'pathways';
+}
+
+const { which } = Astro.props;
+const s = illustrations.scenes;
+const maxBar = Math.max(...s.sales.chart);
+---
+
+{
+  which === 'institute' && (
+    <div class="scene scene-phone">
+      <div class="bokeh" />
+      <span class="chip chip-a">
+        <Icon name="check" size={14} />
+        {s.institute.chips[0]}
+      </span>
+      <span class="chip chip-b">
+        <Icon name="check" size={14} />
+        {s.institute.chips[1]}
+      </span>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-status">
+            <span>9:41</span>
+            <i />
+          </div>
+          <p class="phone-title">{s.institute.title}</p>
+          <p class="phone-k">{s.institute.label}</p>
+          <div class="phone-gauge">
+            <Gauge
+              value={67}
+              notches={28}
+              label={s.institute.gaugeLabel}
+              valueText={s.institute.gaugeLabel}
+              tone="dark"
+              gradient={['#2264d2', '#70bfff']}
+            >
+              <b class="pg-num">4<small>/6</small></b>
+            </Gauge>
+            <p class="pg-label">{s.institute.gaugeLabel}</p>
+          </div>
+          <div class="phone-card">
+            <span>{s.institute.next.label}</span>
+            <b>{s.institute.next.text}</b>
+          </div>
+          <div class="phone-card">
+            <span>{s.institute.assessment.label}</span>
+            <b class="ok">
+              <Icon name="check" size={14} />
+              {s.institute.assessment.text}
+            </b>
+          </div>
+          <span class="phone-btn">{s.institute.button}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+{
+  which === 'sales' && (
+    <div class="scene">
+      <div class="rep-card rep-back" />
+      <div class="rep-card">
+        <div class="rep-head">
+          <b>{s.sales.title}</b>
+          <span class="pill">{s.sales.period}</span>
+        </div>
+        <p class="rep-total">{s.sales.total}</p>
+        <div class="rep-row">
+          {s.sales.stats.map((stat, i) => (
+            <div>
+              <span>
+                <i style={`background: var(--c-${['institute', 'sales', 'pathways'][i]})`} />
+                {stat.label}
+              </span>
+              <b>{stat.value}</b>
+            </div>
+          ))}
+        </div>
+        <p class="rep-k">{s.sales.chartLabel}</p>
+        <div class="bars">
+          {s.sales.chart.map((v, i) => (
+            <span style={`--h:${(v / maxBar) * 100}%; --d:${i * 50}ms`} data-last={i === s.sales.chart.length - 1 ? '' : undefined} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+{
+  which === 'pathways' && (
+    <div class="scene">
+      <div class="setup-card">
+        <div class="setup-head">
+          <span>
+            <small>{s.pathways.title}</small>
+            <b>{s.pathways.role}</b>
+          </span>
+          <span class="setup-btn">
+            {s.pathways.button}
+            <Icon name="arrow" size={14} />
+          </span>
+        </div>
+        <ul class="setup-list">
+          {s.pathways.steps.map((step, i) => (
+            <li data-last={i === s.pathways.steps.length - 1 ? '' : undefined} style={`--d:${200 + i * 260}ms`}>
+              <span class="setup-ic">
+                <Icon name={(['pathways', 'people', 'badge', 'contact'] as const)[i] ?? 'check'} size={16} />
+              </span>
+              {step}
+              <span class="tick">
+                <Icon name="check" size={13} />
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div class="setup-foot">
+          <span class="meter">
+            <i />
+          </span>
+          {s.pathways.steps.length - 1} {s.pathways.progress}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+<style>
+  .scene {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1.75rem;
+  }
+
+  /* Institute: phone on navy */
+  .scene-phone {
+    overflow: hidden;
+    color: var(--deep-ink);
+  }
+
+  .bokeh {
+    position: absolute;
+    inset: -20%;
+    background:
+      radial-gradient(circle at 18% 30%, color-mix(in srgb, var(--sgi-electric) 55%, transparent) 0, transparent 18%),
+      radial-gradient(circle at 82% 22%, color-mix(in srgb, var(--sgi-sky) 40%, transparent) 0, transparent 14%),
+      radial-gradient(circle at 70% 80%, color-mix(in srgb, var(--sgi-electric) 35%, transparent) 0, transparent 20%),
+      radial-gradient(circle at 30% 85%, rgb(255 255 255 / 0.1) 0, transparent 10%);
+    filter: blur(18px);
+  }
+
+  .phone {
+    position: relative;
+    width: 13.25rem;
+    height: 26.25rem;
+    padding: 9px;
+    border-radius: 38px;
+    background: linear-gradient(150deg, #23354f, #050c17 60%);
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.08) inset,
+      0 40px 70px -20px rgb(0 0 0 / 0.65);
+    transform: perspective(1100px) rotateY(-14deg) rotateX(6deg) rotateZ(4deg);
+    transition: transform 900ms var(--ease-out);
+  }
+
+  :global([data-on]) > .scene-phone .phone,
+  :global(.feat-inline) .phone {
+    transform: perspective(1100px) rotateY(-8deg) rotateX(4deg) rotateZ(2deg);
+  }
+
+  .phone-screen {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    height: 100%;
+    padding: 1rem 0.875rem;
+    border-radius: 30px;
+    overflow: hidden;
+    background: linear-gradient(180deg, #04101f, var(--deep));
+  }
+
+  .phone-status {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+    font-size: 0.625rem;
+    opacity: 0.8;
+  }
+
+  .phone-status i {
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    width: 46px;
+    height: 14px;
+    border-radius: 999px;
+    background: #000;
+    transform: translateX(-50%);
+  }
+
+  .phone-title {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .phone-k {
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--deep-muted);
+  }
+
+  .phone-gauge {
+    width: 8.5rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .pg-num {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+
+  .pg-num small {
+    font-size: 0.8rem;
+    color: var(--deep-muted);
+  }
+
+  .pg-label {
+    margin-top: -0.5rem;
+    font-size: 0.65rem;
+    color: var(--deep-muted);
+  }
+
+  .phone-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.625rem;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 0.07);
+    font-size: 0.66rem;
+    color: var(--deep-muted);
+  }
+
+  .phone-card b {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: var(--deep-ink);
+  }
+
+  .phone-card .ok {
+    color: var(--sgi-sky);
+  }
+
+  .phone-btn {
+    margin-top: auto;
+    padding: 0.6875rem;
+    border-radius: 12px;
+    background: var(--sgi-electric);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .chip {
+    position: absolute;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    font-size: 0.72rem;
+    color: var(--deep-ink);
+  }
+
+  .chip :global(svg) {
+    color: var(--sgi-sky);
+  }
+
+  .chip-a {
+    left: 7%;
+    top: 14%;
+  }
+
+  .chip-b {
+    right: 7%;
+    bottom: 18%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .chip {
+      animation: bob 5s ease-in-out infinite;
+    }
+
+    .chip-b {
+      animation-delay: -2.5s;
+    }
+  }
+
+  @keyframes bob {
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  /* Sales: report cards */
+  .rep-card {
+    position: relative;
+    z-index: 1;
+    width: min(26rem, 100%);
+    padding: 1.125rem;
+    border-radius: 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    box-shadow: 0 30px 60px -36px rgb(7 27 52 / 0.4);
+  }
+
+  .rep-back {
+    position: absolute;
+    z-index: 0;
+    width: min(26rem, 80%);
+    height: 17.5rem;
+    opacity: 0.6;
+    box-shadow: none;
+    transform: translate(46px, -34px) rotate(3deg);
+    transition: transform 700ms var(--ease-out);
+  }
+
+  :global(:not([data-on])) > .scene .rep-back {
+    transform: none;
+  }
+
+  .rep-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.875rem;
+  }
+
+  .rep-head b {
+    font-weight: 500;
+  }
+
+  .pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 0.6875rem;
+  }
+
+  .rep-total {
+    margin: 2px 0 0.875rem;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    letter-spacing: -0.03em;
+  }
+
+  .rep-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .rep-row div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    font-size: 0.6875rem;
+    color: var(--muted);
+  }
+
+  .rep-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .rep-row i {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-radius: 2px;
+  }
+
+  .rep-row b {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rep-k {
+    font-size: 0.6875rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 5.5rem;
+    padding-bottom: 1px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .bars span {
+    flex: 1;
+    height: var(--h);
+    border-radius: 4px 4px 1px 1px;
+    background: color-mix(in srgb, var(--sgi-electric) 22%, var(--paper));
+    transform-origin: bottom;
+    transition: transform 500ms var(--ease-out) var(--d);
+  }
+
+  .bars span[data-last] {
+    background: var(--sgi-electric);
+  }
+
+  :global(:not([data-on])) > .scene .bars span {
+    transform: scaleY(0.2);
+    transition-delay: 0ms;
+  }
+
+  /* Pathways: role brief checklist */
+  .setup-card {
+    position: relative;
+    width: min(25rem, 100%);
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    box-shadow: 0 24px 50px -30px rgb(7 27 52 / 0.35);
+  }
+
+  .setup-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .setup-head > span:first-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .setup-head b {
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  .setup-head small {
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .setup-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex: none;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 999px;
+    background: var(--action);
+    color: var(--action-ink);
+    font-size: 0.75rem;
+  }
+
+  .setup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .setup-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    font-size: 0.8125rem;
+    transition:
+      border-color 300ms ease var(--d),
+      background-color 300ms ease var(--d);
+  }
+
+  .setup-list li[data-last] {
+    border-style: dashed;
+  }
+
+  .setup-ic {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 8px;
+    background: var(--page);
+    color: var(--c-pathways-ink);
+  }
+
+  .tick {
+    display: grid;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    margin-left: auto;
+    border-radius: 50%;
+    border: 1.5px solid var(--rule);
+    color: transparent;
+    transition:
+      background-color 250ms ease var(--d),
+      border-color 250ms ease var(--d),
+      color 250ms ease var(--d),
+      transform 300ms var(--ease-out) var(--d);
+  }
+
+  :global([data-on]) > .scene .setup-list li:not([data-last]),
+  :global(.feat-inline) .setup-list li:not([data-last]) {
+    border-color: color-mix(in srgb, var(--sgi-electric) 30%, transparent);
+    background: color-mix(in srgb, var(--sgi-electric) 4%, var(--paper));
+  }
+
+  :global([data-on]) > .scene .setup-list li:not([data-last]) .tick,
+  :global(.feat-inline) .setup-list li:not([data-last]) .tick {
+    background: var(--sgi-electric);
+    border-color: var(--sgi-electric);
+    color: #fff;
+  }
+
+  .setup-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-top: 0.75rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .meter {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--page);
+    overflow: hidden;
+  }
+
+  .meter i {
+    display: block;
+    width: 75%;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--sgi-electric);
+    transform-origin: left;
+    transition: transform 900ms var(--ease-out) 200ms;
+  }
+
+  :global(:not([data-on])) > .scene .meter i {
+    transform: scaleX(0);
+    transition-delay: 0ms;
+  }
+</style>

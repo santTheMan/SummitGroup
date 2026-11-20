@@ -1,0 +1,166 @@
+---
+/**
+ * Lilac Meadow's two-column FAQ: the title on the left, rows on the right
+ * that open with a plus turning into a cross. Behaviour: src/scripts/ui.ts.
+ */
+import { faq } from '../content/site.ts';
+import CtaButton from './CtaButton.astro';
+import Icon from './Icon.astro';
+---
+
+<section class="sec faq" id="faq" aria-labelledby="faq-title">
+  <div class="wrap faq-grid">
+    <div class="faq-side" data-reveal>
+      <p class="k">{faq.eyebrow}</p>
+      <h2 class="h2" id="faq-title">{faq.heading}</h2>
+      <p class="muted">{faq.intro}</p>
+      <CtaButton class="faq-cta" />
+    </div>
+
+    <ul class="faq-list" data-reveal>
+      {
+        faq.items.map((item, i) => (
+          <li>
+            <h3>
+              <button type="button" aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`faq-a-${i}`} data-faq>
+                {item.q}
+                <span class="plus">
+                  <Icon name="plus" size={16} />
+                </span>
+              </button>
+            </h3>
+            <div class="collapse" id={`faq-a-${i}`} data-open={i === 0 ? '' : undefined}>
+              <div>
+                <p>{item.a}</p>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .faq {
+    border-top: 1px solid var(--rule);
+  }
+
+  .faq-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+    gap: 4rem;
+  }
+
+  .faq-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .faq-side .k {
+    margin-bottom: -0.25rem;
+  }
+
+  .faq-side .muted {
+    max-width: 22rem;
+  }
+
+  .faq-side :global(.faq-cta) {
+    margin-top: 0.5rem;
+  }
+
+  .faq-list {
+    border-top: 1px solid var(--rule);
+  }
+
+  .faq-list li {
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .faq-list h3 {
+    font-family: var(--font-body);
+    font-weight: 500;
+  }
+
+  .faq-list button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.25rem;
+    width: 100%;
+    padding: 1.125rem 0;
+    text-align: left;
+    font-size: 0.9375rem;
+    transition: color 150ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .faq-list button:hover {
+      color: var(--accent-text);
+    }
+  }
+
+  .plus {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    transition:
+      transform 250ms var(--ease-out),
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  button[aria-expanded='true'] .plus {
+    transform: rotate(45deg);
+    background: var(--action);
+    color: var(--action-ink);
+    border-color: var(--action);
+  }
+
+  .collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 300ms var(--ease-out);
+  }
+
+  .collapse[data-open] {
+    grid-template-rows: 1fr;
+  }
+
+  .collapse > div {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Closed answers leave the accessibility tree once the close has played. */
+  .collapse:not([data-open]) > div {
+    visibility: hidden;
+    transition: visibility 0s 300ms;
+  }
+
+  .collapse p {
+    max-width: 38rem;
+    padding: 0 3rem 1.25rem 0;
+    color: var(--muted);
+  }
+
+  @media (max-width: 56.25rem) {
+    .faq-grid {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collapse {
+      transition: none;
+    }
+  }
+</style>

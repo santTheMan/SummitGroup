@@ -1,0 +1,389 @@
+---
+/**
+ * Talent note, reworked on Emil Kowalski's route (the problem was the concept,
+ * not the motion): instead of a passive note, people answer one question,
+ * "Training or a role?", and the card points them to the right specialist
+ * business while the Summit-Ready journey lights the steps that business owns.
+ *
+ * The toggle uses Emil's clipped-duplicate technique: a second, "active" copy
+ * of the options sits on top, clipped to the chosen option, and the clip
+ * moves, so the label colour changes exactly at the pill's edge.
+ * Behaviour: src/scripts/ui.ts (initTalent).
+ */
+import icon from '../assets/brand/SGI-icon-reversed.svg';
+import { businesses, talentNote } from '../content/site.ts';
+import Icon from './Icon.astro';
+
+const first = talentNote.options[0];
+const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
+---
+
+<section class="op-sec" aria-labelledby="talent-title">
+  <div class="wrap">
+    <div class="op on-dark" data-talent data-choice-index="0" data-business={first.business} data-reveal>
+      <div class="op-copy">
+        <h2 class="h2 op-title" id="talent-title">{talentNote.heading}</h2>
+        <p class="op-body">{talentNote.body}</p>
+
+        <p class="chooser-k" id="talent-q">{talentNote.chooserLabel}</p>
+        <div class="toggle" role="group" aria-labelledby="talent-q">
+          <div class="toggle-base">
+            {
+              talentNote.options.map((o) => (
+                <button type="button" aria-pressed={o.id === first.id ? 'true' : 'false'} data-choice-btn={o.id} data-business={o.business}>
+                  {o.label}
+                </button>
+              ))
+            }
+          </div>
+          <div class="toggle-active" aria-hidden="true">
+            {talentNote.options.map((o) => <span>{o.label}</span>)}
+          </div>
+        </div>
+
+        <div class="answers" aria-live="polite">
+          {
+            talentNote.options.map((o) => (
+              <div class="answer" data-answer={o.id} hidden={o.id !== first.id}>
+                <p>{o.text}</p>
+                <a class="link-arrow" href={`#business-${o.business}`}>
+                  {o.link}
+                  <Icon name="arrow" size={16} />
+                </a>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="journey" aria-hidden="true">
+        <div class="journey-card">
+          <div class="journey-head">
+            <span class="avatar">
+              <img src={icon.src} width="26" height="13" alt="" />
+            </span>
+            <span>
+              <small>{talentNote.journeyLabel}</small>
+              <b class="journey-badge">
+                <Icon name="badge" size={14} />
+                {talentNote.badge}
+              </b>
+            </span>
+          </div>
+          <ol class="journey-steps">
+            {
+              talentNote.journey.map((step, i) => (
+                <li data-owner={step.business} style={`--i:${i}`}>
+                  <span class="j-dot">
+                    <Icon name="check" size={12} />
+                  </span>
+                  <span class="j-label">{step.label}</span>
+                  <span class="j-owner">{nameOf[step.business]}</span>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .op-sec {
+    padding-block: 2.5rem 7.5rem;
+  }
+
+  .op {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+    align-items: center;
+    gap: 3rem;
+    padding: 3rem;
+    border-radius: 18px;
+    background:
+      radial-gradient(60% 80% at 85% 50%, color-mix(in srgb, var(--sgi-electric) 30%, transparent), transparent 70%),
+      var(--deep);
+    color: var(--deep-ink);
+    overflow: hidden;
+  }
+
+  .op-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    max-width: 32rem;
+  }
+
+  .op-title {
+    font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+  }
+
+  .op-body {
+    color: var(--deep-muted);
+  }
+
+  .chooser-k {
+    margin-top: 0.75rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--deep-muted);
+  }
+
+  /* ---- Toggle (clipped duplicate) ---- */
+  .toggle {
+    position: relative;
+    display: inline-grid;
+    padding: 4px;
+    border-radius: 14px;
+    corner-shape: squircle;
+    background: rgb(255 255 255 / 0.08);
+    border: 1px solid var(--deep-rule);
+  }
+
+  .toggle-base,
+  .toggle-active {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-area: 1 / 1;
+  }
+
+  .toggle-base button,
+  .toggle-active span {
+    display: grid;
+    place-items: center;
+    min-width: 8.5rem;
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+
+  .toggle-base button {
+    color: var(--deep-muted);
+    border-radius: 11px;
+    transition: transform var(--press) var(--ease-out);
+  }
+
+  .toggle-base button:active {
+    transform: scale(0.97);
+  }
+
+  .toggle-active {
+    pointer-events: none;
+    background: var(--deep-ink);
+    color: var(--sgi-navy);
+    border-radius: 11px;
+    corner-shape: squircle;
+    clip-path: inset(0 50% 0 0 round 11px);
+    transition: clip-path 280ms var(--ease-out);
+  }
+
+  .op[data-choice-index='1'] .toggle-active {
+    clip-path: inset(0 0 0 50% round 11px);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .toggle-base button:hover {
+      color: var(--deep-ink);
+    }
+  }
+
+  /* ---- Answer ---- */
+  .answers {
+    min-height: 6rem;
+  }
+
+  .answer p {
+    max-width: 28rem;
+    color: var(--deep-ink);
+  }
+
+  .answer:not([hidden]) {
+    animation: answer-in 260ms var(--ease-out) both;
+  }
+
+  @keyframes answer-in {
+    from {
+      opacity: 0;
+      filter: blur(3px);
+      transform: translateY(4px);
+    }
+  }
+
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--sgi-sky);
+  }
+
+  .link-arrow :global(svg) {
+    transition: transform 200ms var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .link-arrow:hover :global(svg) {
+      transform: translateX(4px);
+    }
+  }
+
+  /* ---- Journey card ---- */
+
+  .journey-card {
+    padding: 1.25rem;
+    border-radius: 20px;
+    corner-shape: squircle;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid var(--deep-rule);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.6);
+  }
+
+  .journey-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--deep-rule);
+  }
+
+  .journey-head > span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 14px;
+    corner-shape: squircle;
+    background: var(--deep-2);
+    border: 1px solid var(--deep-rule);
+  }
+
+  .avatar img {
+    width: 26px;
+    height: auto;
+  }
+
+  .journey-head small {
+    font-size: 0.72rem;
+    color: var(--deep-muted);
+  }
+
+  .journey-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .journey-badge :global(svg) {
+    color: var(--sgi-sky);
+  }
+
+  .journey-steps {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .journey-steps li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6875rem 0.25rem;
+    border-radius: 10px;
+    opacity: 0.4;
+    transition:
+      opacity 250ms ease,
+      background-color 250ms ease;
+  }
+
+  .j-dot {
+    display: grid;
+    place-items: center;
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--deep-rule);
+    color: transparent;
+    transition:
+      background-color 250ms ease,
+      border-color 250ms ease,
+      color 250ms ease,
+      transform 300ms var(--ease-out);
+  }
+
+  .j-label {
+    font-size: 0.9375rem;
+  }
+
+  .j-owner {
+    font-size: 0.72rem;
+    color: var(--deep-muted);
+  }
+
+  /* The steps the chosen business owns light up, one after another */
+  .op[data-business='institute'] li[data-owner='institute'],
+  .op[data-business='pathways'] li[data-owner='pathways'] {
+    opacity: 1;
+    background: rgb(255 255 255 / 0.04);
+  }
+
+  .op[data-business='institute'] li[data-owner='institute'] .j-dot,
+  .op[data-business='pathways'] li[data-owner='pathways'] .j-dot {
+    background: var(--sgi-sky);
+    border-color: var(--sgi-sky);
+    color: var(--sgi-navy);
+    transition-delay: calc((var(--i) % 2) * 70ms);
+  }
+
+  @media (max-width: 56.25rem) {
+    .op {
+      grid-template-columns: 1fr;
+      padding: 2rem;
+    }
+  }
+
+  @media (max-width: 45rem) {
+    .op {
+      padding: 1.5rem;
+    }
+
+    .toggle-base button,
+    .toggle-active span {
+      min-width: 0;
+    }
+
+    .toggle {
+      width: 100%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toggle-active,
+    .journey-steps li,
+    .j-dot {
+      transition: none;
+    }
+
+    .answer:not([hidden]) {
+      animation: none;
+    }
+  }
+</style>

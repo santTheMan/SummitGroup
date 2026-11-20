@@ -3,23 +3,23 @@
  * The one primary action: "Book a conversation". Every instance shares the
  * same label and destination (see src/config/env.ts).
  */
-import { ctaHref } from '../config/env.ts';
+import { bookingTemplate, ctaHref } from '../config/env.ts';
 import { cta } from '../content/site.ts';
 
 interface Props {
   size?: 'small' | 'default' | 'large';
   class?: string;
-  /** Marks this button as the waist of the hero funnel. */
-  funnelWaist?: boolean;
+  /** Let the closing section fill the booking link's {needs} placeholder. */
+  withNeeds?: boolean;
 }
 
-const { size = 'default', class: className, funnelWaist = false } = Astro.props;
+const { size = 'default', class: className, withNeeds = false } = Astro.props;
 ---
 
 <a
   class:list={['button button--primary', size !== 'default' && `button--${size}`, className]}
   href={ctaHref}
-  data-funnel-waist={funnelWaist ? '' : undefined}
+  data-booking-template={withNeeds && bookingTemplate ? bookingTemplate : undefined}
 >
   <span>{cta.label}</span>
   <svg class="button__icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">

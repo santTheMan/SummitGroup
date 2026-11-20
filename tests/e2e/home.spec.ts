@@ -6,6 +6,12 @@ const CTA = 'Book a conversation';
 
 const isDesktop = (page: Page) => (page.viewportSize()?.width ?? 0) >= 1024;
 
+/** Waits for the hero entrance to finish, so nothing is mid-flight when a test clicks or audits. */
+async function settle(page: Page) {
+  await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
+  await page.waitForTimeout(400);
+}
+
 test.describe('SGI home page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -49,16 +55,9 @@ test.describe('SGI home page', () => {
     await expect(page.getByText(/get started/i)).toHaveCount(0);
   });
 
-  test('the hero call to action is clickable above the canvas', async ({ page }) => {
-    const cta = page.locator('[data-funnel-waist]');
-    const box = await cta.boundingBox();
-    expect(box).not.toBeNull();
-    const hit = await page.evaluate(
-      ({ x, y }) => document.elementFromPoint(x, y)?.closest('[data-funnel-waist]') !== null,
-      { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 },
-    );
-    expect(hit).toBe(true);
-    await expect(page.locator('[data-funnel-canvas]')).toHaveCSS('pointer-events', 'none');
+  test('the hero call to action leads to the booking section', async ({ page }) => {
+    const cta = page.locator('.hero-cta');
+    await settle(page);
     await cta.click();
     await expect(page).toHaveURL(/#book$/);
     await expect(page.locator('#book')).toBeInViewport();
@@ -70,14 +69,48 @@ test.describe('SGI home page', () => {
     expect(external).toBe(0);
   });
 
-  test('hero destinations link to the three business cards', async ({ page }) => {
-    const names = ['Summit Institute', 'Summit Sales', 'Summit Pathways'];
-    const links = page.getByRole('list', { name: 'Our three specialist businesses' }).getByRole('link');
-    await expect(links).toHaveCount(3);
-    for (let i = 0; i < 3; i++) {
-      const href = await links.nth(i).getAttribute('href');
-      await expect(page.locator(href!)).toContainText(names[i]!);
+  test('every business link lands on that business', async ({ page }) => {
+    const names = { institute: 'Summit Institute', sales: 'Summit Sales', pathways: 'Summit Pathways' };
+    for (const [id, name] of Object.entries(names)) {
+      await expect(page.locator(`#business-${id}`)).toContainText(name);
+      await expect(page.locator(`#biz-panel a[href="#business-${id}"]`)).toContainText(name);
     }
+  });
+
+  test('the hero shows SGI as the one point of contact, naming no specialist business', async ({ page }) => {
+    await expect(page.locator('.hero')).not.toContainText(/Summit (Institute|Sales|Pathways)|Institute|Pathways/);
+    await expect(page.locator('[data-panel]')).toContainText('Your contact: SGI');
+  });
+
+  test('the hero gauge sweeps up to its value', async ({ page }) => {
+    const gauge = page.locator('[data-panel]').getByRole('meter', { name: 'Summit-Ready' });
+    await expect(gauge).toHaveAttribute('aria-valuenow', '75', { timeout: 6000 });
+    await expect(gauge.locator('[data-gauge-count]')).toHaveText('9');
+  });
+
+  test('the placements heatmap adds up to the approved 450', async ({ page }) => {
+    const total = await page.$$eval('[data-hm] i[data-n]', (cells) =>
+      cells.reduce((sum, c) => sum + Number((c as HTMLElement).dataset.n), 0),
+    );
+    expect(total).toBe(450);
+    await expect(page.getByRole('img', { name: /Placements since June 2025/ })).toBeVisible();
+  });
+
+  test('the business stage follows the scroll both ways', async ({ page }) => {
+    test.skip(!isDesktop(page), 'the sticky stage is desktop-only');
+    await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
+    const stage = page.locator('[data-stage]');
+    const at = (id: string) =>
+      page.evaluate((sel) => {
+        const el = document.querySelector(sel)!;
+        window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - window.innerHeight / 2 + 100);
+      }, `#business-${id}`);
+    await at('pathways');
+    await expect(stage).toHaveAttribute('data-scene', '2');
+    await at('sales');
+    await expect(stage).toHaveAttribute('data-scene', '1');
+    await at('institute');
+    await expect(stage).toHaveAttribute('data-scene', '0');
   });
 
   test('marks previews noindex by default', async ({ page }) => {
@@ -100,15 +133,6 @@ test.describe('SGI home page', () => {
     expect(errors).toEqual([]);
   });
 
-  test('the funnel animates in view and pauses off-screen', async ({ page }) => {
-    const hero = page.locator('[data-funnel]');
-    await expect(hero).toHaveAttribute('data-funnel-state', 'animating');
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await expect(hero).toHaveAttribute('data-funnel-state', 'paused');
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await expect(hero).toHaveAttribute('data-funnel-state', 'animating');
-  });
-
   test('the skip link moves focus to the main content', async ({ page }) => {
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to main content' });
@@ -119,20 +143,95 @@ test.describe('SGI home page', () => {
   });
 
   test('passes axe WCAG 2.2 AA checks', async ({ page }) => {
+    await settle(page);
+    // The About statement's visible words are an aria-hidden copy that inks in from faint
+    // as it scrolls into reading position (the full sentence is in the accessible text).
     const results = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+      .exclude('[data-statement] > [aria-hidden="true"]')
       .analyze();
     const summary = results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`);
     expect(summary).toEqual([]);
   });
 });
 
+test.describe('interactions (reduced motion, so nothing moves under the pointer)', () => {
+  test.use({ reducedMotion: 'reduce' });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('the brief panel steps through the stages and spotlights part of the brief', async ({ page }) => {
+    const panel = page.locator('[data-panel]');
+    const gauge = panel.getByRole('meter', { name: 'Summit-Ready' });
+    await panel.getByRole('button', { name: 'Placed', exact: true }).click();
+    await expect(panel.getByRole('button', { name: 'Placed', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(gauge).toHaveAttribute('aria-valuetext', '12 of 12 people Summit-Ready');
+    await expect(gauge).toHaveAttribute('aria-valuenow', '100');
+
+    const manage = panel.locator('.acc[data-focus="manage"]');
+    await manage.click();
+    await expect(manage).toHaveAttribute('aria-pressed', 'true');
+    await expect(panel).toHaveAttribute('data-spot', 'manage');
+    await manage.click();
+    await expect(panel).not.toHaveAttribute('data-spot', /.+/);
+  });
+
+  test('the corporates card flips between three suppliers and one relationship', async ({ page }) => {
+    const merge = page.locator('[data-merge]');
+    await expect(merge).toHaveAttribute('data-state', 'after');
+    await merge.getByRole('button', { name: 'Without SGI' }).click();
+    await expect(merge).toHaveAttribute('data-state', 'before');
+    await expect(merge.getByRole('button', { name: 'Without SGI' })).toHaveAttribute('aria-pressed', 'true');
+    await merge.getByRole('button', { name: 'With SGI' }).click();
+    await expect(merge).toHaveAttribute('data-state', 'after');
+  });
+
+  test('the talent chooser points to the right business', async ({ page }) => {
+    const card = page.locator('[data-talent]');
+    await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeVisible();
+    await card.getByRole('button', { name: 'A role' }).click();
+    await expect(card.getByRole('button', { name: 'A role' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(card.getByRole('link', { name: 'Meet Summit Pathways' })).toBeVisible();
+    await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeHidden();
+  });
+
+  test('the conversation picker builds a brief with SGI as the one contact', async ({ page }) => {
+    const convo = page.locator('[data-convo]');
+    await expect(convo.getByText('Not sure yet? Book anyway and tell us on the call.')).toBeVisible();
+    await convo.getByRole('button', { name: 'Recruit' }).click();
+    await convo.getByRole('button', { name: 'Manage' }).click();
+    await expect(convo.getByRole('button', { name: 'Recruit' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(convo).toHaveAttribute('data-on', 'recruit manage');
+    await expect(convo.locator('[data-convo-summary]')).toHaveText(
+      'Your brief: Recruit and Manage. SGI is your one point of contact.',
+    );
+    // The client deals with SGI only: no specialist business is named in this section.
+    await expect(convo).not.toContainText(/Summit (Institute|Sales|Pathways)/);
+    await convo.getByRole('button', { name: 'Recruit' }).click();
+    await expect(convo).toHaveAttribute('data-on', 'manage');
+  });
+
+  test('FAQ rows open and close', async ({ page }) => {
+    const row = page.getByRole('button', { name: 'What does Summit-Ready mean?' });
+    await expect(row).toHaveAttribute('aria-expanded', 'false');
+    await row.click();
+    await expect(row).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByText('trained, tested and supported before they reach you').first()).toBeVisible();
+  });
+});
+
 test.describe('reduced motion', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('renders a still frame', async ({ page }) => {
+  test('shows everything in place, with nothing hidden for an entrance', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('[data-funnel]')).toHaveAttribute('data-funnel-state', 'static');
+    await expect(page.locator('html')).not.toHaveAttribute('data-motion', 'on');
+    await expect(page.locator('.hero-word').first()).toHaveCSS('transform', 'none');
+    await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
+    await expect(page.locator('[data-count]').first()).toHaveText('450+');
+    await expect(page.locator('.dash [data-gauge]')).toHaveAttribute('aria-valuenow', '75');
   });
 });
 
@@ -140,7 +239,7 @@ test.describe('header navigation', () => {
   test('desktop: keyboard order runs logo, navigation, then the call to action', async ({ page }) => {
     await page.goto('/');
     test.skip(!isDesktop(page), 'inline navigation is desktop-only');
-    const expected = ['Skip to main content', 'Summit Group International', 'About', 'Our businesses', 'How we work', 'Who we work with', CTA];
+    const expected = ['Skip to main content', 'Summit Group International', 'Our businesses', 'How we work', 'Who we work with', 'FAQ', CTA];
     for (const name of expected) {
       await page.keyboard.press('Tab');
       const label = await page.evaluate(() => {
@@ -157,7 +256,7 @@ test.describe('header navigation', () => {
     const toggle = page.getByRole('button', { name: 'Menu' });
     await expect(toggle).toBeVisible();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    const nav = page.getByRole('navigation', { name: 'Main' });
+    const nav = page.getByRole('navigation', { name: 'Site menu' });
     await expect(nav).toBeHidden();
 
     await toggle.click();
@@ -169,8 +268,8 @@ test.describe('header navigation', () => {
     await expect(toggle).toBeFocused();
 
     await toggle.click();
-    await nav.getByRole('link', { name: 'Our businesses' }).click();
+    await nav.getByRole('link', { name: 'How we work' }).click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await expect(page).toHaveURL(/#businesses$/);
+    await expect(page).toHaveURL(/#how-we-work$/);
   });
 });

@@ -1,216 +1,340 @@
 ---
+/**
+ * Hero after Teal Treasury: the approved promise rises out of line masks,
+ * then the working panel stands up from a tilt as it scrolls into view, with
+ * two brief cards drifting at their own speeds. Motion: src/scripts/motion.ts.
+ */
+import { hero, illustrations } from '../content/site.ts';
+import BriefPanel from './BriefPanel.astro';
 import CtaButton from './CtaButton.astro';
-import { businesses, hero } from '../content/site.ts';
+
+const headlineWords = hero.headline.split(' ');
+const f = illustrations.panel.floats;
 ---
 
-<section class="hero on-dark" id="top" aria-labelledby="hero-title" data-funnel>
-  <div class="hero__media" aria-hidden="true">
-    <canvas class="hero__canvas" data-funnel-canvas></canvas>
-  </div>
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
 
-  <div class="hero__body container">
-    <div class="hero__copy">
-      <h1 class="hero__title" id="hero-title">{hero.headline}</h1>
-      <p class="hero__support">{hero.support}</p>
-      <div class="hero__action">
-        <CtaButton size="large" funnelWaist />
-      </div>
+  <div class="wrap hero-head">
+    <h1 class="h1" id="hero-title">
+      {
+        headlineWords.map((word, i) => (
+          <>
+            <span class="mask">
+              <span class:list={['hero-word', word === hero.accentWord && 'accent']}>{word}</span>
+            </span>
+            {i < headlineWords.length - 1 && ' '}
+          </>
+        ))
+      }
+    </h1>
+    <p class="hero-text hero-fade">{hero.support}</p>
+    <div class="hero-ctas hero-fade">
+      <CtaButton size="large" class="hero-cta" />
+      <a class="button button--soft button--large" href={hero.secondary.href}>{hero.secondary.label}</a>
     </div>
   </div>
 
-  <div class="hero__destinations container">
-    <ul role="list" class="destinations" aria-label={hero.destinationsLabel}>
-      {
-        businesses.map((business) => (
-          <li class="destination">
-            <a class="destination__link" href={`#business-${business.id}`}>
-              <span class="destination__node" data-funnel-node aria-hidden="true" />
-              <span class="destination__name">{business.name}</span>
-              <span class="destination__role">{business.role}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+  <div class="device-wrap">
+    <div class="device">
+      <div class="bezel">
+        <BriefPanel />
+      </div>
+    </div>
+    <div class="floats" aria-hidden="true">
+      <div class="float float-1" data-float>
+        <div class="float-in">
+          <div class="flow">
+            <p class="flow-top"><b>{f.brief.label}</b> <em>{f.brief.text}</em></p>
+            <div class="flow-row">
+              <span class="flow-chip"><i></i>{f.brief.from}</span>
+              <svg class="flow-arrow" width="34" height="10" viewBox="0 0 34 10">
+                <path d="M1 5h28"></path><path d="m27 1 4 4-4 4"></path>
+              </svg>
+              <span class="flow-chip flow-chip-b"><i></i>{f.brief.to}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float float-2" data-float>
+        <div class="float-in">
+          <div class="flow">
+            <p class="flow-top"><b>{f.update.label}</b> <em>{f.update.text}</em></p>
+            <div class="flow-row">
+              <span class="flow-chip flow-chip-b"><i></i>{f.update.from}</span>
+              <svg class="flow-arrow" width="34" height="10" viewBox="0 0 34 10">
+                <path d="M1 5h28"></path><path d="m27 1 4 4-4 4"></path>
+              </svg>
+              <span class="flow-chip"><i></i>{f.update.to}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
-
-<script>
-  import { mountFunnel } from '../scripts/funnel/index.ts';
-  const hero = document.querySelector<HTMLElement>('[data-funnel]');
-  if (hero) mountFunnel(hero);
-</script>
 
 <style>
   .hero {
     position: relative;
+    padding-top: 4.5rem;
     isolation: isolate;
-    display: grid;
-    grid-template-rows: 1fr auto;
-    min-height: max(100svh, 40rem);
-    padding-top: var(--header-height);
-    overflow: hidden;
-    color: var(--text-on-dark);
-    /* Still fallback (no JavaScript): a soft glow where the funnel narrows. */
-    background:
-      radial-gradient(ellipse 34% 30% at 50% 66%, rgb(34 100 210 / 0.18), transparent 72%),
-      var(--sgi-navy);
   }
 
-  .hero__media {
+  .hero-grid {
     position: absolute;
-    inset: 0;
+    inset: 0 0 auto;
+    height: 35rem;
     z-index: -1;
+    background-image:
+      linear-gradient(var(--rule) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+    background-size: 64px 64px;
+    background-position: center -1px;
+    -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 0%, #000 30%, transparent 75%);
+    mask-image: radial-gradient(ellipse 60% 70% at 50% 0%, #000 30%, transparent 75%);
+    opacity: 0.55;
     pointer-events: none;
   }
 
-  .hero__canvas {
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 1.4s var(--ease-out);
-  }
-
-  :global(.funnel-ready) .hero__canvas {
-    opacity: 1;
-  }
-
-  /* Edge and lower veils keep the motif calm under the header and at the sides. */
-  .hero__media::after {
-    content: '';
+  .hero-glow {
     position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(to bottom, var(--sgi-navy) 0, rgb(7 27 52 / 0) 24%),
-      linear-gradient(to right, var(--sgi-navy) 0, rgb(7 27 52 / 0) 16%, rgb(7 27 52 / 0) 84%, var(--sgi-navy) 100%),
-      linear-gradient(to top, var(--sgi-navy) 0, rgb(7 27 52 / 0) 9%);
-  }
-
-  .hero__body {
-    align-self: center;
-    padding-block: clamp(2.5rem, 8vh, 6rem) clamp(5.5rem, 17vh, 11rem);
-  }
-
-  .hero__copy {
-    position: relative;
-    max-width: 60rem;
+    left: 0;
+    right: 0;
+    top: 16rem;
+    width: min(70rem, 100%);
+    height: 40rem;
     margin-inline: auto;
-    text-align: center;
-  }
-
-  /* Legibility scrim: dims the filaments directly behind the words. */
-  .hero__copy::before {
-    content: '';
-    position: absolute;
-    inset: -14% -10% -4%;
     z-index: -1;
-    background: radial-gradient(closest-side, rgb(7 27 52 / 0.82), rgb(7 27 52 / 0.55) 55%, rgb(7 27 52 / 0));
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--glow-a) 85%, transparent), transparent 72%);
+    opacity: 0.75;
     pointer-events: none;
   }
 
-  .hero__title {
-    max-width: 17em;
-    margin-inline: auto;
-    font-size: var(--text-hero);
-    font-weight: 500;
-    line-height: 1.05;
-    letter-spacing: -0.028em;
-    color: var(--sgi-white);
-  }
-
-  .hero__support {
-    max-width: 30rem;
-    margin: 1.4rem auto 0;
-    font-size: var(--text-lg);
-    line-height: 1.5;
-    color: var(--text-on-dark-muted);
-  }
-
-  .hero__action {
+  .hero-head {
     display: flex;
-    justify-content: center;
-    margin-top: clamp(1.75rem, 4vh, 2.5rem);
-  }
-
-  .hero__action :global(.button) {
-    box-shadow:
-      0 0 0 6px rgb(7 27 52 / 0.85),
-      0 1px 0 rgb(255 255 255 / 0.18) inset,
-      0 16px 40px -10px rgb(34 100 210 / 0.8);
-  }
-
-  .hero__destinations {
-    padding-bottom: clamp(1.5rem, 4vh, 2.75rem);
-  }
-
-  .destinations {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 58rem;
-    margin-inline: auto;
-    border-top: 1px solid var(--hairline-on-dark);
-  }
-
-  .destination__link {
-    position: relative;
-    display: grid;
-    justify-items: center;
-    gap: 0.25rem;
-    min-height: 2.75rem;
-    padding: 1.35rem 0.4rem 0.35rem;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    text-decoration: none;
-    border-radius: var(--radius-sm);
   }
 
-  .destination__node {
+  .h1 {
+    max-width: 26ch;
+    font-size: var(--t-h1);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+  }
+
+  .mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding-bottom: 0.1em;
+    margin-bottom: -0.1em;
+  }
+
+  .hero-word {
+    display: inline-block;
+  }
+
+  .hero-text {
+    max-width: 35rem;
+    margin-top: 1.375rem;
+    font-size: 1.0625rem;
+    color: var(--muted);
+  }
+
+  .hero-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.625rem;
+    margin-top: 1.75rem;
+  }
+
+  .device-wrap {
+    position: relative;
+    max-width: 67.5rem;
+    margin: 4rem auto 0;
+    padding: 0 var(--gutter);
+    perspective: 1800px;
+  }
+
+  .device {
+    transform-origin: 50% 100%;
+  }
+
+  .bezel {
+    padding: 10px;
+    border-radius: 22px;
+    background: linear-gradient(160deg, #142a47, #050f1e);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.08) inset,
+      0 50px 100px -40px rgb(7 27 52 / 0.55),
+      0 20px 40px -30px rgb(7 27 52 / 0.4);
+  }
+
+  .floats {
     position: absolute;
-    top: 0;
-    left: 50%;
-    width: 9px;
-    height: 9px;
-    translate: -50% -50%;
-    background: var(--sgi-navy);
-    border: 1px solid rgb(243 248 255 / 0.85);
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px rgb(7 27 52 / 0.9);
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
   }
 
-  .destination__name {
-    font-family: var(--font-display);
-    font-size: clamp(0.9375rem, 0.86rem + 0.35vw, 1.125rem);
+  .float {
+    position: absolute;
+    right: -1.75rem;
+    top: -2.25rem;
+  }
+
+  .float-2 {
+    right: auto;
+    top: auto;
+    left: -4.5rem;
+    bottom: -1.75rem;
+  }
+
+  .flow {
+    width: 19.5rem;
+    padding: 0.75rem;
+    border-radius: 12px;
+    background: var(--deep);
+    color: var(--deep-ink);
+    border: 1px solid rgb(255 255 255 / 0.06);
+    box-shadow: 0 24px 50px -24px rgb(0 0 0 / 0.55);
+  }
+
+  .float-2 .flow {
+    width: 20rem;
+  }
+
+  .flow-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.375rem;
+    margin-bottom: 0.625rem;
+    font-size: 0.75rem;
+    color: var(--deep-muted);
+  }
+
+  .flow-top b {
     font-weight: 500;
-    line-height: 1.25;
-    color: var(--sgi-white);
-    text-underline-offset: 0.3em;
-    text-decoration-thickness: 1px;
+    color: var(--deep-ink);
   }
 
-  .destination__role {
-    font-size: var(--text-xs);
-    line-height: 1.4;
-    color: var(--text-on-dark-muted);
+  .flow-top em {
+    font-style: normal;
+    color: var(--sgi-sky);
   }
 
-  .destination__link:hover .destination__name {
-    text-decoration: underline;
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  /* Very small screens: names only, roles stay available to screen readers. */
-  @media (max-width: 29.99em) {
-    .destination__role {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
+  .flow-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    padding: 0.4375rem 0.5625rem;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.07);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .flow-chip i {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    border-radius: 5px;
+    background: var(--sgi-electric);
+  }
+
+  .flow-chip-b i {
+    background: var(--sgi-sky);
+  }
+
+  .flow-arrow {
+    flex: none;
+    color: var(--deep-muted);
+  }
+
+  .flow-arrow path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  .flow-arrow path:first-child {
+    stroke-dasharray: 3 4;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .flow-arrow path:first-child {
+      animation: dash 1s linear infinite;
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .hero__canvas {
-      transition: none;
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -14;
+    }
+  }
+
+  @media (max-width: 67.5rem) {
+    .float {
+      right: -0.5rem;
+    }
+
+    .float-2 {
+      left: -0.5rem;
+    }
+  }
+
+  @media (max-width: 56.25rem) {
+    .hero {
+      padding-top: 3rem;
+    }
+
+    .floats {
+      position: relative;
+      inset: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.625rem;
+      margin-top: 1.125rem;
+    }
+
+    .float,
+    .float-2 {
+      position: relative;
+      inset: auto;
+    }
+  }
+
+  @media (max-width: 45rem) {
+    .device-wrap {
+      margin-top: 2.75rem;
+      padding: 0 0.75rem;
+    }
+
+    .bezel {
+      padding: 6px;
+      border-radius: 16px;
+    }
+
+    .flow,
+    .float-2 .flow {
+      width: min(21rem, calc(100vw - 3rem));
     }
   }
 </style>

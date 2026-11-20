@@ -1,233 +1,251 @@
 ---
 /**
- * "One relationship. Three specialists." The hero funnel resolves here:
- * the SGI icon is the single source, with a connector to each business.
- * Colour is a cue only; every business is named in text.
+ * Teal Treasury's features block: a sticky stage that unfolds from a rounded
+ * inset and morphs between one scene per business as each block of copy
+ * reaches the middle of the screen. On small screens each block carries its
+ * own scene. Scene switching: src/scripts/ui.ts; unfold: src/scripts/motion.ts.
  */
-import { Image } from 'astro:assets';
-import iconColour from '../assets/brand/SGI-icon-colour-4K.png';
-import { brand, businesses, businessesSection } from '../content/site.ts';
+import { businesses, businessesSection, illustrations } from '../content/site.ts';
+import Scene from './Scene.astro';
 
-const iconHeight = 40;
-const iconWidth = Math.round((iconColour.width / iconColour.height) * iconHeight);
+const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
-<section class="section businesses" id="businesses" aria-labelledby="businesses-title">
-  <div class="container">
-    <header class="businesses__header">
-      <p class="eyebrow">{businessesSection.eyebrow}</p>
-      <h2 class="section-heading" id="businesses-title">{businessesSection.heading}</h2>
-      <p class="section-lead">{businessesSection.intro}</p>
-    </header>
-
-    <div class="org">
-      <div class="org__root">
-        <Image
-          src={iconColour}
-          alt=""
-          width={iconWidth}
-          height={iconHeight}
-          densities={[1, 2, 3]}
-          loading="lazy"
-          decoding="async"
-          class="org__icon"
-        />
-        <p class="org__root-label">{brand.name}</p>
+<section class="sec feats" id="businesses" aria-labelledby="businesses-title">
+  <div class="wrap">
+    <div class="split head" data-reveal>
+      <p class="label">{businessesSection.eyebrow}</p>
+      <div>
+        <h2 class="h2" id="businesses-title">{businessesSection.heading}</h2>
+        <p class="lead">{businessesSection.intro}</p>
       </div>
-
-      <div class="org__links" aria-hidden="true"><span></span></div>
-
-      <ul role="list" class="org__businesses">
-        {
-          businesses.map((business) => (
-            <li class="business" id={`business-${business.id}`} data-accent={business.accent}>
-              <h3 class="business__name">{business.name}</h3>
-              <p class="business__role">{business.role}</p>
-              <p class="business__summary">{business.summary}</p>
-            </li>
-          ))
-        }
-      </ul>
     </div>
 
-    <p class="talent-note">
-      <svg class="talent-note__icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-        <circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
-        <path d="M10 9v5M10 6.25v.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-      </svg>
-      <span>{businessesSection.talentNote}</span>
-    </p>
+    <div class="feat-grid">
+      <div class="stage-col" aria-hidden="true">
+        <div class="stage" data-stage data-scene="0">
+          {
+            businesses.map((b, i) => (
+              <div class="stage-layer" data-layer={i} data-on={i === 0 ? '' : undefined}>
+                <Scene which={b.id} />
+              </div>
+            ))
+          }
+          <p class="stage-count">
+            <b data-stage-n>01</b> / {pad(businesses.length)} · {illustrations.note}
+          </p>
+        </div>
+      </div>
+
+      <div class="feat-copy">
+        {
+          businesses.map((b, i) => (
+            <article
+              class="feat"
+              id={`business-${b.id}`}
+              data-feat={i}
+              data-on={i === 0 ? '' : undefined}
+              style={`--c: var(--c-${b.id}); --ci: var(--c-${b.id}-ink)`}
+            >
+              <div class:list={['feat-inline', i === 0 && 'feat-inline--deep']} aria-hidden="true" data-on>
+                <Scene which={b.id} />
+              </div>
+              <p class="feat-n">{pad(i + 1)}</p>
+              <h3 class="feat-title">{b.name}</h3>
+              <p class="feat-role">{b.role}</p>
+              <p class="feat-text">{b.summary}</p>
+            </article>
+          ))
+        }
+      </div>
+    </div>
   </div>
 </section>
 
 <style>
-  .businesses {
-    --gap: clamp(1rem, 2vw, 1.5rem);
-    background: var(--sgi-white);
-    border-top: 1px solid var(--hairline-on-light);
+  .feats {
+    background: var(--page-2);
   }
 
-  .businesses__header {
-    display: grid;
-    justify-items: center;
-    text-align: center;
+  .head {
+    margin-bottom: 3.5rem;
   }
 
-  .businesses__header .section-heading,
-  .businesses__header .section-lead {
-    margin-inline: auto;
-  }
-
-  .org {
-    margin-top: clamp(3rem, 6vw, 4.5rem);
-  }
-
-  .org__root {
-    display: grid;
-    justify-items: center;
-    gap: 0.75rem;
-    text-align: center;
-  }
-
-  .org__root :global(.org__icon) {
-    width: auto;
-    height: 40px;
-  }
-
-  .org__root-label {
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-on-light-muted);
-  }
-
-  /* Connectors: one stem from SGI that branches to each business. */
-  .org__links {
-    position: relative;
-    height: 2.5rem;
+  .lead {
+    max-width: 32rem;
     margin-top: 1rem;
+    color: var(--muted);
+    font-size: 1rem;
   }
 
-  .org__links::before,
-  .org__links span {
-    content: '';
+  .feat-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 5rem;
+  }
+
+  .stage-col {
+    position: relative;
+  }
+
+  .stage {
+    position: sticky;
+    top: calc(50vh - 16.25rem + var(--nav-h) / 2);
+    height: 32.5rem;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--paper);
+    box-shadow: 0 1px 0 var(--rule);
+    transition: background-color 600ms ease;
+  }
+
+  .stage[data-scene='0'] {
+    background: var(--deep);
+  }
+
+  .stage-layer {
     position: absolute;
-    left: 50%;
-    width: 1px;
-    background: var(--sgi-navy);
-    opacity: 0.28;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.97);
+    filter: blur(6px);
+    transition:
+      opacity 500ms ease,
+      transform 700ms var(--ease-out),
+      filter 500ms ease,
+      visibility 500ms;
   }
 
-  .org__links::before {
-    top: 0;
-    height: 100%;
+  .stage-layer[data-on] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    filter: none;
   }
 
-  .org__links span {
+  .stage-count {
+    position: absolute;
+    left: 1.125rem;
+    bottom: 0.875rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    transition: color 600ms ease;
+  }
+
+  .stage[data-scene='0'] .stage-count {
+    color: var(--deep-muted);
+  }
+
+  .stage-count b {
+    font-weight: 500;
+    color: var(--accent-text);
+  }
+
+  .stage[data-scene='0'] .stage-count b {
+    color: var(--sgi-sky);
+  }
+
+  .feat-copy {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .feat {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: 72vh;
+    scroll-margin-top: 20vh;
+  }
+
+  /* The block beside the current scene is in ink; the others rest in the muted
+     grey (still AA), rather than the template's low-opacity dimming. */
+  .feat-n,
+  .feat-title,
+  .feat-role {
+    color: var(--muted);
+    transition: color 400ms ease;
+  }
+
+  .feat[data-on] .feat-title,
+  .feat[data-on] .feat-role {
+    color: var(--ink);
+  }
+
+  .feat[data-on] .feat-n {
+    color: var(--ci);
+  }
+
+  .feat-n {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+  }
+
+  .feat-title {
+    font-size: clamp(1.375rem, 1rem + 1.2vw, 1.75rem);
+    letter-spacing: -0.02em;
+  }
+
+  .feat-role {
+    font-weight: 500;
+  }
+
+  .feat-text {
+    max-width: 26rem;
+    color: var(--muted);
+  }
+
+  .feat-inline {
     display: none;
   }
 
-  .org__businesses {
-    display: grid;
-    gap: var(--gap);
-  }
-
-  .business {
-    --accent: var(--accent-sales);
-    position: relative;
-    padding: clamp(1.5rem, 3vw, 2rem);
-    background: var(--surface-light);
-    border: 1px solid var(--hairline-on-light);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-
-  .business[data-accent='deep'] {
-    --accent: var(--accent-institute);
-  }
-
-  .business[data-accent='sky'] {
-    --accent: var(--accent-pathways);
-  }
-
-  .business::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 4px;
-    background: var(--accent);
-  }
-
-  .business__name {
-    font-size: var(--text-h3);
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-
-  .business__role {
-    margin-top: 0.5rem;
-    font-weight: 600;
-    color: var(--sgi-navy);
-  }
-
-  .business__summary {
-    margin-top: 0.75rem;
-    color: var(--text-on-light-muted);
-  }
-
-  .talent-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    max-width: 44rem;
-    margin: clamp(2rem, 4vw, 3rem) auto 0;
-    padding: 1rem 1.25rem;
-    font-size: var(--text-sm);
-    color: var(--text-on-light-muted);
-    background: var(--surface-light);
-    border-radius: var(--radius-md);
-  }
-
-  .talent-note__icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    flex: none;
-    margin-top: 0.1rem;
-    color: var(--sgi-electric);
-  }
-
-  @media (min-width: 48em) {
-    .org__businesses {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+  @media (max-width: 56.25rem) {
+    .feat-grid {
+      grid-template-columns: 1fr;
+      gap: 0;
     }
 
-    .org__links {
-      height: 3rem;
+    .stage-col {
+      display: none;
     }
 
-    /* Stem down to a rounded bracket that drops into the outer cards. */
-    .org__links::before {
-      height: 50%;
+    .feat {
+      min-height: 0;
+      padding: 1.5rem 0 3rem;
     }
 
-    .org__links::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: calc((100% - 2 * var(--gap)) / 6);
-      right: calc((100% - 2 * var(--gap)) / 6);
-      height: 50%;
-      border: 1px solid var(--sgi-navy);
-      border-bottom: 0;
-      border-radius: 14px 14px 0 0;
-      opacity: 0.28;
+    .feat .feat-title,
+    .feat .feat-role {
+      color: var(--ink);
     }
 
-    .org__links span {
+    .feat .feat-n {
+      color: var(--ci);
+    }
+
+    .feat-inline {
+      position: relative;
       display: block;
-      top: 50%;
-      height: 50%;
+      height: 26.25rem;
+      margin-bottom: 0.75rem;
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--paper);
+    }
+
+    .feat-inline--deep {
+      background: var(--deep);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage-layer {
+      transform: none;
+      filter: none;
     }
   }
 </style>

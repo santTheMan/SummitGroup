@@ -51,18 +51,24 @@ export const cta = {
   label: 'Book a conversation',
 } as const;
 
-export const navigation = [
-  { label: 'About', href: '#about' },
-  { label: 'Our businesses', href: '#businesses' },
-  { label: 'How we work', href: '#how-we-work' },
-  { label: 'Who we work with', href: '#who-we-work-with' },
-] as const;
+/** The "Our businesses" fold-out lists `businesses`; these are the plain links beside it. */
+export const navigation = {
+  businessesLabel: 'Our businesses',
+  links: [
+    { label: 'How we work', href: '#how-we-work' },
+    { label: 'Who we work with', href: '#who-we-work-with' },
+    { label: 'FAQ', href: '#faq' },
+  ],
+  menuLabel: 'Menu',
+} as const;
 
 export const hero = {
   /** Approved 13-word promise. Do not edit without a newer approved source. */
   headline: 'We recruit, develop and manage South African talent that takes your business higher.',
+  /** The word set in the accent colour. Must appear in the headline. */
+  accentWord: 'higher.',
   support: 'One relationship with Summit Group International. Three specialist businesses behind it.',
-  destinationsLabel: 'Our three specialist businesses',
+  secondary: { label: 'Our businesses', href: '#businesses' },
 } as const;
 
 export const businesses: readonly Business[] = [
@@ -90,10 +96,11 @@ export const businesses: readonly Business[] = [
   },
 ];
 
+/** Drafted for the redesign (part of the homepage copy sign-off). `*asterisks*` mark the accent. */
 export const about = {
   eyebrow: 'About SGI',
-  heading: 'One group. One point of contact.',
-  body: 'Summit Group International brings three specialist businesses together: Summit Institute, Summit Sales and Summit Pathways. Companies and partners work with SGI, and we bring in the specialists your business needs.',
+  statement:
+    'Building a team is complicated, but it doesn\u2019t need to be fragmented. With *Summit Group International*, you recruit, develop and manage the people your business depends on through one relationship.',
   proofLabel: 'SGI in numbers',
 } as const;
 
@@ -135,13 +142,55 @@ export const businessesSection = {
   eyebrow: 'Our businesses',
   heading: 'One relationship. Three specialists.',
   intro: 'SGI looks after the relationship. Each specialist business focuses on one part of the work.',
-  talentNote:
-    'Looking for training or a role? Our specialist businesses work with individuals directly. SGI works with companies and partners.',
+} as const;
+
+/** Talent note band (approved talent note, split into heading and body). */
+export const talentNote = {
+  heading: 'Looking for training or a role?',
+  body: 'Our specialist businesses work with individuals directly. SGI works with companies and partners.',
+  /** Drafted for the redesign (part of the homepage copy sign-off). */
+  chooserLabel: 'What are you looking for?',
+  options: [
+    {
+      id: 'training',
+      label: 'Training',
+      business: 'institute',
+      text: 'Summit Institute develops skills: training that prepares people for the work businesses need done.',
+      link: 'Meet Summit Institute',
+    },
+    {
+      id: 'role',
+      label: 'A role',
+      business: 'pathways',
+      text: 'Summit Pathways recruits and places talent in the roles companies need to fill.',
+      link: 'Meet Summit Pathways',
+    },
+  ],
+  journeyLabel: 'The Summit-Ready journey',
+  journey: [
+    { label: 'Trained', business: 'institute' },
+    { label: 'Tested', business: 'institute' },
+    { label: 'Supported', business: 'pathways' },
+    { label: 'Placed', business: 'pathways' },
+  ],
+  badge: 'Summit-Ready',
 } as const;
 
 export const howWeWork = {
   eyebrow: 'How we work',
-  heading: 'From one conversation to the right specialists.',
+  heading: 'From one conversation to the *right specialists.*',
+  placements: {
+    /** Illustrative daily spread of the approved total; see src/lib/placements.ts. */
+    from: '2025-06-01',
+    to: '2026-11-20',
+    heading: 'Placements since June 2025',
+    caption: 'Each square is a day. The darker the square, the more people placed that day.',
+    note: 'Illustration: an indicative spread of the 450+ placements. Daily figures are not actual records.',
+    legendLess: 'Fewer',
+    legendMore: 'More',
+    tooltipOne: 'placement',
+    tooltipMany: 'placements',
+  },
   steps: [
     {
       title: 'A conversation',
@@ -165,6 +214,32 @@ export const howWeWork = {
 export const audiences = {
   eyebrow: 'Who we work with',
   heading: 'For South African companies, international clients and partners.',
+  /** Drafted for the redesign (part of the homepage copy sign-off). */
+  visuals: {
+    suppliers: {
+      toggle: ['Without SGI', 'With SGI'],
+      before: ['Recruitment agency', 'Training provider', 'Sales management'],
+      beforeMeta: 'Separate supplier',
+      after: 'Summit Group International',
+      afterMeta: 'One relationship \u00b7 three specialists',
+      badge: 'One point of contact',
+    },
+    timezones: {
+      label: 'Working hours, live',
+      cities: [
+        { name: 'Johannesburg', zone: 'Africa/Johannesburg', home: true },
+        { name: 'London', zone: 'Europe/London', home: false },
+        { name: 'New York', zone: 'America/New_York', home: false },
+      ],
+      overlap: 'shared',
+      caption: 'South Africa works across the same business day as the UK and Europe.',
+    },
+    pipeline: {
+      label: 'Talent pipeline',
+      partner: 'Your organisation',
+      steps: ['Trained', 'Tested', 'Supported', 'Placed'],
+    },
+  },
   groups: [
     {
       title: 'South African corporates and banks',
@@ -185,12 +260,158 @@ export const closing = {
   eyebrow: 'Book a conversation',
   heading: 'Start with a conversation.',
   body: 'Tell us what your business needs, and we will bring in the right specialists.',
-  /** Shown instead of the button until PUBLIC_BOOKING_URL is configured. */
+  /** Drafted for the redesign (part of the homepage copy sign-off). */
+  needsLabel: 'What do you need?',
+  needsHint: 'Optional. Pick any.',
+  /** The client only ever deals with SGI, so the picks read as their brief, not as businesses. */
+  needs: [
+    { id: 'recruit', label: 'Recruit', detail: 'People placed in the roles you need to fill' },
+    { id: 'develop', label: 'Develop', detail: 'Training for the work your business needs done' },
+    { id: 'manage', label: 'Manage', detail: 'Management and coaching for your sales teams' },
+  ],
+  call: {
+    label: 'Your point of contact',
+    lead: 'Summit Group International',
+    brief: 'Your brief',
+    empty: 'Not sure yet? Book anyway and tell us on the call.',
+    note: 'SGI stays your point of contact while the work goes on.',
+    /** Read to screen readers as choices change. {needs} is filled in by the page. */
+    summaryEmpty: 'SGI is your one point of contact.',
+    summary: 'Your brief: {needs}. SGI is your one point of contact.',
+  },
+  steps: ['Pick a time', 'Tell us what you need', 'One point of contact throughout'],
+  /** Shown under the button until PUBLIC_BOOKING_URL is configured. */
   pendingNotice: 'Pre-launch placeholder: the booking button appears here once its destination is approved.',
+} as const;
+
+/** Drafted for the redesign from approved lines (part of the homepage copy sign-off). */
+export const faq = {
+  eyebrow: 'FAQ',
+  heading: 'Questions, answered',
+  intro: 'What companies usually ask before the first conversation.',
+  items: [
+    {
+      q: 'Who does SGI work with?',
+      a: 'Companies and partners: South African corporates and banks, international clients, and partners and funders. Individuals looking for training or a role work with our specialist businesses directly.',
+    },
+    {
+      q: 'Do we need to contact each business separately?',
+      a: 'No. You speak to SGI. We bring in Summit Institute, Summit Sales, Summit Pathways or a combination, and SGI stays your point of contact while the work goes on.',
+    },
+    {
+      q: 'What does Summit-Ready mean?',
+      a: 'It is our standard: people are trained, tested and supported before they reach you.',
+    },
+    {
+      q: 'Do you work with companies outside South Africa?',
+      a: 'Yes. International clients reach South African talent through one group, with one point of contact from the first conversation.',
+    },
+    {
+      q: 'How do we start?',
+      a: 'Book a conversation. Tell us what your business needs, and we will bring in the right specialists.',
+    },
+  ],
+} as const;
+
+/**
+ * Labels for the illustrated product panels (hero panel and the business
+ * scenes). They show how working with SGI feels; they are not client data.
+ * Every panel carries the `note` label. Drafted for the redesign.
+ */
+export const illustrations = {
+  note: 'Illustration',
+  panel: {
+    workspace: 'Summit Group',
+    nav: ['Overview', 'Team', 'Updates'],
+    /** The client's view: SGI is the only contact, so the brief is shown as what SGI covers. */
+    streamsLabel: 'Your brief',
+    footer: 'SGI, your one point of contact',
+    crumbs: ['Your account', 'Example brief'],
+    contact: 'Your contact: SGI',
+    briefLabel: 'Example brief',
+    briefTitle: 'Grow an outbound sales team',
+    teamSize: 12,
+    teamLabel: 'people',
+    rangeLabel: 'Show stage',
+    speed: 'Placed in days, not weeks',
+    ranges: [
+      { id: 'brief', label: 'Brief in', ready: 5 },
+      { id: 'shortlist', label: 'Shortlist', ready: 9 },
+      { id: 'placed', label: 'Placed', ready: 12 },
+    ],
+    defaultRange: 'shortlist',
+    gaugeLabel: 'Summit-Ready',
+    gaugeCaption: 'Trained, tested and supported',
+    streamsHeading: 'What SGI is covering',
+    /** Keyed by the needs in closing.needs (Recruit, Develop, Manage). */
+    status: {
+      recruit: { brief: 'Matching', shortlist: 'Shortlisted', placed: 'Placed' },
+      develop: { brief: 'Ready', shortlist: 'Assessing', placed: 'Supporting' },
+      manage: { brief: 'Planning', shortlist: 'Onboarding', placed: 'Coaching' },
+    },
+    activityHeading: 'Recent activity',
+    activity: [
+      { range: 'brief', time: '09:10', stream: 'recruit', text: 'Brief received and matched to Summit-Ready talent' },
+      { range: 'brief', time: '11:30', stream: 'develop', text: 'Readiness checked for the first matches' },
+      { range: 'brief', time: '15:00', stream: 'manage', text: 'Team plan agreed with you' },
+      { range: 'shortlist', time: '09:00', stream: 'recruit', text: 'Shortlist shared for all 12 roles' },
+      { range: 'shortlist', time: '12:15', stream: 'develop', text: 'Practice-call assessments passed' },
+      { range: 'shortlist', time: '16:40', stream: 'manage', text: 'Onboarding plan set' },
+      { range: 'placed', time: '08:30', stream: 'recruit', text: '12 people placed' },
+      { range: 'placed', time: '10:00', stream: 'manage', text: 'First team coaching session' },
+      { range: 'placed', time: '15:30', stream: 'develop', text: 'Check-in with every placement' },
+    ],
+    floats: {
+      brief: { label: 'New brief', text: 'Outbound sales team', from: 'Your business', to: 'SGI' },
+      update: { label: 'Update from SGI', text: 'Shortlist ready', from: 'SGI', to: 'You' },
+    },
+  },
+  scenes: {
+    institute: {
+      title: 'Summit Institute',
+      label: 'Your programme',
+      gaugeLabel: 'Module 4 of 6',
+      next: { label: 'Next', text: 'Practice call' },
+      assessment: { label: 'Assessment', text: 'Passed' },
+      button: 'Open module',
+      chips: ['Trained', 'Tested'],
+    },
+    sales: {
+      title: 'Team report',
+      period: 'This week',
+      total: 'Team of 12',
+      stats: [
+        { label: 'Coaching sessions', value: '8' },
+        { label: 'Calls reviewed', value: '46' },
+        { label: 'Pipeline reviews', value: '3' },
+      ],
+      chartLabel: 'Coaching sessions, last six weeks',
+      chart: [3, 5, 4, 6, 7, 8],
+    },
+    pathways: {
+      title: 'Role brief',
+      role: 'Sales development representative',
+      button: 'Shortlist',
+      steps: ['Brief agreed with SGI', 'Candidates sourced', 'Screened and interviewed', 'Placed and supported'],
+      progress: 'of 4 complete',
+    },
+  },
 } as const;
 
 export const footer = {
   summary: 'Summit Group International brings together Summit Institute, Summit Sales and Summit Pathways.',
+  columns: {
+    businesses: 'Our businesses',
+    group: 'SGI',
+    start: 'Start',
+  },
+  groupLinks: [
+    { label: 'About', href: '#about' },
+    { label: 'How we work', href: '#how-we-work' },
+    { label: 'Who we work with', href: '#who-we-work-with' },
+    { label: 'FAQ', href: '#faq' },
+  ],
+  wordmark: 'Summit',
   /** Brand name only. The registered entity name is not confirmed yet. */
   copyrightHolder: 'Summit Group International',
 } as const;

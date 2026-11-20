@@ -1,121 +1,197 @@
 ---
+/**
+ * Teal Treasury's coverage block: a statement title, four steps between
+ * hairlines, and a card with a daily heatmap of placements, one square per
+ * placement day (Heatmap.astro).
+ */
 import { howWeWork } from '../content/site.ts';
+import { publishedProof } from '../lib/release.ts';
+import { splitNumber, words } from '../lib/text.ts';
+import Heatmap from './Heatmap.astro';
+import Icon from './Icon.astro';
+
+const title = words(howWeWork.heading);
+const icons = ['chat', 'route', 'badge', 'contact'] as const;
+const placements = publishedProof().find((p) => p.id === 'placements');
+const count = placements ? (splitNumber(placements.value)?.value ?? 0) : 0;
 ---
 
-<section class="section section--dark how on-dark" id="how-we-work" aria-labelledby="how-title">
-  <div class="container">
-    <p class="eyebrow">{howWeWork.eyebrow}</p>
-    <h2 class="section-heading" id="how-title">{howWeWork.heading}</h2>
+<section class="sec cov" id="how-we-work" aria-labelledby="how-title">
+  <div class="wrap">
+    <div class="split" data-reveal>
+      <p class="label">{howWeWork.eyebrow}</p>
+      <h2 class="h2 cov-title" id="how-title">
+        {
+          title.map((w, i) => (
+            <>
+              <span class:list={[w.accent && 'accent']}>{w.text}</span>
+              {i < title.length - 1 && !title[i + 1]?.glue && ' '}
+            </>
+          ))
+        }
+      </h2>
+    </div>
 
-    <ol role="list" class="steps">
+    <ol class="steps" data-reveal>
       {
-        howWeWork.steps.map((step, index) => (
+        howWeWork.steps.map((step, i) => (
           <li class="step">
-            <span class="step__node" aria-hidden="true" />
-            <span class="step__index" aria-hidden="true">
-              {String(index + 1).padStart(2, '0')}
+            <span class="step-ic">
+              <Icon name={icons[i] ?? 'check'} />
             </span>
-            <h3 class="step__title">{step.title}</h3>
-            <p class="step__body">{step.body}</p>
+            <h3 class="h3 step-title">{step.title}</h3>
+            <p>{step.body}</p>
           </li>
         ))
       }
     </ol>
+
+    {
+      placements && (
+        <div class="calc">
+          <div class="calc-head">
+            <div>
+              <p class="calc-big">{placements.value}</p>
+              <p class="calc-label">{placements.label}</p>
+            </div>
+            <p class="calc-caption">{howWeWork.placements.caption}</p>
+          </div>
+          <Heatmap total={count} label={`${howWeWork.placements.heading}: ${placements.value} ${placements.label}, shown as a daily heatmap. ${howWeWork.placements.note}`} />
+          <p class="fine calc-note">{howWeWork.placements.note}</p>
+        </div>
+      )
+    }
   </div>
 </section>
 
 <style>
-  .how {
-    position: relative;
-    overflow: hidden;
-    background:
-      radial-gradient(ellipse 50% 60% at 0% 100%, rgb(34 100 210 / 0.12), transparent 70%),
-      var(--sgi-navy);
+  .cov {
+    border-top: 1px solid var(--rule);
+  }
+
+  .cov-title {
+    max-width: 48rem;
   }
 
   .steps {
-    --rail: 1.25rem;
-    position: relative;
     display: grid;
-    gap: 2.25rem;
-    margin-top: clamp(2.75rem, 5vw, 4rem);
-    padding-left: calc(var(--rail) + 1rem);
-  }
-
-  /* The flow line the steps sit on (vertical on small screens). */
-  .steps::before {
-    content: '';
-    position: absolute;
-    top: 0.5rem;
-    bottom: 0.5rem;
-    left: calc(var(--rail) / 2);
-    width: 1px;
-    background: linear-gradient(to bottom, var(--sgi-electric), rgb(243 248 255 / 0.18) 40%, rgb(243 248 255 / 0.18));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 3.5rem;
+    border-top: 1px solid var(--rule);
   }
 
   .step {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 1.375rem 1.25rem 1.375rem 0;
+    font-size: var(--t-small);
   }
 
-  .step__node {
-    position: absolute;
-    top: 0.35rem;
-    left: calc(-1 * (var(--rail) / 2 + 1rem) - 4.5px);
-    width: 9px;
-    height: 9px;
-    background: var(--sgi-navy);
-    border: 1px solid rgb(243 248 255 / 0.85);
-    border-radius: 50%;
-    box-shadow: 0 0 0 4px var(--sgi-navy);
+  .step + .step {
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--rule);
   }
 
-  .step:first-child .step__node {
-    background: var(--sgi-electric);
-    border-color: var(--sgi-electric);
+  .step p {
+    color: var(--muted);
   }
 
-  .step__index {
+  .step-title {
+    margin-top: 0.875rem;
+    font-size: 0.9375rem;
+  }
+
+  .step-ic {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--accent-text);
+  }
+
+  .calc {
+    margin-top: 3rem;
+    padding: 2rem;
+    border-radius: 16px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+  }
+
+  .calc-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .calc-big {
     font-family: var(--font-display);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--accent-on-dark);
+    font-size: clamp(2.75rem, 2rem + 3vw, 4.5rem);
+    letter-spacing: -0.045em;
+    line-height: 1;
   }
 
-  .step__title {
+  .calc-label {
     margin-top: 0.5rem;
-    font-size: var(--text-h3);
-    line-height: 1.2;
-    color: var(--sgi-white);
+    font-size: 1rem;
   }
 
-  .step__body {
-    margin-top: 0.6rem;
+  .calc-caption {
     max-width: 22rem;
-    color: var(--text-on-dark-muted);
+    font-size: var(--t-small);
+    color: var(--muted);
+    text-align: right;
   }
 
-  @media (min-width: 60em) {
+  .calc-note {
+    margin-top: 0.875rem;
+  }
+
+  @media (max-width: 56.25rem) {
     .steps {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: clamp(1.5rem, 3vw, 2.5rem);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .step:nth-child(3) {
       padding-left: 0;
-      padding-top: 2.25rem;
+      border-left: 0;
     }
 
-    .steps::before {
-      top: 0;
-      bottom: auto;
-      left: 0;
-      right: 0;
-      width: auto;
-      height: 1px;
-      background: linear-gradient(to right, var(--sgi-electric), rgb(243 248 255 / 0.18) 30%, rgb(243 248 255 / 0.18));
+    .step:nth-child(n + 3) {
+      border-top: 1px solid var(--rule);
     }
 
-    .step__node {
-      top: calc(-2.25rem - 4.5px);
-      left: 0;
+    .calc {
+      padding: 1.375rem;
+    }
+
+    .calc-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .calc-caption {
+      text-align: left;
     }
   }
+
+  @media (max-width: 45rem) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+
+    .step + .step {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+  }
+
 </style>

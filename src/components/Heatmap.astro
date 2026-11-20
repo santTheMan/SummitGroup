@@ -1,0 +1,169 @@
+---
+/**
+ * Daily placements heatmap, after bklit's HeatmapChart (ui.bklit.com):
+ * rounded cells with a 3px gap filling the width, month labels on top,
+ * M / W / F down the side, a tooltip and other cells dimming on hover, and a
+ * Fewer → More gradient legend. Drawn at build time; the column-wave entrance
+ * is in src/scripts/motion.ts and the hover/tooltip in src/scripts/ui.ts.
+ */
+import { howWeWork } from '../content/site.ts';
+import { placementCalendar } from '../lib/placements.ts';
+
+interface Props {
+  total: number;
+  label: string;
+}
+
+const { total, label } = Astro.props;
+const copy = howWeWork.placements;
+const cal = placementCalendar(copy.from, copy.to, total);
+const dayLabels = ['Mon', '', 'Wed', '', 'Fri', '', ''];
+const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+---
+
+<div class="hm-wrap" data-heatmap data-one={copy.tooltipOne} data-many={copy.tooltipMany}>
+  <div class="hm-scroll" tabindex="0" role="img" aria-label={label} data-hm-scroll>
+    <div class="hm" style={`--cols:${cal.weeks}`} data-hm>
+      {cal.months.map((m) => <span class="hm-month" style={`grid-column:${m.col + 2} / span 3`}>{m.label}</span>)}
+      {dayLabels.map((d, i) => d && <span class="hm-day" style={`grid-row:${i + 2}`}>{d.charAt(0)}</span>)}
+      {
+        cal.days.map((d) => (
+          <i
+            data-l={d.level}
+            data-c={d.col}
+            data-r={d.row}
+            data-n={d.count}
+            data-t={fmt.format(new Date(`${d.date}T00:00:00Z`))}
+            style={`grid-area:${d.row + 2} / ${d.col + 2}`}
+          />
+        ))
+      }
+    </div>
+  </div>
+  <p class="hm-tip" data-hm-tip aria-hidden="true"></p>
+  <div class="hm-legend" aria-hidden="true">
+    <span>{copy.legendLess}</span>
+    <i></i>
+    <span>{copy.legendMore}</span>
+  </div>
+</div>
+
+<style>
+  .hm-wrap {
+    position: relative;
+    --l0: #e9e7df;
+    --l1: #cde3fb;
+    --l2: #8ec2f6;
+    --l3: #3f86e0;
+    --l4: #173f86;
+  }
+
+  .hm-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    border-radius: 8px;
+  }
+
+  .hm {
+    display: grid;
+    grid-template-columns: 1.25rem repeat(var(--cols), minmax(0, 1fr));
+    grid-template-rows: auto repeat(7, auto);
+    gap: 3px;
+    min-width: calc(var(--cols) * 11px + 1.25rem);
+    padding-bottom: 2px;
+  }
+
+  .hm-month {
+    grid-row: 1;
+    padding-bottom: 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .hm-day {
+    grid-column: 1;
+    align-self: center;
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--muted);
+  }
+
+  .hm i {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--l0);
+    transition: filter 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hm i[data-l='1'] {
+    background: var(--l1);
+  }
+
+  .hm i[data-l='2'] {
+    background: var(--l2);
+  }
+
+  .hm i[data-l='3'] {
+    background: var(--l3);
+  }
+
+  .hm i[data-l='4'] {
+    background: var(--l4);
+  }
+
+  /* Hovering a day dims the rest (filter, so it never fights the entrance's opacity) */
+  .hm[data-hover] i:not([data-active]) {
+    filter: opacity(0.3);
+  }
+
+  .hm-tip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    padding: 0.375rem 0.625rem;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(var(--x, 0), var(--y, 0)) translate(-50%, calc(-100% - 8px));
+    transition: opacity 120ms ease;
+  }
+
+  .hm-tip[data-on] {
+    opacity: 1;
+  }
+
+  .hm-tip b {
+    font-weight: 500;
+  }
+
+  .hm-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.875rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .hm-legend i {
+    width: 7.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--l0), var(--l1), var(--l2), var(--l3), var(--l4));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hm i,
+    .hm-tip {
+      transition: none;
+    }
+  }
+</style>

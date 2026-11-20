@@ -7,7 +7,7 @@
  *            01 Logo/Horizontal lockup (website header, documents)/SGI-lockup-reversed.svg.
  *
  * To finish the swap: add the v1.0 SVGs to src/assets/brand/, update the
- * imports in src/components/Logo.astro and src/components/Businesses.astro,
+ * imports in src/components/Nav.astro, Footer.astro, BriefPanel.astro and TalentNote.astro,
  * rerun scripts/brand/build-icons.py, then set this to 'final'.
  */
 export const brandAssetStatus: 'interim' | 'final' = 'interim';

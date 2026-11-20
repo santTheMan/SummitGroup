@@ -1,0 +1,372 @@
+---
+/**
+ * Sticky header after the Teal Treasury nav: transparent at the top, frosted
+ * once the page scrolls, a fold-out "Our businesses" panel, a small-screen
+ * sheet and a scroll-progress hairline. Behaviour: src/scripts/ui.ts.
+ */
+import lockup from '../assets/brand/SGI-lockup-colour.svg';
+import { brand, businesses, navigation } from '../content/site.ts';
+import CtaButton from './CtaButton.astro';
+import Icon from './Icon.astro';
+
+const lockupHeight = 26;
+const lockupWidth = Math.round((lockup.width / lockup.height) * lockupHeight);
+const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } as const;
+---
+
+<header class="nav" data-nav>
+  <div class="nav-in">
+    <a class="nav-brand" href="#top" aria-label={`${brand.name}, back to top`}>
+      <img src={lockup.src} width={lockupWidth} height={lockupHeight} alt={brand.name} />
+    </a>
+
+    <nav class="nav-links" aria-label="Main">
+      <div class="biz" data-biz-menu>
+        <button class="nav-link" type="button" aria-expanded="false" aria-controls="biz-panel" data-biz-trigger>
+          {navigation.businessesLabel}
+          <Icon name="chevron" size={16} class="caret" />
+        </button>
+        <div class="biz-panel" id="biz-panel" data-biz-panel>
+          <ul>
+            {
+              businesses.map((b) => (
+                <li>
+                  <a class="biz-item" href={`#business-${b.id}`} style={`--c: var(--c-${b.id}); --ci: var(--c-${b.id}-ink)`}>
+                    <span class="biz-ic">
+                      <Icon name={icons[b.id]} />
+                    </span>
+                    <span>
+                      <b>{b.name}</b>
+                      <small>{b.role}</small>
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+      {
+        navigation.links.map((link) => (
+          <a class="nav-link" href={link.href}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="nav-end">
+      <CtaButton size="small" class="nav-cta" />
+      <button
+        class="burger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="nav-sheet"
+        aria-label={navigation.menuLabel}
+        data-burger
+      >
+        <Icon name="menu" class="burger-open" />
+        <Icon name="close" class="burger-close" />
+      </button>
+    </div>
+
+    <nav class="sheet" id="nav-sheet" aria-label="Site menu" data-sheet>
+      <p class="k sheet-k">{navigation.businessesLabel}</p>
+      {
+        businesses.map((b) => (
+          <a href={`#business-${b.id}`}>
+            {b.name}
+            <small>{b.role}</small>
+          </a>
+        ))
+      }
+      <hr />
+      {
+        navigation.links.map((link) => (
+          <a href={link.href}>
+            {link.label}
+            <Icon name="arrow" size={16} />
+          </a>
+        ))
+      }
+      <CtaButton class="sheet-cta" />
+    </nav>
+  </div>
+  <span class="progress" aria-hidden="true"></span>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    transition:
+      background-color 300ms ease,
+      box-shadow 300ms ease;
+  }
+
+  .nav[data-scrolled] {
+    background: color-mix(in srgb, var(--page) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    box-shadow: 0 1px 0 var(--rule);
+  }
+
+  .nav-in {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    max-width: var(--wrap);
+    height: var(--nav-h);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  .nav-brand {
+    display: inline-flex;
+    flex: none;
+    border-radius: 6px;
+  }
+
+  .nav-brand img {
+    height: 26px;
+    width: auto;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 1;
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    opacity: 0.82;
+    transition:
+      opacity 150ms ease,
+      background-color 150ms ease;
+  }
+
+  .nav-link[aria-expanded='true'] {
+    opacity: 1;
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .nav-link:hover {
+      opacity: 1;
+      background: color-mix(in srgb, var(--ink) 5%, transparent);
+    }
+
+    .biz-item:hover {
+      background: var(--page);
+    }
+  }
+
+  .nav-link :global(.caret) {
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .nav-link[aria-expanded='true'] :global(.caret) {
+    transform: rotate(180deg);
+  }
+
+  .biz {
+    position: relative;
+  }
+
+  /* Origin-aware: the panel grows from its trigger. Opens in 200ms, closes faster. */
+  .biz-panel {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: -0.75rem;
+    width: 22.5rem;
+    padding: 0.5rem;
+    border-radius: 16px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.35);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px) scale(0.97);
+    transform-origin: 15% 0;
+    transition:
+      opacity 150ms ease,
+      transform 150ms var(--ease-out),
+      visibility 150ms;
+  }
+
+  .biz-panel::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -0.75rem;
+    height: 0.75rem;
+  }
+
+  .biz-panel[data-open] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-duration: 200ms;
+  }
+
+  .biz-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    transition: background-color 150ms ease;
+  }
+
+  .biz-item b {
+    display: block;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+
+  .biz-item small {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .biz-ic {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--c) 14%, var(--page));
+    color: var(--ci);
+  }
+
+  .nav-end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .burger {
+    display: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 10px;
+  }
+
+  .burger :global(.burger-close),
+  .burger[aria-expanded='true'] :global(.burger-open) {
+    display: none;
+  }
+
+  .burger[aria-expanded='true'] :global(.burger-close) {
+    display: block;
+  }
+
+  .sheet {
+    display: none;
+  }
+
+  .progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent-text);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress {
+      display: none;
+    }
+  }
+
+  @media (max-width: 56.25rem) {
+    .nav-links {
+      display: none;
+    }
+
+    .burger {
+      display: grid;
+    }
+
+    .nav-end :global(.nav-cta) {
+      display: none;
+    }
+
+    .sheet {
+      position: absolute;
+      left: 0.75rem;
+      right: 0.75rem;
+      top: calc(100% + 0.25rem);
+      display: flex;
+      flex-direction: column;
+      padding: 0.5rem;
+      border-radius: 16px;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-6px);
+      transform-origin: top right;
+      transition:
+        opacity 150ms ease,
+        transform 150ms var(--ease-out),
+        visibility 150ms;
+    }
+
+    .sheet[data-open] {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition-duration: 220ms;
+    }
+
+    .sheet-k {
+      padding: 0.75rem 0.75rem 0.25rem;
+    }
+
+    .sheet a:not(.button) {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 0.75rem;
+      border-radius: 10px;
+      font-size: 0.9375rem;
+    }
+
+    .sheet a small {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    .sheet hr {
+      width: calc(100% - 1.5rem);
+      margin: 0.25rem auto;
+      border: 0;
+      border-top: 1px solid var(--rule);
+    }
+
+    .sheet :global(.sheet-cta) {
+      margin: 0.5rem;
+    }
+  }
+</style>

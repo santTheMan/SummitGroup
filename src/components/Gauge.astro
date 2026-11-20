@@ -1,0 +1,134 @@
+---
+/**
+ * Notched arc gauge, after bklit's Gauge chart (ui.bklit.com/docs/components/gauge-chart):
+ * tapered notches on a 270° arc, lit with a gradient as the value rises, and a
+ * statistic in the middle. Drawn here at build time as plain SVG; the sweep is
+ * animated by src/scripts/gauge.ts with Motion. The server render shows the
+ * final value, so the gauge reads correctly without JavaScript.
+ */
+interface Props {
+  /** Fill level, 0 to 100. */
+  value: number;
+  /** Accessible description of the value, for example "8 of 12 people Summit-Ready". */
+  valueText: string;
+  label: string;
+  notches?: number;
+  /** Percentage of the arc reserved for gaps between notches. */
+  spacing?: number;
+  gradient?: readonly [string, string];
+  tone?: 'light' | 'dark';
+  /** Seconds to wait before the first sweep. */
+  delay?: number;
+  class?: string;
+}
+
+const {
+  value,
+  valueText,
+  label,
+  notches = 40,
+  spacing = 25,
+  gradient = ['#70bfff', '#2264d2'],
+  tone = 'light',
+  delay,
+  class: className,
+} = Astro.props;
+
+const size = 200;
+const c = size / 2;
+const outer = size * 0.46;
+const inner = outer - outer / 3;
+const startAngle = 135;
+const endAngle = 405;
+const total = endAngle - startAngle;
+const notchAngle = (total * (1 - spacing / 100)) / notches;
+const gapAngle = (total * (spacing / 100)) / Math.max(1, notches - 1);
+const lit = Math.round((value / 100) * notches);
+
+const hex = (h: string, i: number) => Number.parseInt(h.slice(1 + i * 2, 3 + i * 2), 16);
+const mix = (a: string, b: string, t: number) =>
+  '#' +
+  [0, 1, 2]
+    .map((i) => Math.round(hex(a, i) + (hex(b, i) - hex(a, i)) * t).toString(16).padStart(2, '0'))
+    .join('');
+
+const r = (n: number) => Math.round(n * 100) / 100;
+const shapes = Array.from({ length: notches }, (_, i) => {
+  const angle = ((startAngle + i * (notchAngle + gapAngle) + notchAngle / 2) * Math.PI) / 180;
+  const half = (((notchAngle * 0.8) * Math.PI) / 180) / 2;
+  const at = (radius: number, a: number) => `${r(c + Math.cos(a) * radius)} ${r(c + Math.sin(a) * radius)}`;
+  return {
+    d: `M${at(outer, angle - half)}L${at(outer, angle + half)}L${at(inner, angle + half)}L${at(inner, angle - half)}Z`,
+    color: mix(gradient[0], gradient[1], notches > 1 ? i / (notches - 1) : 0),
+  };
+});
+
+const height = r(c + Math.sin(Math.PI / 4) * outer + 4);
+---
+
+<div
+  class:list={['gauge', `gauge--${tone}`, className]}
+  data-gauge
+  data-value={value}
+  data-delay={delay}
+  role="meter"
+  aria-label={label}
+  aria-valuemin="0"
+  aria-valuemax="100"
+  aria-valuenow={value}
+  aria-valuetext={valueText}
+>
+  <svg viewBox={`0 0 ${size} ${height}`} aria-hidden="true" focusable="false">
+    {shapes.map((s, i) => <path d={s.d} style={`--c:${s.color}`} data-on={i < lit ? '' : undefined} />)}
+  </svg>
+  <div class="gauge-center" aria-hidden="true">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .gauge {
+    position: relative;
+    width: 100%;
+    
+    color: var(--ink);
+  }
+
+  .gauge svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .gauge path {
+    fill: var(--gauge-off);
+    transition: fill 180ms ease;
+  }
+
+  .gauge--dark path {
+    fill: var(--gauge-off-deep);
+  }
+
+  .gauge path[data-on] {
+    fill: var(--c);
+  }
+
+  .gauge-center {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: calc(100% * 200 / 169);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .gauge--dark {
+    color: var(--deep-ink);
+  }
+</style>

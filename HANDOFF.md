@@ -1,5 +1,70 @@
 # Handoff: SGI website, Phase 1
 
+## Redesign on branch `redesign/teal-look` (20 Nov 2026)
+
+The funnel build below was rejected as looking AI-made. This branch rebuilds the page on two
+templates Daniel chose: **Teal Treasury** (layout, warm cream page, motion) and **Lilac Meadow**
+(feature cards, FAQ), with his picks of a type-led hero over a live panel and a warm cream page.
+Motion is built with Motion (`motion` 14.14) following the /motion skill, and the interaction
+details follow Emil Kowalski's design-engineering rules. The hero panel's Summit-Ready gauge is
+modelled on bklit's Gauge chart. See README, "The page and its motion".
+
+Sections: sticky nav with an "Our businesses" fold-out; hero (approved promise) over an
+interactive example-brief panel with the gauge; About statement and proof (450+, 1, 3);
+sticky business stage (Institute, Sales, Pathways); How we work with a daily placements
+heatmap (after bklit's HeatmapChart); Who we work with cards; FAQ; closing call to action;
+talent chooser; footer.
+
+Third round (20 Nov): "Start with a conversation" is simplified to one optional question and one
+action. Visitors can tap Recruit, Develop or Manage, which build "Your brief" on a card that
+keeps SGI as their single point of contact. No specialist business is named in this section, so
+it never suggests the client deals with more than SGI. The only action is the booking link,
+which is still the open release blocker: set `PUBLIC_BOOKING_URL` to the Calendly or HubSpot
+Meetings page, optionally with a `{needs}` placeholder so the picks prefill the booking form
+(see README). The second "See how we work" button was removed.
+
+One point of contact (20 Nov): the hero panel is now the client's view of their brief. It shows
+"Your contact: SGI" and what SGI covers (Recruit, Develop, Manage), and the second brief card reads
+"Update from SGI". No specialist business is named in the hero or the conversation section, and
+end-to-end tests check both. The businesses section and footer still introduce the three
+specialists, as the approved "One relationship. Three specialists." line does.
+
+Second round (20 Nov, Daniel's review): the example brief runs on stages (Brief in, Shortlist,
+Placed) with "Placed in days, not weeks" and no day numbers; the business stage now follows
+the scroll in both directions; the dot field became the heatmap; the Who we work with cards carry
+working UI (a Without SGI / With SGI toggle, live Johannesburg/London/New York working hours
+with the hours shared, a partner pipeline); the talent note became a "Training or a role?"
+chooser; primary buttons are Electric blue with Apple-style squircle corners (CSS
+`corner-shape: squircle`, with a matching clip-path fallback in `ui.ts` for Safari and Firefox).
+
+**New copy to approve** (all in `src/content/site.ts`, covered by `signOffs.homepageCopy`):
+the About statement, the FAQ (five questions, drafted from approved lines), the conversation
+picker (question, Recruit / Develop / Manage with their one-line details, the "Your point of
+contact" card, the three steps), the talent chooser
+(question, options, answers, journey labels), the heatmap captions, "See how we work",
+`audiences.visuals` (supplier names, "One point of contact", the working-hours caption about
+the UK and Europe), and every label in `illustrations` (example brief, stages, statuses,
+activity rows, scene labels). The panels are marked "Illustration" on the page, but their
+numbers (a team of 12, 9 of 12 Summit-Ready, 8 coaching sessions and so on) are invented
+examples and need a yes before launch.
+
+**Heatmap data is illustrative.** `src/lib/placements.ts` spreads exactly 450 placements over
+weekdays since 1 June 2025 (seeded, so every build is identical) and the card says so. Replace
+`illustrativeCounts` with real daily or weekly counts before launch.
+
+Verified on this branch: lint, `astro check`, 27 unit tests, build, and the full Playwright suite (64 checks across desktop, tablet and phone) ×3
+runs on desktop, tablet and phone (axe WCAG 2.2 AA, reduced motion, keyboard order, menus,
+panel, stage, heatmap total, cards, conversation picker, talent chooser and FAQ). Playwright's own browsers are not installed on this Mac; the run
+used installed Chrome (`channel: 'chrome'`), or run `npx playwright install chromium` first.
+
+Superseded: the three hero prototypes from earlier on 20 Nov (Statement, Portrait, Range) were
+untracked; they now sit in `~/Skills/summit-group-strategy/website-archive/hero-prototypes-2026-11-20/`.
+Favicons are still the interim PNGs (the logo files are now the v1.0 SVGs).
+
+---
+
+## Original Phase 1 build (superseded by the redesign above)
+
 Status: production code built and verified locally on branch `claude/vigilant-brown-ab7910`.
 **Not deployed.** No accounts, services, DNS or production settings were touched.
 
