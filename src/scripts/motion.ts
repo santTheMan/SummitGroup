@@ -6,7 +6,7 @@ import { animate, delay, inView, scopeMotion, scroll, stagger, type AnimationSeq
  * has no reduced-motion preference: if that changes, Motion stops it all and
  * restores inline styles, and the CSS pre-states are switched off.
  *
- * Scroll-linked work (progress line, panel tilt, statement, footer wordmark)
+ * Scroll-linked work (panel tilt, hero glow, statement, footer wordmark)
  * uses scroll(animate()), which runs on the browser's ScrollTimeline where it can.
  */
 declare global {
@@ -28,9 +28,6 @@ const below = (el: Element) => el.getBoundingClientRect().top > window.innerHeig
 scopeMotion(
   () => {
     html.dataset.motion = 'on';
-
-    /* Reading progress */
-    scroll(animate('.progress', { scaleX: [0, 1] }, { ease: 'linear' }));
 
     /* Hero entrance: words rise from their masks, then the copy, panel and cards */
     animate('.hero-word', { y: ['110%', '0%'], rotate: [3, 0] }, { duration: 1.1, delay: stagger(0.045), ease: out });
@@ -162,21 +159,9 @@ scopeMotion(
       scroll(animate(sequence), { target: bigmark, offset: ['start end', 'end end'] });
     }
 
-    /* Wide screens: the business stage unfolds, and the brief cards drift */
+    /* Wide screens: the brief cards drift */
     scopeMotion(
       () => {
-        const stage = $('[data-stage]');
-        const col = $('.stage-col');
-        if (stage && col) {
-          scroll(
-            animate(
-              stage,
-              { clipPath: ['inset(5% 6% 5% 6% round 32px)', 'inset(0% 0% 0% 0% round 14px)'], scale: [0.96, 1] },
-              { ease: 'linear' },
-            ),
-            { target: col, offset: ['start 0.95', 'start 0.4'] },
-          );
-        }
         if (hero) {
           $$('[data-float]').forEach((float, i) => {
             scroll(animate(float, { y: [0, i ? -40 : -90], rotate: [0, i ? 2 : -2] }, { ease: 'linear' }), {

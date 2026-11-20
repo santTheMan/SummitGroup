@@ -21,8 +21,7 @@ const maxBar = Math.max(...s.sales.chart);
 
 {
   which === 'institute' && (
-    <div class="scene scene-phone">
-      <div class="bokeh" />
+    <div class="scene">
       <span class="chip chip-a floating" style="--f-amp:7px; --f-dur:5.2s; --f-delay:-1s">
         <Icon name="check" size={14} />
         {s.institute.chips[0]}
@@ -31,40 +30,48 @@ const maxBar = Math.max(...s.sales.chart);
         <Icon name="check" size={14} />
         {s.institute.chips[1]}
       </span>
-      <div class="float-unit" style="--f-shadow: rgb(0 0 0 / 0.55); --f-shadow-y: -2.25rem">
-      <div class="phone floating" style="--f-amp:11px; --f-dur:6.6s; --f-rot:-0.6deg">
-        <div class="phone-screen">
-          <div class="phone-status">
-            <span>9:41</span>
-            <i />
-          </div>
-          <p class="phone-title">{s.institute.title}</p>
-          <p class="phone-k">{s.institute.label}</p>
-          <div class="phone-gauge">
+      <div class="float-unit">
+      <div class="course-card floating" style="--f-amp:9px; --f-dur:6.6s; --f-rot:-0.3deg">
+        <div class="setup-head">
+          <span>
+            <small>{s.institute.label}</small>
+            <b>{s.institute.title}</b>
+          </span>
+          <span class="setup-btn floating" style="--f-amp:3px; --f-dur:4.6s; --f-delay:-1.8s">
+            {s.institute.button}
+            <Icon name="arrow" size={14} />
+          </span>
+        </div>
+        <div class="course-body">
+          <div class="course-gauge">
             <Gauge
               value={67}
               notches={28}
               label={s.institute.gaugeLabel}
               valueText={s.institute.gaugeLabel}
-              tone="dark"
-              gradient={['#2264d2', '#70bfff']}
+              gradient={['#70bfff', '#2264d2']}
             >
               <b class="pg-num">4<small>/6</small></b>
             </Gauge>
             <p class="pg-label">{s.institute.gaugeLabel}</p>
           </div>
-          <div class="phone-card">
-            <span>{s.institute.next.label}</span>
-            <b>{s.institute.next.text}</b>
-          </div>
-          <div class="phone-card">
-            <span>{s.institute.assessment.label}</span>
-            <b class="ok">
-              <Icon name="check" size={14} />
-              {s.institute.assessment.text}
-            </b>
-          </div>
-          <span class="phone-btn">{s.institute.button}</span>
+          <ul class="course-rows">
+            <li>
+              <span class="setup-ic"><Icon name="chat" size={16} /></span>
+              <span class="course-txt">
+                <small>{s.institute.next.label}</small>
+                <b>{s.institute.next.text}</b>
+              </span>
+            </li>
+            <li data-done>
+              <span class="setup-ic"><Icon name="badge" size={16} /></span>
+              <span class="course-txt">
+                <small>{s.institute.assessment.label}</small>
+                <b>{s.institute.assessment.text}</b>
+              </span>
+              <span class="tick tick--on"><Icon name="check" size={13} /></span>
+            </li>
+          </ul>
         </div>
       </div>
       <span class="float-shadow" style="--f-dur:6.6s" />
@@ -158,89 +165,25 @@ const maxBar = Math.max(...s.sales.chart);
     padding: 1.75rem;
   }
 
-  /* Institute: phone on navy */
-  .scene-phone {
-    overflow: hidden;
-    color: var(--deep-ink);
-  }
-
-  .bokeh {
-    position: absolute;
-    inset: -20%;
-    background:
-      radial-gradient(circle at 18% 30%, color-mix(in srgb, var(--sgi-electric) 55%, transparent) 0, transparent 18%),
-      radial-gradient(circle at 82% 22%, color-mix(in srgb, var(--sgi-sky) 40%, transparent) 0, transparent 14%),
-      radial-gradient(circle at 70% 80%, color-mix(in srgb, var(--sgi-electric) 35%, transparent) 0, transparent 20%),
-      radial-gradient(circle at 30% 85%, rgb(255 255 255 / 0.1) 0, transparent 10%);
-    filter: blur(18px);
-  }
-
-  .phone {
+  /* Institute: a programme card in the same family as the Sales and Pathways cards */
+  .course-card {
     position: relative;
-    width: 13.25rem;
-    height: 26.25rem;
-    padding: 9px;
-    border-radius: 38px;
-    background: linear-gradient(150deg, #23354f, #050c17 60%);
-    box-shadow:
-      0 0 0 1px rgb(255 255 255 / 0.08) inset,
-      0 40px 70px -20px rgb(0 0 0 / 0.65);
-    transform: perspective(1100px) rotateY(-14deg) rotateX(6deg) rotateZ(4deg);
-    transition: transform 900ms var(--ease-out);
+    width: min(25rem, 100%);
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    box-shadow: 0 24px 50px -30px rgb(7 27 52 / 0.35);
   }
 
-  :global([data-on]) > .scene-phone .phone,
-  :global(.feat-inline) .phone {
-    transform: perspective(1100px) rotateY(-8deg) rotateX(4deg) rotateZ(2deg);
+  .course-body {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
   }
 
-  .phone-screen {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    height: 100%;
-    padding: 1rem 0.875rem;
-    border-radius: 30px;
-    overflow: hidden;
-    background: linear-gradient(180deg, #04101f, var(--deep));
-  }
-
-  .phone-status {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-    font-size: 0.625rem;
-    opacity: 0.8;
-  }
-
-  .phone-status i {
-    position: absolute;
-    left: 50%;
-    top: 10px;
-    width: 46px;
-    height: 14px;
-    border-radius: 999px;
-    background: #000;
-    transform: translateX(-50%);
-  }
-
-  .phone-title {
-    font-family: var(--font-display);
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-
-  .phone-k {
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--deep-muted);
-  }
-
-  .phone-gauge {
-    width: 8.5rem;
-    margin: 0 auto;
+  .course-gauge {
     text-align: center;
   }
 
@@ -253,48 +196,80 @@ const maxBar = Math.max(...s.sales.chart);
 
   .pg-num small {
     font-size: 0.8rem;
-    color: var(--deep-muted);
+    color: var(--muted);
   }
 
   .pg-label {
-    margin-top: -0.5rem;
-    font-size: 0.65rem;
-    color: var(--deep-muted);
+    margin-top: -0.25rem;
+    font-size: 0.68rem;
+    color: var(--muted);
   }
 
-  .phone-card {
+  .course-rows {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .course-rows li {
+    display: flex;
     align-items: center;
+    gap: 0.625rem;
     padding: 0.625rem;
-    border-radius: 12px;
-    background: rgb(255 255 255 / 0.07);
-    font-size: 0.66rem;
-    color: var(--deep-muted);
+    border-radius: 10px;
+    border: 1px solid var(--rule);
   }
 
-  .phone-card b {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
+  .course-rows li[data-done] {
+    border-color: color-mix(in srgb, var(--sgi-electric) 30%, transparent);
+    background: color-mix(in srgb, var(--sgi-electric) 4%, var(--paper));
+  }
+
+  .course-txt {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .course-txt small {
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .course-txt b {
+    font-size: 0.8125rem;
     font-weight: 500;
-    font-size: 0.75rem;
-    color: var(--deep-ink);
   }
 
-  .phone-card .ok {
-    color: var(--sgi-sky);
-  }
-
-  .phone-btn {
-    margin-top: auto;
-    padding: 0.6875rem;
-    border-radius: 12px;
+  .tick.tick--on {
     background: var(--sgi-electric);
+    border-color: var(--sgi-electric);
     color: #fff;
-    font-size: 0.75rem;
-    font-weight: 500;
-    text-align: center;
+  }
+
+  /* Phones: a narrower gauge column and no row icons, so the rows keep their text on one line */
+  @media (max-width: 30rem) {
+    .course-body {
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: 0.625rem;
+    }
+
+    .course-rows li {
+      gap: 0.5rem;
+      padding: 0.5rem 0.625rem;
+    }
+
+    .course-rows .setup-ic {
+      display: none;
+    }
+
+    .chip-a {
+      top: 5%;
+    }
+
+    .chip-b {
+      bottom: 3%;
+    }
   }
 
   .chip {
@@ -305,26 +280,28 @@ const maxBar = Math.max(...s.sales.chart);
     gap: 0.375rem;
     padding: 0.5rem 0.75rem;
     border-radius: 999px;
-    background: rgb(255 255 255 / 0.1);
-    border: 1px solid rgb(255 255 255 / 0.14);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    border: 1px solid var(--rule);
+    box-shadow: 0 14px 28px -18px rgb(7 27 52 / 0.4);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     font-size: 0.72rem;
-    color: var(--deep-ink);
+    font-weight: 500;
+    color: var(--ink);
   }
 
   .chip :global(svg) {
-    color: var(--sgi-sky);
+    color: var(--accent-text);
   }
 
   .chip-a {
-    left: 7%;
-    top: 14%;
+    left: 4%;
+    top: 16%;
   }
 
   .chip-b {
-    right: 7%;
-    bottom: 18%;
+    right: 4%;
+    bottom: 20%;
   }
 
   /* Sales: report cards */

@@ -57,7 +57,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     <ul class="cards" data-floats data-float-paused>
       {
         audiences.groups.map((g, i) => (
-          <li class:list={['card', i === 0 ? 'card--light' : 'card--dark on-dark']}>
+          <li class="card">
             <h3 class="card-title">{g.title}</h3>
 
             {i === 0 && (
@@ -108,7 +108,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
             )}
 
             {i === 1 && (
-              <div class="float-unit" style="--f-shadow: rgb(0 0 0 / 0.5)">
+              <div class="float-unit">
               <div class="tz floating" data-tz data-on data-overlap-label={v.timezones.overlap} aria-hidden="true" style="--f-amp:8px; --f-dur:6.9s; --f-delay:-2.2s; --f-rot:-0.35deg">
                 <p class="tz-k">
                   <i class="tz-live" />
@@ -143,7 +143,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
             )}
 
             {i === 2 && (
-              <div class="float-unit" style="--f-shadow: rgb(0 0 0 / 0.5)">
+              <div class="float-unit">
               <div class="pipe floating" data-pipe data-on aria-hidden="true" style="--f-amp:8px; --f-dur:7.3s; --f-delay:-4.1s; --f-rot:0.35deg">
                 <div class="pipe-orgs">
                   <span class="org floating" style="--f-amp:3px; --f-dur:4.6s; --f-delay:-0.8s">{v.pipeline.partner}</span>
@@ -199,24 +199,11 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     gap: 1rem;
   }
 
+  /* No card boxes: each column's illustration floats straight over the page. */
   .card {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    min-height: 30rem;
-    padding: 1.5rem;
-    border-radius: 18px;
-    overflow: hidden;
-  }
-
-  .card--light {
-    background: var(--paper);
-    border: 1px solid var(--rule);
-  }
-
-  .card--dark {
-    background: var(--deep);
-    color: var(--deep-ink);
   }
 
   .card-title {
@@ -227,14 +214,10 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
   }
 
   .card-text {
-    margin-top: auto;
+    margin-top: 0.75rem;
     max-width: 30rem;
     font-size: var(--t-small);
     color: var(--muted);
-  }
-
-  .card--dark .card-text {
-    color: var(--deep-muted);
   }
 
   .card-link {
@@ -243,13 +226,10 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     gap: 0.375rem;
     width: max-content;
     margin-top: -0.75rem;
+    margin-bottom: 1.5rem;
     font-size: var(--t-small);
     font-weight: 500;
     color: var(--accent-text);
-  }
-
-  .card--dark .card-link {
-    color: var(--sgi-sky);
   }
 
   .card-link :global(svg) {
@@ -367,7 +347,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     padding: 3px;
     border-radius: 12px;
     corner-shape: squircle;
-    background: var(--page);
+    background: var(--paper);
     border: 1px solid var(--rule);
   }
 
@@ -471,14 +451,23 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     width: 100%;
   }
 
+  .tz,
+  .pipe {
+    border-radius: 18px;
+    corner-shape: squircle;
+    background:
+      radial-gradient(80% 60% at 100% 0%, color-mix(in srgb, var(--sgi-electric) 26%, transparent), transparent 70%),
+      var(--deep);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    color: var(--deep-ink);
+    box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.55);
+  }
+
   .tz {
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
-    padding: 0.875rem;
-    border-radius: 14px;
-    background: rgb(255 255 255 / 0.05);
-    border: 1px solid var(--deep-rule);
+    padding: 1rem;
   }
 
   .tz-k {
@@ -597,10 +586,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 0.875rem;
-    border-radius: 14px;
-    background: rgb(255 255 255 / 0.05);
-    border: 1px solid var(--deep-rule);
+    padding: 1rem;
   }
 
   .pipe-orgs {
@@ -727,10 +713,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
   @media (max-width: 56.25rem) {
     .cards {
       grid-template-columns: 1fr;
-    }
-
-    .card {
-      min-height: 0;
+      gap: 2.5rem;
     }
   }
 

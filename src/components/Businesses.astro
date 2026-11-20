@@ -1,9 +1,9 @@
 ---
 /**
- * Teal Treasury's features block: a sticky stage that unfolds from a rounded
- * inset and morphs between one scene per business as each block of copy
- * reaches the middle of the screen. On small screens each block carries its
- * own scene. Scene switching: src/scripts/ui.ts; unfold: src/scripts/motion.ts.
+ * Teal Treasury's features block: a sticky stage that morphs between one scene
+ * per business as each block of copy reaches the middle of the screen. There
+ * is no panel behind the scenes: each floats straight over the page. On small
+ * screens each block carries its own scene. Scene switching: src/scripts/ui.ts.
  */
 import { businesses, businessesSection, illustrations } from '../content/site.ts';
 import Scene from './Scene.astro';
@@ -47,7 +47,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
               data-on={i === 0 ? '' : undefined}
               style={`--c: var(--c-${b.id}); --ci: var(--c-${b.id}-ink)`}
             >
-              <div class:list={['feat-inline', i === 0 && 'feat-inline--deep']} aria-hidden="true" data-on data-floats data-float-paused>
+              <div class="feat-inline" aria-hidden="true" data-on data-floats data-float-paused>
                 <Scene which={b.id} />
               </div>
               <p class="feat-n">{pad(i + 1)}</p>
@@ -63,10 +63,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
 </section>
 
 <style>
-  .feats {
-    background: var(--page-2);
-  }
-
   .head {
     margin-bottom: 3.5rem;
   }
@@ -92,15 +88,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
     position: sticky;
     top: calc(50vh - 16.25rem + var(--nav-h) / 2);
     height: 32.5rem;
-    border-radius: 14px;
-    overflow: hidden;
-    background: var(--paper);
-    box-shadow: 0 1px 0 var(--rule);
-    transition: background-color 600ms ease;
-  }
-
-  .stage[data-scene='0'] {
-    background: var(--deep);
   }
 
   .stage-layer {
@@ -132,20 +119,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
     letter-spacing: 0.06em;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
-    transition: color 600ms ease;
-  }
-
-  .stage[data-scene='0'] .stage-count {
-    color: var(--deep-muted);
   }
 
   .stage-count b {
     font-weight: 500;
     color: var(--accent-text);
-  }
-
-  .stage[data-scene='0'] .stage-count b {
-    color: var(--sgi-sky);
   }
 
   .feat-copy {
@@ -232,13 +210,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
       display: block;
       height: 26.25rem;
       margin-bottom: 0.75rem;
-      border-radius: 14px;
-      overflow: hidden;
-      background: var(--paper);
-    }
-
-    .feat-inline--deep {
-      background: var(--deep);
     }
   }
 

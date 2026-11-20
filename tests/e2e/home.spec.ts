@@ -260,6 +260,14 @@ test.describe('reduced motion', () => {
 });
 
 test.describe('header navigation', () => {
+  test('the header is a pill centred at the top of the screen', async ({ page }) => {
+    await page.goto('/');
+    const pill = await page.locator('[data-nav] .pill').boundingBox();
+    const width = page.viewportSize()!.width;
+    expect(Math.abs(pill!.x + pill!.width / 2 - width / 2)).toBeLessThan(2);
+    expect(pill!.y).toBeLessThan(24);
+  });
+
   test('desktop: keyboard order runs logo, navigation, then the call to action', async ({ page }) => {
     await page.goto('/');
     test.skip(!isDesktop(page), 'inline navigation is desktop-only');

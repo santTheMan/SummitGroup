@@ -1,21 +1,25 @@
 ---
 /**
- * Sticky header after the Teal Treasury nav: transparent at the top, frosted
- * once the page scrolls, a fold-out "Our businesses" panel, a small-screen
- * sheet and a scroll-progress hairline. Behaviour: src/scripts/ui.ts.
+ * Header: a floating pill centred at the top of the screen, holding the logo,
+ * the "Our businesses" fold-out, the section links and the Book a conversation
+ * button. A frosted squircle capsule over the page; on small screens it keeps
+ * the logo and a menu button, and the sheet opens beneath it.
+ * Emil's details: the fold-out grows from its trigger and closes faster than it
+ * opens, links and buttons press in, hover effects only on devices that hover.
+ * Behaviour: src/scripts/ui.ts.
  */
 import lockup from '../assets/brand/SGI-lockup-colour.svg';
 import { brand, businesses, navigation } from '../content/site.ts';
 import CtaButton from './CtaButton.astro';
 import Icon from './Icon.astro';
 
-const lockupHeight = 26;
+const lockupHeight = 22;
 const lockupWidth = Math.round((lockup.width / lockup.height) * lockupHeight);
 const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } as const;
 ---
 
 <header class="nav" data-nav>
-  <div class="nav-in">
+  <div class="pill">
     <a class="nav-brand" href="#top" aria-label={`${brand.name}, back to top`}>
       <img src={lockup.src} width={lockupWidth} height={lockupHeight} alt={brand.name} />
     </a>
@@ -55,20 +59,18 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       }
     </nav>
 
-    <div class="nav-end">
-      <CtaButton size="small" class="nav-cta" />
-      <button
-        class="burger"
-        type="button"
-        aria-expanded="false"
-        aria-controls="nav-sheet"
-        aria-label={navigation.menuLabel}
-        data-burger
-      >
-        <Icon name="menu" class="burger-open" />
-        <Icon name="close" class="burger-close" />
-      </button>
-    </div>
+    <CtaButton size="small" class="nav-cta" />
+    <button
+      class="burger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="nav-sheet"
+      aria-label={navigation.menuLabel}
+      data-burger
+    >
+      <Icon name="menu" class="burger-open" />
+      <Icon name="close" class="burger-close" />
+    </button>
 
     <nav class="sheet" id="nav-sheet" aria-label="Site menu" data-sheet>
       <p class="k sheet-k">{navigation.businessesLabel}</p>
@@ -92,77 +94,96 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       <CtaButton class="sheet-cta" />
     </nav>
   </div>
-  <span class="progress" aria-hidden="true"></span>
 </header>
 
 <style>
+  /* The bar spans the page but is invisible; only the centred pill takes clicks. */
   .nav {
     position: sticky;
     top: 0;
     z-index: 40;
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem var(--gutter) 0;
+    pointer-events: none;
+  }
+
+  .pill {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    height: 3.5rem;
+    padding: 0 0.4375rem 0 1.125rem;
+    border-radius: 999px;
+    corner-shape: squircle;
+    background: color-mix(in srgb, var(--paper) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.6) inset,
+      0 12px 32px -20px rgb(7 27 52 / 0.35);
+    backdrop-filter: saturate(1.5) blur(16px);
+    -webkit-backdrop-filter: saturate(1.5) blur(16px);
+    pointer-events: auto;
     transition:
       background-color 300ms ease,
       box-shadow 300ms ease;
   }
 
-  .nav[data-scrolled] {
-    background: color-mix(in srgb, var(--page) 82%, transparent);
-    backdrop-filter: saturate(1.4) blur(14px);
-    -webkit-backdrop-filter: saturate(1.4) blur(14px);
-    box-shadow: 0 1px 0 var(--rule);
-  }
-
-  .nav-in {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 1.75rem;
-    max-width: var(--wrap);
-    height: var(--nav-h);
-    margin: 0 auto;
-    padding: 0 var(--gutter);
+  .nav[data-scrolled] .pill {
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.6) inset,
+      0 16px 40px -20px rgb(7 27 52 / 0.45);
   }
 
   .nav-brand {
     display: inline-flex;
     flex: none;
+    margin-right: 1rem;
     border-radius: 6px;
   }
 
   .nav-brand img {
-    height: 26px;
+    height: 22px;
     width: auto;
   }
 
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    flex: 1;
+    gap: 0.125rem;
+    margin-right: 0.75rem;
   }
 
   .nav-link {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    padding: 0.5rem 0.625rem;
-    border-radius: 8px;
+    height: 2.5rem;
+    padding: 0 0.875rem;
+    border-radius: 999px;
     font-size: 0.875rem;
-    opacity: 0.82;
+    color: color-mix(in srgb, var(--ink) 82%, transparent);
     transition:
-      opacity 150ms ease,
-      background-color 150ms ease;
+      color 150ms ease,
+      background-color 150ms ease,
+      transform var(--press) var(--ease-out);
+  }
+
+  .nav-link:active {
+    transform: scale(0.97);
   }
 
   .nav-link[aria-expanded='true'] {
-    opacity: 1;
-    background: color-mix(in srgb, var(--ink) 5%, transparent);
+    color: var(--ink);
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
   }
 
   @media (hover: hover) and (pointer: fine) {
     .nav-link:hover {
-      opacity: 1;
-      background: color-mix(in srgb, var(--ink) 5%, transparent);
+      color: var(--ink);
+      background: color-mix(in srgb, var(--ink) 6%, transparent);
     }
 
     .biz-item:hover {
@@ -185,18 +206,20 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
   /* Origin-aware: the panel grows from its trigger. Opens in 200ms, closes faster. */
   .biz-panel {
     position: absolute;
-    top: calc(100% + 0.5rem);
-    left: -0.75rem;
+    top: calc(100% + 0.875rem);
+    left: 50%;
     width: 22.5rem;
+    margin-left: -11.25rem;
     padding: 0.5rem;
-    border-radius: 16px;
+    border-radius: 20px;
+    corner-shape: squircle;
     background: var(--paper);
     border: 1px solid var(--rule);
     box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.35);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px) scale(0.97);
-    transform-origin: 15% 0;
+    transform-origin: 50% 0;
     transition:
       opacity 150ms ease,
       transform 150ms var(--ease-out),
@@ -208,8 +231,8 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     position: absolute;
     left: 0;
     right: 0;
-    top: -0.75rem;
-    height: 0.75rem;
+    top: -1rem;
+    height: 1rem;
   }
 
   .biz-panel[data-open] {
@@ -223,7 +246,7 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     display: flex;
     gap: 0.75rem;
     padding: 0.75rem;
-    border-radius: 10px;
+    border-radius: 12px;
     transition: background-color 150ms ease;
   }
 
@@ -247,23 +270,23 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 10px;
+    corner-shape: squircle;
     background: color-mix(in srgb, var(--c) 14%, var(--page));
     color: var(--ci);
-  }
-
-  .nav-end {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-left: auto;
   }
 
   .burger {
     display: none;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 10px;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-left: auto;
+    border-radius: 999px;
+    transition: transform var(--press) var(--ease-out);
+  }
+
+  .burger:active {
+    transform: scale(0.95);
   }
 
   .burger :global(.burger-close),
@@ -279,25 +302,15 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     display: none;
   }
 
-  .progress {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    background: var(--accent-text);
-    transform: scaleX(0);
-    transform-origin: 0 50%;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .progress {
-      display: none;
-    }
-  }
-
   @media (max-width: 56.25rem) {
-    .nav-links {
+    .pill {
+      width: 100%;
+      max-width: 34rem;
+      padding-right: 0.4375rem;
+    }
+
+    .nav-links,
+    .pill > :global(.nav-cta) {
       display: none;
     }
 
@@ -305,26 +318,23 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       display: grid;
     }
 
-    .nav-end :global(.nav-cta) {
-      display: none;
-    }
-
     .sheet {
       position: absolute;
-      left: 0.75rem;
-      right: 0.75rem;
-      top: calc(100% + 0.25rem);
+      left: 0;
+      right: 0;
+      top: calc(100% + 0.5rem);
       display: flex;
       flex-direction: column;
       padding: 0.5rem;
-      border-radius: 16px;
+      border-radius: 22px;
+      corner-shape: squircle;
       background: var(--paper);
       border: 1px solid var(--rule);
       box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.4);
       opacity: 0;
       visibility: hidden;
       transform: translateY(-6px);
-      transform-origin: top right;
+      transform-origin: top center;
       transition:
         opacity 150ms ease,
         transform 150ms var(--ease-out),
@@ -348,7 +358,7 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       align-items: center;
       gap: 1rem;
       padding: 0.8rem 0.75rem;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 0.9375rem;
     }
 
@@ -367,6 +377,13 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
 
     .sheet :global(.sheet-cta) {
       margin: 0.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link,
+    .burger {
+      transition: none;
     }
   }
 </style>
