@@ -1,22 +1,26 @@
 ---
 /**
- * Start with a conversation: one optional question and one action.
- * Visitors can tap what they need (Recruit, Develop, Manage); the card beside
- * it keeps SGI as their single point of contact and turns the picks into
- * their brief. Specialist businesses are never shown here: the client deals
- * with SGI only. The only action is the booking link; when it carries a
- * {needs} placeholder the picks are passed into the booking form.
+ * Start with a conversation: the page's finale for companies.
  *
- * Teal Treasury's warm glows are kept, but not the card: on 22 Nov 2026 Daniel
- * found the boxed card too distinct from the page. The glows now sit in an open,
- * full-width wash that fades in from the page above and back out below, mirroring
- * the talent section's wash underneath (blue left and peach right here, the
- * other way round there). The glows still follow the pointer
- * (src/scripts/motion.ts). Picker: src/scripts/ui.ts.
+ * On 22 Nov 2026 Daniel removed the "Your brief" card beside it so the section
+ * could carry its own authority. It is now one centred column, the way the hero
+ * opens the page: the largest headline since the hero ("conversation." in the
+ * accent, as the hero accents "higher."), rising once out of line masks; a lead
+ * that says, at display size and in full ink, that SGI stays the client's point
+ * of contact (the sentence the card used to whisper); the optional needs
+ * (Recruit, Develop, Manage), answered in a line beneath them; and one button.
+ *
+ * One point of contact is sacred here: no specialist business is named. When the
+ * booking link carries a {needs} placeholder, the picks are passed into it.
+ *
+ * The glows sit in an open, full-width wash that fades in from the page above and
+ * back out below, and frame the column like stage lights (blue left, peach right,
+ * a white lift behind the words). They follow the pointer on desktop.
+ * Motion: src/scripts/motion.ts. Picker: src/scripts/ui.ts (initConversation).
  */
-import icon from '../assets/brand/SGI-icon-colour.svg';
 import { bookingUrl } from '../config/env.ts';
 import { closing } from '../content/site.ts';
+import { words } from '../lib/text.ts';
 import CtaButton from './CtaButton.astro';
 import Icon from './Icon.astro';
 
@@ -27,8 +31,7 @@ interface Props {
 
 const { headingLevel = 'h2' } = Astro.props;
 const Heading = headingLevel;
-
-const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' } as const;
+const title = words(closing.heading);
 ---
 
 <section class="cta-sec" id="book" aria-labelledby="book-title" data-cta>
@@ -40,88 +43,56 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
 
   <div class="wrap">
     <div
-      class="cta-grid"
+      class="finale"
       data-convo
       data-on=""
       data-summary={closing.call.summary}
       data-summary-empty={closing.call.summaryEmpty}
+      data-said={closing.call.said}
+      data-said-empty={closing.call.empty}
     >
-      <div class="cta-in">
-        <Heading class="h2 book-title" id="book-title">{closing.heading}</Heading>
-        <p class="cta-body">{closing.body}</p>
+      <Heading class="finale-title" id="book-title" data-finale-title>
+        {
+          title.map((w, i) => (
+            <>
+              {i > 0 && !w.glue && ' '}
+              <span class="fin-mask">
+                <span class:list={['fin-word', w.accent && 'accent']}>{w.text}</span>
+              </span>
+            </>
+          ))
+        }
+      </Heading>
 
-        <div class="needs">
-          <p class="needs-k" id="needs-label">
-            {closing.needsLabel} <span>{closing.needsHint}</span>
-          </p>
-          <div class="chips" role="group" aria-labelledby="needs-label">
-            {
-              closing.needs.map((n) => (
-                <button class="chip" type="button" aria-pressed="false" data-need={n.id}>
-                  <Icon name={needIcons[n.id]} size={16} class="chip-ic" />
-                  {n.label}
-                  <Icon name="check" size={14} class="chip-tick" />
-                </button>
-              ))
-            }
-          </div>
-        </div>
+      <p class="finale-lead">
+        {closing.body} <strong>{closing.call.note}</strong>
+      </p>
 
-        <div class="cta-action">
-          <CtaButton size="large" withNeeds />
-          <ol class="steps">
-            {
-              closing.steps.map((step, i) => (
-                <li>
-                  <span>{i + 1}</span>
-                  {step}
-                </li>
-              ))
-            }
-          </ol>
-        </div>
-        {!bookingUrl && <p class="pending" role="note" data-booking-pending>{closing.pendingNotice}</p>}
-        <p class="visually-hidden" aria-live="polite" data-convo-summary>{closing.call.summaryEmpty}</p>
-      </div>
-
-      <div class="call" aria-hidden="true">
-        <div class="call-head">
-          <span class="call-ic">
-            <img src={icon.src} width="24" height="12" alt="" />
-          </span>
-          <span class="call-who">
-            <small>{closing.call.label}</small>
-            <b>{closing.call.lead}</b>
-          </span>
-          <span class="call-one">
-            <Icon name="contact" size={14} />1
-          </span>
-        </div>
-        <p class="call-k">{closing.call.brief}</p>
-        <ul class="call-rows">
+      <div class="needs">
+        <p class="needs-k" id="needs-label">
+          {closing.needsLabel} <span>{closing.needsHint}</span>
+        </p>
+        <div class="chips" role="group" aria-labelledby="needs-label">
           {
             closing.needs.map((n) => (
-              <li class="call-row" data-need-row={n.id}>
-                <span class="row-ic">
-                  <Icon name={needIcons[n.id]} size={16} />
+              <button class="chip" type="button" aria-pressed="false" data-need={n.id}>
+                <span class="chip-mark" aria-hidden="true">
+                  <Icon name="plus" size={14} class="chip-plus" />
+                  <Icon name="check" size={14} class="chip-tick" />
                 </span>
-                <span class="row-txt">
-                  <b>{n.label}</b>
-                  <small>{n.detail}</small>
-                </span>
-                <span class="row-tick">
-                  <Icon name="check" size={12} />
-                </span>
-              </li>
+                {n.label}
+              </button>
             ))
           }
-        </ul>
-        <p class="call-empty">{closing.call.empty}</p>
-        <p class="call-note">
-          <Icon name="contact" size={14} />
-          {closing.call.note}
-        </p>
+        </div>
+        <p class="said" data-convo-said>{closing.call.empty}</p>
       </div>
+
+      <div class="cta-action">
+        <CtaButton size="large" withNeeds />
+      </div>
+      {!bookingUrl && <p class="pending" role="note" data-booking-pending>{closing.pendingNotice}</p>}
+      <p class="visually-hidden" aria-live="polite" data-convo-summary>{closing.call.summaryEmpty}</p>
     </div>
   </div>
 </section>
@@ -130,7 +101,7 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
   .cta-sec {
     position: relative;
     isolation: isolate;
-    padding-block: 8.5rem 7rem;
+    padding-block: clamp(7rem, 4rem + 7vw, 10.5rem) clamp(5.5rem, 3rem + 5vw, 8rem);
   }
 
   /* The wash: a warm tint with the brand glows over it, faded to nothing at the top
@@ -160,9 +131,9 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     pointer-events: none;
   }
 
-  /* Glows: blue behind the words, peach behind the brief, a white lift between.
-     Placed with the translate property so Motion's pointer drift (transform)
-     adds to it instead of replacing it. */
+  /* Stage lights: blue and peach either side of the column, a wide white lift
+     behind the words so the smaller text has the lightest ground. Placed with the
+     translate property so Motion's pointer drift (transform) adds to it. */
   .blob {
     position: absolute;
     border-radius: 50%;
@@ -171,60 +142,93 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
   }
 
   .blob-a {
-    width: min(44rem, 80vw);
+    width: min(42rem, 80vw);
     aspect-ratio: 1;
-    left: 24%;
-    top: 50%;
+    left: 15%;
+    top: 52%;
     background: var(--glow-a);
   }
 
   .blob-b {
     width: min(38rem, 72vw);
     aspect-ratio: 1;
-    left: 76%;
+    left: 85%;
     top: 56%;
     background: var(--glow-b);
   }
 
   .blob-c {
-    width: min(22rem, 46vw);
-    aspect-ratio: 1;
-    left: 52%;
-    top: 34%;
-    background: rgb(255 255 255 / 0.6);
+    width: min(46rem, 96vw);
+    aspect-ratio: 1.6;
+    left: 50%;
+    top: 46%;
+    background: rgb(255 255 255 / 0.55);
   }
 
-  .cta-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
-    align-items: center;
-    gap: 3rem;
-  }
-
-  .cta-in {
+  /* ---- The column ---- */
+  .finale {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    align-items: center;
+    max-width: 48rem;
+    margin-inline: auto;
+    text-align: center;
   }
 
-  .cta-body {
-    max-width: 27rem;
-    color: color-mix(in srgb, var(--ink) 78%, transparent);
+  /* One step past the hero: the page closes louder than it opens. Two lines
+     ("Start with a / conversation."), forced by the measure and balanced. */
+  .finale-title {
+    max-width: 7.5em;
+    font-size: var(--t-finale);
+    line-height: 1;
+    letter-spacing: -0.05em;
+    text-wrap: balance;
+  }
+
+  .fin-mask {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding: 0.06em 0 0.12em;
+    margin: -0.06em 0 -0.12em;
+  }
+
+  .fin-word {
+    display: inline-block;
+  }
+
+  /* The lead: context in grey ink, the promise in full ink. 72% ink keeps 5.8:1
+     on the brightest glow; the promise is ink at 16:1. */
+  .finale-lead {
+    max-width: 38rem;
+    margin-top: 1.75rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
+    text-wrap: balance;
+  }
+
+  .finale-lead strong {
+    font-weight: 500;
+    color: var(--ink);
   }
 
   /* ---- Needs picker ---- */
   .needs {
-    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 3rem;
   }
 
   .needs-k {
-    margin-bottom: 0.625rem;
-    font-size: 0.875rem;
+    margin-bottom: 0.875rem;
+    font-size: 0.9375rem;
     font-weight: 500;
   }
 
-  /* 78% ink, like the body copy: it sits over the blue glow, where 62% fell short of 4.5:1 */
   .needs-k span {
     font-weight: 400;
     color: color-mix(in srgb, var(--ink) 78%, transparent);
@@ -233,19 +237,22 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
   .chips {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 0.5rem;
   }
 
+  /* The mark is one fixed slot (a plus that turns into a tick), so pressing a
+     chip never changes its width and the centred row never shifts. */
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    height: 2.625rem;
-    padding: 0 1rem;
+    height: 2.75rem;
+    padding: 0 1.125rem 0 0.875rem;
     border-radius: 13px;
     corner-shape: squircle;
-    background: rgb(255 255 255 / 0.6);
-    border: 1px solid rgb(255 255 255 / 0.85);
+    background: rgb(255 255 255 / 0.62);
+    border: 1px solid rgb(255 255 255 / 0.9);
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--ink);
@@ -268,13 +275,28 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     transform: scale(0.97);
   }
 
-  .chip :global(.chip-ic) {
+  .chip-mark {
+    display: grid;
+    flex: none;
+    width: 14px;
+    height: 14px;
+  }
+
+  .chip-mark :global(svg) {
+    grid-area: 1 / 1;
+    transition:
+      opacity 160ms var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+
+  .chip :global(.chip-plus) {
     color: var(--muted);
-    transition: color 180ms ease;
   }
 
   .chip :global(.chip-tick) {
-    display: none;
+    opacity: 0;
+    transform: scale(0.6);
+    color: var(--sgi-sky);
   }
 
   .chip[aria-pressed='true'] {
@@ -283,315 +305,96 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     color: var(--paper);
   }
 
-  .chip[aria-pressed='true'] :global(.chip-ic) {
-    color: var(--sgi-sky);
+  .chip[aria-pressed='true'] :global(.chip-plus) {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.6);
   }
 
   .chip[aria-pressed='true'] :global(.chip-tick) {
-    display: block;
+    opacity: 1;
+    transform: none;
   }
 
   @media (hover: hover) and (pointer: fine) {
     .chip[aria-pressed='false']:hover {
-      background: rgb(255 255 255 / 0.85);
+      background: rgb(255 255 255 / 0.88);
     }
+  }
+
+  /* The reply: "Not sure yet?" until something is picked, then the brief
+     (src/scripts/ui.ts swaps the words and nudges the line in) */
+  .said {
+    min-height: 1.5em;
+    margin-top: 1rem;
+    font-size: 0.9375rem;
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
   }
 
   /* ---- Action ---- */
   .cta-action {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem 1.5rem;
-    margin-top: 0.75rem;
-  }
-
-  .steps {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.375rem 1rem;
-    font-size: 0.78rem;
-    color: color-mix(in srgb, var(--ink) 70%, transparent);
-  }
-
-  .steps li {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
-
-  .steps li span {
-    display: grid;
-    place-items: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 7px;
-    corner-shape: squircle;
-    background: rgb(255 255 255 / 0.7);
-    font-size: 0.68rem;
-    font-weight: 600;
+    margin-top: 2rem;
   }
 
   .pending {
     max-width: 30rem;
-    font-size: 0.72rem;
+    margin-top: 1rem;
+    font-size: 0.75rem;
     color: color-mix(in srgb, var(--ink) 66%, transparent);
   }
 
-  /* ---- Your conversation card ---- */
-  .call {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding: 1.25rem;
-    border-radius: 20px;
-    corner-shape: squircle;
-    background: rgb(255 255 255 / 0.82);
-    border: 1px solid rgb(255 255 255 / 0.9);
-    box-shadow: 0 30px 60px -36px rgb(7 27 52 / 0.45);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-
-  .call-head {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .call-ic {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 12px;
-    corner-shape: squircle;
-    background: color-mix(in srgb, var(--sgi-sky) 18%, var(--paper));
-  }
-
-  .call-ic img {
-    width: 22px;
-    height: auto;
-  }
-
-  .call-who {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .call-who small {
-    font-size: 0.7rem;
-    color: var(--muted);
-  }
-
-  .call-who b {
-    font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 500;
-  }
-
-  /* "1" contact marker: the single point of contact, stated once */
-  .call-one {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    flex: none;
-    height: 1.5rem;
-    padding: 0 0.5rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--sgi-electric) 10%, transparent);
-    color: var(--accent-text);
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .call-k {
-    margin: 1rem 0 0.5rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .call-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .call-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.625rem;
-    border-radius: 12px;
-    border: 1px dashed var(--rule);
-    transition:
-      border-color 200ms ease,
-      background-color 200ms ease,
-      transform 250ms var(--ease-out);
-  }
-
-  /* Unpicked rows read as empty through the dashed line, grey names and faint
-     icon and tick. The text itself is never faded, so it keeps 4.5:1. */
-  .row-ic {
-    display: grid;
-    place-items: center;
-    flex: none;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 9px;
-    background: var(--page);
-    color: var(--muted);
-    opacity: 0.5;
-    transition:
-      background-color 200ms ease,
-      color 200ms ease,
-      opacity 200ms ease;
-  }
-
-  .row-txt {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .row-txt b {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--muted);
-    transition: color 200ms ease;
-  }
-
-  .row-txt small {
-    font-size: 0.7rem;
-    color: var(--muted);
-  }
-
-  .row-tick {
-    display: grid;
-    place-items: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 50%;
-    border: 1.5px solid var(--rule);
-    color: transparent;
-    opacity: 0.5;
-    transition:
-      background-color 200ms ease,
-      border-color 200ms ease,
-      color 200ms ease,
-      opacity 200ms ease;
-  }
-
-  /* Picked needs join the brief */
-  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'],
-  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'],
-  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] {
-    border-style: solid;
-    border-color: color-mix(in srgb, var(--sgi-electric) 30%, var(--rule));
-    background: var(--paper);
-    transform: translateX(2px);
-  }
-
-  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-ic,
-  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'] .row-ic,
-  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-ic {
-    background: color-mix(in srgb, var(--sgi-electric) 12%, var(--paper));
-    color: var(--accent-text);
-    opacity: 1;
-  }
-
-  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-txt b,
-  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'] .row-txt b,
-  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-txt b {
-    color: var(--ink);
-  }
-
-  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-tick,
-  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'] .row-tick,
-  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-tick {
-    background: var(--sgi-electric);
-    border-color: var(--sgi-electric);
-    color: #fff;
-    opacity: 1;
-  }
-
-  .call-empty {
-    margin-top: 0.875rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  .cta-grid:not([data-on='']) .call-empty {
-    visibility: hidden;
-  }
-
-  .call-note {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.4rem;
-    margin-top: 0.75rem;
-    padding-top: 0.875rem;
-    border-top: 1px solid var(--rule);
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--ink);
-  }
-
-  .call-note :global(svg) {
-    flex: none;
-    margin-top: 1px;
-    color: var(--accent-text);
-  }
-
   @media (max-width: 56.25rem) {
-    .cta-grid {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-    }
-
-    /* One column: blue behind the words up top, peach behind the brief below */
     .blob-a {
-      left: 30%;
-      top: 32%;
+      left: 10%;
+      top: 36%;
     }
 
     .blob-b {
-      left: 70%;
+      left: 90%;
       top: 72%;
     }
 
     .blob-c {
-      left: 60%;
-      top: 18%;
+      width: 120vw;
+      top: 40%;
     }
   }
 
   @media (max-width: 45rem) {
     .cta-sec {
-      padding-block: 6rem 5rem;
+      padding-block: 6.5rem 5rem;
     }
 
-    .call-one {
-      display: none;
+    .needs {
+      margin-top: 2.5rem;
+    }
+
+    .chips {
+      gap: 0.375rem;
+    }
+
+    .chip {
+      padding: 0 0.875rem 0 0.75rem;
+    }
+
+    .cta-action,
+    .cta-action :global(.button) {
+      width: min(100%, 20rem);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .call-row,
-    .row-ic,
-    .row-tick,
-    .chip {
-      transition: none;
+    .chip,
+    .chip-mark :global(svg) {
+      transition:
+        opacity 160ms ease,
+        background-color 180ms ease,
+        color 180ms ease;
+    }
+
+    .chip:active,
+    .chip[aria-pressed='true'] :global(.chip-plus),
+    .chip :global(.chip-tick) {
+      transform: none;
     }
   }
 </style>

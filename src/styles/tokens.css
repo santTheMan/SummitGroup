@@ -63,6 +63,8 @@
 
   --t-h1: clamp(2.5rem, 1.4rem + 3.6vw, 4.25rem);
   --t-h2: clamp(1.875rem, 1.2rem + 2.6vw, 3.25rem);
+  /* The closing's finale headline: one step past the hero h1 (88px at 1440, 40px on phones) */
+  --t-finale: clamp(2.5rem, 1.25rem + 5vw, 5.5rem);
   --t-h3: 1.125rem;
   --t-statement: clamp(1.375rem, 1rem + 1.4vw, 2rem);
   --t-stat: clamp(2.5rem, 1.6rem + 3.2vw, 3.75rem);

@@ -372,6 +372,7 @@ function initConversation() {
   if (!convo) return;
   const chips = $$<HTMLButtonElement>('[data-need]', convo);
   const live = $('[data-convo-summary]', convo);
+  const said = $('[data-convo-said]', convo);
   const cta = $<HTMLAnchorElement>('[data-booking-template]', convo);
   const join = (names: string[]) =>
     names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
@@ -383,6 +384,21 @@ function initConversation() {
       live.textContent = labels.length
         ? (convo.dataset.summary ?? '').replace('{needs}', join(labels))
         : (convo.dataset.summaryEmpty ?? '');
+    }
+    // The visible reply under the needs: "Not sure yet?" or the brief. It is not a live
+    // region (the hidden summary above announces), so the change is shown with a short
+    // nudge: state feedback, transform and opacity only, opacity only when reduced.
+    const next = labels.length
+      ? (convo.dataset.said ?? '').replace('{needs}', join(labels))
+      : (convo.dataset.saidEmpty ?? '');
+    if (said && said.textContent !== next) {
+      said.textContent = next;
+      said.animate(
+        reduced.matches
+          ? { opacity: [0.35, 1] }
+          : { opacity: [0.35, 1], transform: ['translateY(0.25em)', 'none'] },
+        { duration: 200, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' },
+      );
     }
     const template = cta?.dataset.bookingTemplate;
     if (cta && template) {

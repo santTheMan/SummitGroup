@@ -2,6 +2,47 @@
 
 ## 22 Nov 2026 changes (Daniel's review)
 
+- **The last two sections now stand on type alone (latest).** Daniel removed the illustration
+  beside each: the "Your brief" card next to "Start with a conversation." and the Summit-Ready
+  journey card next to "Looking for training or a role?". He asked for each section's authority
+  to come through in its own design. The direction came from a design panel run on Emil Kowalski's
+  principles. Three directions were proposed: keynote, editorial and statement-and-answer. The
+  build is statement-and-answer, with the keynote's promise line grafted on.
+  - **Start with a conversation** is the page's finale: one centred column, like the hero
+    that opens the page.
+    - The headline is the largest type since the hero: `--t-finale`, 88px at 1440 and 40px on
+      phones. It sets on two lines with "conversation." in the accent, as the hero accents
+      "higher.". It rises once out of line masks, as the hero's promise does.
+    - The lead now ends, in full ink, with "SGI stays your point of contact while the work goes
+      on.". This is the one-point-of-contact promise the card used to carry in small print.
+    - Under the Recruit / Develop / Manage chips, a line answers the picks: "Not sure yet? Book
+      anyway and tell us on the call." until something is picked, then "Your brief: Recruit and
+      Manage.".
+    - Each chip's plus turns into a tick in one fixed slot, so the centred row never shifts.
+    - One button follows. The three-step row ("Pick a time", "Tell us what you need", "One point
+      of contact throughout") is gone: the lead now says the third step at display size, and the
+      picker and button say the first two. It is easy to bring back if wanted.
+    - The glows frame the column like stage lights, with a white lift behind the words.
+  - **Looking for training or a role?** is a question and answer in type:
+    - The heading runs the full width, at full h2 size.
+    - The question and the Training / A role toggle sit on the left. The answer is set large
+      on the right (About statement size), opening with the business's name in full ink.
+    - The word chosen in the heading ("training" or "a role") turns blue, so the question
+      records the answer.
+    - Both answers share one cell, so switching never moves the page.
+    - It is left-aligned and smaller than the finale on purpose: individuals are the second
+      audience.
+  - **Contrast:** small grey and blue text over the glows moved off `--muted` and `--accent-text`,
+    which drop to about 4.2:1 and 3.9:1 on a full glow. It now uses 72 to 78% ink, and
+    `--action-hover` for the talent link. Blue `--accent-text` is now only used at 30px and
+    above, where 3:1 applies.
+  - **Copy:**
+    - Changed: `closing.heading` gains an accent marker; the words are unchanged.
+    - Added: `closing.call.said` ("Your brief: {needs}.", the first sentence of the existing
+      summary).
+    - Removed: `closing.steps`, the card's `call.label`, `call.lead` and `call.brief`, and
+      `talentNote.journeyLabel`, `journey` and `badge`. Summit-Ready is still explained in How
+      we work and the FAQ.
 - **Hero:** both floating cards are gone: "New brief: Outbound sales team" above the panel and,
   later the same day, "Update from SGI: Shortlist ready" below it. They pulled focus from
   the panel, which now stands alone.
@@ -25,10 +66,8 @@
   businesses", "How we work", "Who we work with") is gone. The labels are plain blue text,
   and nothing on the page loops on a ping any more.
 - **"Looking for training or a role?"** is no longer a dark navy box. It sits on a soft wash in
-  the brand glows (sky behind the journey card, peach behind the copy, the same `--glow-*`
-  tokens as the closing card), which fades into the page colour on every edge. Text, the
-  Training / A role toggle and the Summit-Ready journey card are now in the light page style:
-  ink type, an ink selected pill, and a frosted white card with electric ticks.
+  the brand glows (sky behind the answer, peach behind the question, the same `--glow-*`
+  tokens as the closing), which fades into the page colour on every edge.
 - **About figures removed:** the 450+ / 1 / 3 proof row under the statement is gone at
   Daniel's request. The figures stay in `proof` in `src/content/site.ts`, and 450+ is still
   shown by the placements heatmap in How we work, so `signOffs.placementsFigure` still applies.
@@ -101,9 +140,9 @@ chooser; primary buttons are Electric blue with Apple-style squircle corners (CS
 
 **New copy to approve** (all in `src/content/site.ts`, covered by `signOffs.homepageCopy`):
 the About statement, the FAQ (five questions, drafted from approved lines), the conversation
-picker (question, Recruit / Develop / Manage with their one-line details, the "Your point of
-contact" card, the three steps), the talent chooser
-(question, options, answers, journey labels), the heatmap captions, "See how we work",
+picker (question, Recruit / Develop / Manage with their one-line details, and the reply
+line "Your brief: …" under them), the talent chooser
+(question, options, answers), the heatmap captions, "See how we work",
 `audiences.visuals` (supplier names, "One point of contact", the working-hours caption about
 the UK and Europe), and every label in `illustrations` (example brief, stages, statuses,
 activity rows, scene labels). The panels are marked "Illustration" on the page, but their

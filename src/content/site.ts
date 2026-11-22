@@ -179,14 +179,6 @@ export const talentNote = {
       link: 'Meet Summit Pathways',
     },
   ],
-  journeyLabel: 'The Summit-Ready journey',
-  journey: [
-    { label: 'Trained', business: 'institute' },
-    { label: 'Tested', business: 'institute' },
-    { label: 'Supported', business: 'pathways' },
-    { label: 'Placed', business: 'pathways' },
-  ],
-  badge: 'Summit-Ready',
 } as const;
 
 export const howWeWork = {
@@ -261,7 +253,7 @@ export const audiences = {
 
 export const closing = {
   eyebrow: 'Book a conversation',
-  heading: 'Start with a conversation.',
+  heading: 'Start with a *conversation.*',
   body: 'Tell us what your business needs, and we will bring in the right specialists.',
   /** Drafted for the redesign (part of the homepage copy sign-off). */
   needsLabel: 'What do you need?',
@@ -272,17 +264,18 @@ export const closing = {
     { id: 'develop', label: 'Develop', detail: 'Training for the work your business needs done' },
     { id: 'manage', label: 'Manage', detail: 'Management and coaching for your sales teams' },
   ],
+  /** The "Your brief" card was removed on 22 Nov 2026; its lines now live in the section itself. */
   call: {
-    label: 'Your point of contact',
-    lead: 'Summit Group International',
-    brief: 'Your brief',
+    /** Under the needs until something is picked. */
     empty: 'Not sure yet? Book anyway and tell us on the call.',
+    /** Under the needs once something is picked. {needs} is filled in by the page. */
+    said: 'Your brief: {needs}.',
+    /** Set in full ink at the end of the lead: the one-point-of-contact promise. */
     note: 'SGI stays your point of contact while the work goes on.',
     /** Read to screen readers as choices change. {needs} is filled in by the page. */
     summaryEmpty: 'SGI is your one point of contact.',
     summary: 'Your brief: {needs}. SGI is your one point of contact.',
   },
-  steps: ['Pick a time', 'Tell us what you need', 'One point of contact throughout'],
   /** Shown under the button until PUBLIC_BOOKING_URL is configured. */
   pendingNotice: 'Pre-launch placeholder: the booking button appears here once its destination is approved.',
 } as const;

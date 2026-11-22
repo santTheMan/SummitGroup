@@ -72,6 +72,21 @@ scopeMotion(
       });
     });
 
+    /* Start with a conversation: the finale headline rises out of its line masks once,
+       as the hero's promise did, so the page closes in the voice it opened with. Only
+       when it starts below the fold, so a #book link lands on it at rest. Nothing waits
+       for it: the picker and button work while it settles. */
+    const finale = $('[data-finale-title]');
+    if (finale && below(finale)) {
+      const finWords = $$('.fin-word', finale);
+      animate(finWords, { y: '110%', rotate: 3 }, { duration: 0 });
+      inView(
+        finale,
+        () => void animate(finWords, { y: ['110%', '0%'], rotate: [3, 0] }, { duration: 0.85, delay: stagger(0.06), ease: out }),
+        { margin: '0px 0px -15% 0px' },
+      );
+    }
+
     /* Where we work map: once in view, South Africa then each client market colours in, the links
        draw and the labels rise (CSS transitions, staggered by --d) */
     const map = $('[data-map]');

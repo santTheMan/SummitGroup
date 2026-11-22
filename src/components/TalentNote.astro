@@ -1,34 +1,61 @@
 ---
 /**
- * Talent note, reworked on Emil Kowalski's route (the problem was the concept,
- * not the motion): instead of a passive note, people answer one question,
- * "Training or a role?", and the card points them to the right specialist
- * business while the Summit-Ready journey lights the steps that business owns.
+ * Looking for training or a role? For individuals: SGI works with companies,
+ * and its specialist businesses work with people directly.
+ *
+ * On 22 Nov 2026 Daniel removed the Summit-Ready journey card beside it so the
+ * section could carry its own authority. It is now a question and an answer in
+ * type: the heading runs across the full width; below it, the question and the
+ * Training / A role toggle sit on the left and the answer is set large on the
+ * right, naming the business in full ink. The word the visitor picks in the
+ * heading ("training" or "a role") takes the accent, so the question records
+ * the answer. It is asymmetric on purpose, so it never echoes the centred
+ * finale above it, and smaller, so the company call to action keeps its rank.
  *
  * The toggle uses Emil's clipped-duplicate technique: a second, "active" copy
  * of the options sits on top, clipped to the chosen option, and the clip
- * moves, so the label colour changes exactly at the pill's edge.
+ * moves, so the label colour changes exactly at the pill's edge. Both answers
+ * share one grid cell, so switching never moves the page.
  *
- * Surface (22 Nov 2026): no dark box. The section sits on a soft wash in the
- * brand glows (sky and peach, as the closing card above), which fades into
- * the page colour on every edge, so it joins the page instead of cutting it.
- * Behaviour: src/scripts/ui.ts (initTalent).
+ * Surface: a soft wash in the brand glows (peach behind the question, sky
+ * behind the answer, mirroring the finale above), fading into the page colour
+ * on every edge. Behaviour: src/scripts/ui.ts (initTalent).
  */
-import icon from '../assets/brand/SGI-icon-colour.svg';
 import { businesses, talentNote } from '../content/site.ts';
 import Icon from './Icon.astro';
 
 const first = talentNote.options[0];
-const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
+const nameOf: Record<string, string> = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
+
+/* Split the heading around the option words ("training", "a role") so the chosen one can take the accent */
+const segments: { text: string; option?: string }[] = [];
+let rest: string = talentNote.heading;
+for (const o of talentNote.options) {
+  const at = rest.toLowerCase().indexOf(o.label.toLowerCase());
+  if (at < 0) continue;
+  if (at > 0) segments.push({ text: rest.slice(0, at) });
+  segments.push({ text: rest.slice(at, at + o.label.length), option: o.id });
+  rest = rest.slice(at + o.label.length);
+}
+if (rest) segments.push({ text: rest });
+
+/* Each answer opens with its business's name, which is set in full ink */
+const answers = talentNote.options.map((o) => {
+  const name = nameOf[o.business] ?? '';
+  const lead = name && o.text.startsWith(name) ? name : '';
+  return { ...o, lead, tail: o.text.slice(lead.length) };
+});
 ---
 
 <section class="op-sec" aria-labelledby="talent-title">
   <div class="wrap">
     <div class="op" data-talent data-choice-index="0" data-business={first.business} data-reveal>
-      <div class="op-copy">
-        <h2 class="h2 op-title" id="talent-title">{talentNote.heading}</h2>
-        <p class="op-body">{talentNote.body}</p>
+      <h2 class="h2 op-title" id="talent-title">
+        {segments.map((s) => (s.option ? <span class="op-word" data-word={s.option}>{s.text}</span> : s.text))}
+      </h2>
 
+      <div class="op-ask">
+        <p class="op-body">{talentNote.body}</p>
         <p class="chooser-k" id="talent-q">{talentNote.chooserLabel}</p>
         <div class="toggle" role="group" aria-labelledby="talent-q">
           <div class="toggle-base">
@@ -44,50 +71,23 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
             {talentNote.options.map((o) => <span>{o.label}</span>)}
           </div>
         </div>
-
-        <div class="answers" aria-live="polite">
-          {
-            talentNote.options.map((o) => (
-              <div class="answer" data-answer={o.id} hidden={o.id !== first.id}>
-                <p>{o.text}</p>
-                <a class="link-arrow" href={`#business-${o.business}`}>
-                  {o.link}
-                  <Icon name="arrow" size={16} />
-                </a>
-              </div>
-            ))
-          }
-        </div>
       </div>
 
-      <div class="journey" aria-hidden="true">
-        <div class="journey-card">
-          <div class="journey-head">
-            <span class="avatar">
-              <img src={icon.src} width="26" height="13" alt="" />
-            </span>
-            <span>
-              <small>{talentNote.journeyLabel}</small>
-              <b class="journey-badge">
-                <Icon name="badge" size={14} />
-                {talentNote.badge}
-              </b>
-            </span>
-          </div>
-          <ol class="journey-steps">
-            {
-              talentNote.journey.map((step, i) => (
-                <li data-owner={step.business} style={`--i:${i}`}>
-                  <span class="j-dot">
-                    <Icon name="check" size={12} />
-                  </span>
-                  <span class="j-label">{step.label}</span>
-                  <span class="j-owner">{nameOf[step.business]}</span>
-                </li>
-              ))
-            }
-          </ol>
-        </div>
+      <div class="answers" aria-live="polite">
+        {
+          answers.map((o) => (
+            <div class="answer" data-answer={o.id} hidden={o.id !== first.id}>
+              <p class="answer-text">
+                {o.lead && <strong>{o.lead}</strong>}
+                {o.tail}
+              </p>
+              <a class="link-arrow" href={`#business-${o.business}`}>
+                {o.link}
+                <Icon name="arrow" size={16} />
+              </a>
+            </div>
+          ))
+        }
       </div>
     </div>
   </div>
@@ -95,15 +95,15 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
 
 <style>
   /*
-   * The wash: a sky glow behind the journey card and a peach glow behind the
-   * copy (the closing card's glows), over a band that runs page colour, a
-   * breath of sky, page colour. Every layer reaches the page colour or
-   * transparent at its edges, so nothing marks where the section starts.
+   * The wash: a peach glow behind the question and a sky glow behind the answer
+   * (the finale's glows, mirrored), over a band that runs page colour, a breath of
+   * warmth, page colour. Every layer reaches the page colour or transparent at its
+   * edges, so nothing marks where the section starts.
    */
   .op-sec {
     position: relative;
     isolation: isolate;
-    padding-block: 5.5rem 8rem;
+    padding-block: clamp(4.5rem, 3rem + 3vw, 6rem) 8rem;
   }
 
   .op-sec::before {
@@ -112,8 +112,8 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
     inset: 0;
     z-index: -1;
     background:
-      radial-gradient(42% 62% at 74% 50%, var(--glow-a), transparent 72%),
-      radial-gradient(38% 58% at 22% 48%, color-mix(in srgb, var(--glow-b) 85%, transparent), transparent 72%),
+      radial-gradient(42% 62% at 72% 60%, var(--glow-a), transparent 72%),
+      radial-gradient(38% 58% at 20% 50%, color-mix(in srgb, var(--glow-b) 85%, transparent), transparent 72%),
       linear-gradient(
         180deg,
         var(--page),
@@ -123,38 +123,51 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
     pointer-events: none;
   }
 
+  /* Question across the top; the asking on the left, the answer on the right, their
+     last lines level, so the toggle asks and the answer replies */
   .op {
-    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
-    align-items: center;
-    gap: 3rem;
-    padding: 0 3rem;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    grid-template-areas:
+      'title title'
+      'ask answer';
+    align-items: end;
+    column-gap: clamp(3rem, 1rem + 6vw, 7rem);
+    row-gap: clamp(2rem, 1.25rem + 2vw, 3.25rem);
     color: var(--ink);
   }
 
-  .op-copy {
+  .op-title {
+    grid-area: title;
+  }
+
+  /* The chosen word takes the accent, in step with the pill (colour only).
+     --accent-text is 3.9:1 on the glows, above the 3:1 large-text bar at 30px+. */
+  .op-word {
+    transition: color 240ms ease;
+  }
+
+  .op[data-choice-index='0'] .op-word[data-word='training'],
+  .op[data-choice-index='1'] .op-word[data-word='role'] {
+    color: var(--accent-text);
+  }
+
+  .op-ask {
+    grid-area: ask;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
-    max-width: 32rem;
   }
 
-  .op-title {
-    font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
-  }
-
+  /* 78% ink, not --muted: --muted falls to 4.2:1 on the peach glow */
   .op-body {
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
   }
 
   .chooser-k {
-    margin-top: 0.75rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
+    margin: 1.5rem 0 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
   }
 
   /* ---- Toggle (clipped duplicate) ---- */
@@ -181,15 +194,15 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
   .toggle-active span {
     display: grid;
     place-items: center;
-    min-width: 8.5rem;
-    height: 2.75rem;
+    min-width: 9.5rem;
+    height: 3rem;
     padding: 0 1.25rem;
     font-size: 0.9375rem;
     font-weight: 500;
   }
 
   .toggle-base button {
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
     border-radius: 11px;
     transition: transform var(--press) var(--ease-out);
   }
@@ -205,7 +218,7 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
     border-radius: 11px;
     corner-shape: squircle;
     clip-path: inset(0 50% 0 0 round 11px);
-    transition: clip-path 280ms var(--ease-out);
+    transition: clip-path 260ms var(--ease-out);
   }
 
   .op[data-choice-index='1'] .toggle-active {
@@ -218,36 +231,65 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
     }
   }
 
-  /* ---- Answer ---- */
+  /* ---- Answer: statement size, both in one grid cell ---- */
   .answers {
-    min-height: 6rem;
+    grid-area: answer;
+    display: grid;
   }
 
-  .answer p {
-    max-width: 28rem;
+  .answer {
+    grid-area: 1 / 1;
+    max-width: 38rem;
+    transition:
+      opacity 240ms var(--ease-out) 40ms,
+      transform 240ms var(--ease-out) 40ms,
+      visibility 0s 0s;
+  }
+
+  /* The hidden answer keeps its place (so the cell is as tall as the longer one) and
+     leaves faster than the new one arrives, towards its own side of the toggle */
+  .answer[hidden] {
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 150ms ease,
+      transform 150ms ease,
+      visibility 0s 150ms;
+  }
+
+  .answer[data-answer='training'][hidden] {
+    transform: translateX(-0.75rem);
+  }
+
+  .answer[data-answer='role'][hidden] {
+    transform: translateX(0.75rem);
+  }
+
+  .answer-text {
+    font-family: var(--font-display);
+    font-size: var(--t-statement);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
+    text-wrap: pretty;
+  }
+
+  .answer-text strong {
+    font-weight: 500;
     color: var(--ink);
   }
 
-  .answer:not([hidden]) {
-    animation: answer-in 260ms var(--ease-out) both;
-  }
-
-  @keyframes answer-in {
-    from {
-      opacity: 0;
-      filter: blur(3px);
-      transform: translateY(4px);
-    }
-  }
-
+  /* --action-hover, not --accent-text: small blue text needs 4.5:1 on the sky glow */
   .link-arrow {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    min-height: 2.75rem;
     margin-top: 0.75rem;
     font-size: 0.9375rem;
     font-weight: 500;
-    color: var(--accent-text);
+    color: var(--action-hover);
   }
 
   .link-arrow :global(svg) {
@@ -260,131 +302,15 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
     }
   }
 
-  /* ---- Journey card ---- */
-
-  .journey-card {
-    padding: 1.25rem;
-    border-radius: 20px;
-    corner-shape: squircle;
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    border: 1px solid color-mix(in srgb, var(--paper) 60%, var(--rule));
-    backdrop-filter: blur(14px) saturate(1.3);
-    -webkit-backdrop-filter: blur(14px) saturate(1.3);
-    box-shadow:
-      0 1px 0 rgb(255 255 255 / 0.8) inset,
-      0 40px 80px -44px rgb(7 27 52 / 0.35);
-  }
-
-  .journey-head {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding-bottom: 1rem;
-    margin-bottom: 0.5rem;
-    border-bottom: 1px solid var(--rule);
-  }
-
-  .journey-head > span:last-child {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-  }
-
-  .avatar {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: 14px;
-    corner-shape: squircle;
-    background: color-mix(in srgb, var(--sgi-sky) 16%, var(--paper));
-    border: 1px solid var(--rule);
-  }
-
-  .avatar img {
-    width: 26px;
-    height: auto;
-  }
-
-  .journey-head small {
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-
-  .journey-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    font-weight: 500;
-  }
-
-  .journey-badge :global(svg) {
-    color: var(--sgi-electric);
-  }
-
-  .journey-steps {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .journey-steps li {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6875rem 0.25rem;
-    border-radius: 10px;
-    opacity: 0.4;
-    transition:
-      opacity 250ms ease,
-      background-color 250ms ease;
-  }
-
-  .j-dot {
-    display: grid;
-    place-items: center;
-    width: 1.375rem;
-    height: 1.375rem;
-    border-radius: 50%;
-    border: 1.5px solid color-mix(in srgb, var(--ink) 22%, transparent);
-    color: transparent;
-    transition:
-      background-color 250ms ease,
-      border-color 250ms ease,
-      color 250ms ease,
-      transform 300ms var(--ease-out);
-  }
-
-  .j-label {
-    font-size: 0.9375rem;
-  }
-
-  .j-owner {
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-
-  /* The steps the chosen business owns light up, one after another */
-  .op[data-business='institute'] li[data-owner='institute'],
-  .op[data-business='pathways'] li[data-owner='pathways'] {
-    opacity: 1;
-    background: color-mix(in srgb, var(--sgi-sky) 12%, transparent);
-  }
-
-  .op[data-business='institute'] li[data-owner='institute'] .j-dot,
-  .op[data-business='pathways'] li[data-owner='pathways'] .j-dot {
-    background: var(--sgi-electric);
-    border-color: var(--sgi-electric);
-    color: var(--paper);
-    transition-delay: calc((var(--i) % 2) * 70ms);
-  }
-
   @media (max-width: 56.25rem) {
     .op {
-      grid-template-columns: 1fr;
-      padding: 0;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'title'
+        'ask'
+        'answer';
+      align-items: start;
+      row-gap: 1.75rem;
     }
   }
 
@@ -393,25 +319,25 @@ const nameOf = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
       padding-block: 4rem 6rem;
     }
 
+    .op-ask,
+    .toggle {
+      width: 100%;
+    }
+
     .toggle-base button,
     .toggle-active span {
       min-width: 0;
     }
-
-    .toggle {
-      width: 100%;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .toggle-active,
-    .journey-steps li,
-    .j-dot {
+    .toggle-active {
       transition: none;
     }
 
-    .answer:not([hidden]) {
-      animation: none;
+    .answer,
+    .answer[hidden] {
+      transform: none;
     }
   }
 </style>

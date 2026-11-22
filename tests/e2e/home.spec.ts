@@ -264,9 +264,38 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeHidden();
   });
 
+  test('the talent heading records the choice, and the answer swaps in place', async ({ page }) => {
+    const card = page.locator('[data-talent]');
+    const accent = 'rgb(34, 100, 210)';
+    const training = card.locator('[data-word="training"]');
+    const role = card.locator('[data-word="role"]');
+    await expect(training).toHaveText('training');
+    await expect(role).toHaveText('a role');
+    await expect(training).toHaveCSS('color', accent);
+    const before = await card.locator('.answers').boundingBox();
+    await card.getByRole('button', { name: 'A role' }).click();
+    await expect(role).toHaveCSS('color', accent);
+    await expect(training).not.toHaveCSS('color', accent);
+    const after = await card.locator('.answers').boundingBox();
+    // Both answers share one cell, so switching never moves the page below.
+    expect(Math.round(after!.height)).toBe(Math.round(before!.height));
+  });
+
+  test('both sections stand on type alone, and the finale states SGI as the one contact', async ({ page }) => {
+    await expect(page.locator('#book .call, #book .cta-grid, .op-sec .journey')).toHaveCount(0);
+    await expect(page.locator('#book').getByText('SGI stays your point of contact while the work goes on.')).toBeVisible();
+    await expect(page.locator('#book-title .accent')).toHaveText('conversation.');
+    const size = (id: string) => page.locator(id).evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    // The finale headline is the page's closing word: never smaller than the hero's.
+    expect(await size('#book-title')).toBeGreaterThanOrEqual(await size('#hero-title'));
+    expect(await size('#book-title')).toBeGreaterThan(await size('#talent-title'));
+  });
+
   test('the conversation picker builds a brief with SGI as the one contact', async ({ page }) => {
     const convo = page.locator('[data-convo]');
     await expect(convo.getByText('Not sure yet? Book anyway and tell us on the call.')).toBeVisible();
+    const row = () => convo.locator('[data-need]').evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().left)));
+    const before = await row();
     await convo.getByRole('button', { name: 'Recruit' }).click();
     await convo.getByRole('button', { name: 'Manage' }).click();
     await expect(convo.getByRole('button', { name: 'Recruit' })).toHaveAttribute('aria-pressed', 'true');
@@ -274,6 +303,9 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(convo.locator('[data-convo-summary]')).toHaveText(
       'Your brief: Recruit and Manage. SGI is your one point of contact.',
     );
+    // The visible reply under the needs answers the picks, and pressing never shifts the centred row.
+    await expect(convo.locator('[data-convo-said]')).toHaveText('Your brief: Recruit and Manage.');
+    expect(await row()).toEqual(before);
     // The client deals with SGI only: no specialist business is named in this section.
     await expect(convo).not.toContainText(/Summit (Institute|Sales|Pathways)/);
     await convo.getByRole('button', { name: 'Recruit' }).click();
