@@ -2,6 +2,10 @@
 /**
  * Lilac Meadow's two-column FAQ: the title on the left, rows on the right
  * that open with a plus turning into a cross. Behaviour: src/scripts/ui.ts.
+ *
+ * It closes the page (Daniel moved it to the end on 22 Nov 2026), straight after
+ * the talent section's glow wash. It has no top rule, so the wash fades into it
+ * with no line.
  */
 import { faq } from '../content/site.ts';
 import CtaButton from './CtaButton.astro';
@@ -42,10 +46,6 @@ import Icon from './Icon.astro';
 </section>
 
 <style>
-  .faq {
-    border-top: 1px solid var(--rule);
-  }
-
   .faq-grid {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);

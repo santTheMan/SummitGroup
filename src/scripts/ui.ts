@@ -35,7 +35,7 @@ function initNavGlass() {
   if (!links || !glass) return;
   const items = $$('[data-nav-item]', links);
   const trigger = $('[data-biz-trigger]', links);
-  const sections = ['about', 'businesses', 'how-we-work', 'who-we-work-with', 'faq', 'book']
+  const sections = ['about', 'businesses', 'how-we-work', 'who-we-work-with', 'book', 'faq']
     .map((id) => document.getElementById(id))
     .filter((el): el is HTMLElement => Boolean(el));
 
@@ -70,11 +70,20 @@ function initNavGlass() {
     animate(glass, { ...to, opacity: 1, scale: 1 }, spring());
   };
 
-  /* Scroll position: which section is being read */
+  /* Scroll position: which section is being read. The nearest section top above the
+     reading line wins, so the result follows the page, whatever order the sections are in.
+     Sections with no header link (#book) hide the lens while they are read. */
   const spy = () => {
     const line = window.innerHeight * 0.4;
     let id: string | null = null;
-    for (const s of sections) if (s.getBoundingClientRect().top <= line) id = s.id;
+    let nearest = -Infinity;
+    for (const s of sections) {
+      const top = s.getBoundingClientRect().top;
+      if (top <= line && top > nearest) {
+        nearest = top;
+        id = s.id;
+      }
+    }
     const next = items.find((item) => item.dataset.navItem === id) ?? null;
     if (next !== current) {
       current = next;

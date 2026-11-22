@@ -280,6 +280,28 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(convo).toHaveAttribute('data-on', 'manage');
   });
 
+  test('Start with a conversation sits on an open wash that fades into the page, not a boxed card', async ({ page }) => {
+    const section = page.locator('#book');
+    await expect(section.locator('[data-cta-card], .cta-card')).toHaveCount(0);
+    const wash = section.locator('.cta-wash');
+    await expect(wash).toHaveCount(1);
+    const look = await wash.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const sec = el.parentElement!.getBoundingClientRect();
+      const box = el.getBoundingClientRect();
+      return {
+        mask: cs.maskImage || cs.getPropertyValue('-webkit-mask-image'),
+        radius: getComputedStyle(el.parentElement!).borderTopLeftRadius,
+        fullWidth: Math.abs(box.width - document.documentElement.clientWidth) < 2 && Math.abs(box.height - sec.height) < 2,
+      };
+    });
+    // Transparent at both ends of the vertical mask: the page runs in and out with no edge.
+    expect(look.mask).toMatch(/^linear-gradient\(rgba\(0, 0, 0, 0\)/);
+    expect(look.mask).toMatch(/transparent\)$|rgba\(0, 0, 0, 0\)\)$/);
+    expect(look.radius).toBe('0px');
+    expect(look.fullWidth).toBe(true);
+  });
+
   test('pointing at a country label quietens the other marked countries', async ({ page }) => {
     test.skip(!isDesktop(page), 'hover is for mouse screens');
     const map = page.locator('[data-map]');
@@ -329,6 +351,18 @@ test.describe('header navigation', () => {
     const width = page.viewportSize()!.width;
     expect(Math.abs(pill!.x + pill!.width / 2 - width / 2)).toBeLessThan(2);
     expect(pill!.y).toBeLessThan(24);
+  });
+
+  test('the FAQ closes the page, and the header lens only marks it once it is reached', async ({ page }) => {
+    await page.goto('/');
+    const order = await page.$$eval('main > section', (els) => els.map((el) => el.id || el.className.split(' ')[0]));
+    expect(order.slice(-3)).toEqual(['book', 'op-sec', 'faq']);
+    test.skip(!isDesktop(page), 'inline navigation is desktop-only');
+    const faq = page.locator('[data-nav-item="faq"]');
+    await page.locator('#book').evaluate((el) => el.scrollIntoView());
+    await expect(page.locator('[data-nav-item][data-selected]')).toHaveCount(0);
+    await page.locator('#faq').evaluate((el) => el.scrollIntoView());
+    await expect(faq).toHaveAttribute('data-selected', '');
   });
 
   test('the header carries no booking button', async ({ page }) => {

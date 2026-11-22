@@ -5,6 +5,22 @@
 - **Hero:** both floating cards are gone: "New brief: Outbound sales team" above the panel and,
   later the same day, "Update from SGI: Shortlist ready" below it. They pulled focus from
   the panel, which now stands alone.
+- **"Start with a conversation":** no longer a boxed gradient card. The same blue and peach
+  glows now sit in an open, full-width wash. A warm tint fades in from the section above on an
+  eased curve and back out into the page below, so there is no edge. It mirrors the talent
+  section's wash underneath: blue behind the words and peach behind the brief here, the other
+  way round there. The glows still drift toward the pointer on desktop. The card's
+  scroll-in "settle" went with the card. Two contrast fixes came with it, because the open
+  wash let the checker see text the card's gradient had hidden:
+  - The "Optional. Pick any." hint is now 78% ink.
+  - Unpicked rows in the Your brief card keep full-strength grey text. Only their icon and
+    tick are faint; they used to be faded to 45%.
+- **FAQ moved to the end:** the page now runs Hero, About, Our businesses, How we work, Who
+  we work with, Start with a conversation, Looking for training or a role?, FAQ, footer. The
+  FAQ's full-width top rule is gone, so the talent section's wash fades into it with no line.
+  The header lens now picks the nearest section above the reading line, wherever it sits on
+  the page. It hides while "Start with a conversation" and the talent section are read, and
+  marks FAQ once the FAQ is reached.
 - **Section labels:** the small pulsing dot before each section label ("About SGI", "Our
   businesses", "How we work", "Who we work with") is gone. The labels are plain blue text,
   and nothing on the page loops on a ping any more.

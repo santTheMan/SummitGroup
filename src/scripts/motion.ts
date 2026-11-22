@@ -103,15 +103,6 @@ scopeMotion(
     }
 
 
-    /* Closing card settles from a rounder, smaller card */
-    const card = $('[data-cta-card]');
-    if (card) {
-      scroll(animate(card, { scale: [0.92, 1], borderRadius: ['40px', '12px'] }, { ease: 'linear' }), {
-        target: card,
-        offset: ['start 0.98', 'start 0.5'],
-      });
-    }
-
     /* Footer wordmark rises letter by letter */
     const bigmark = $('[data-bigmark]');
     if (bigmark) {
@@ -123,11 +114,12 @@ scopeMotion(
       scroll(animate(sequence), { target: bigmark, offset: ['start end', 'end end'] });
     }
 
-    /* Mouse only: the closing card's glows follow the pointer at different speeds */
+    /* Mouse only: the closing section's glows follow the pointer at different speeds */
+    const cta = $('[data-cta]');
     scopeMotion(
       ({ bind }) => {
-        if (!card) return;
-        const blobs = $$('[data-blob]', card);
+        if (!cta) return;
+        const blobs = $$('[data-blob]', cta);
         const pull = [0.32, -0.24, 0.16];
         let frame = 0;
         let px = 0;
@@ -142,7 +134,7 @@ scopeMotion(
           if (!frame) frame = requestAnimationFrame(move);
         };
         const onMove = (e: PointerEvent) => {
-          const r = card.getBoundingClientRect();
+          const r = cta.getBoundingClientRect();
           px = e.clientX - r.left - r.width / 2;
           py = e.clientY - r.top - r.height / 2;
           queue();
@@ -152,11 +144,11 @@ scopeMotion(
           py = 0;
           queue();
         };
-        card.addEventListener('pointermove', onMove);
-        card.addEventListener('pointerleave', onLeave);
+        cta.addEventListener('pointermove', onMove);
+        cta.addEventListener('pointerleave', onLeave);
         return () => {
-          card.removeEventListener('pointermove', onMove);
-          card.removeEventListener('pointerleave', onLeave);
+          cta.removeEventListener('pointermove', onMove);
+          cta.removeEventListener('pointerleave', onLeave);
           cancelAnimationFrame(frame);
         };
       },

@@ -7,8 +7,12 @@
  * with SGI only. The only action is the booking link; when it carries a
  * {needs} placeholder the picks are passed into the booking form.
  *
- * Teal Treasury's warm glow card is kept: glows follow the pointer and the card
- * settles as it scrolls in (src/scripts/motion.ts). Picker: src/scripts/ui.ts.
+ * Teal Treasury's warm glows are kept, but not the card: on 22 Nov 2026 Daniel
+ * found the boxed card too distinct from the page. The glows now sit in an open,
+ * full-width wash that fades in from the page above and back out below, mirroring
+ * the talent section's wash underneath (blue left and peach right here, the
+ * other way round there). The glows still follow the pointer
+ * (src/scripts/motion.ts). Picker: src/scripts/ui.ts.
  */
 import icon from '../assets/brand/SGI-icon-colour.svg';
 import { bookingUrl } from '../config/env.ts';
@@ -27,97 +31,96 @@ const Heading = headingLevel;
 const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' } as const;
 ---
 
-<section class="cta-sec" id="book" aria-labelledby="book-title">
+<section class="cta-sec" id="book" aria-labelledby="book-title" data-cta>
+  <div class="cta-wash" aria-hidden="true">
+    <span class="blob blob-a" data-blob></span>
+    <span class="blob blob-b" data-blob></span>
+    <span class="blob blob-c" data-blob></span>
+  </div>
+
   <div class="wrap">
-    <div class="cta-card" data-cta-card>
-      <span class="blob blob-a" data-blob aria-hidden="true"></span>
-      <span class="blob blob-b" data-blob aria-hidden="true"></span>
-      <span class="blob blob-c" data-blob aria-hidden="true"></span>
-      <span class="grain" aria-hidden="true"></span>
+    <div
+      class="cta-grid"
+      data-convo
+      data-on=""
+      data-summary={closing.call.summary}
+      data-summary-empty={closing.call.summaryEmpty}
+    >
+      <div class="cta-in">
+        <Heading class="h2 book-title" id="book-title">{closing.heading}</Heading>
+        <p class="cta-body">{closing.body}</p>
 
-      <div
-        class="cta-grid"
-        data-convo
-        data-on=""
-        data-summary={closing.call.summary}
-        data-summary-empty={closing.call.summaryEmpty}
-      >
-        <div class="cta-in">
-          <Heading class="h2 book-title" id="book-title">{closing.heading}</Heading>
-          <p class="cta-body">{closing.body}</p>
-
-          <div class="needs">
-            <p class="needs-k" id="needs-label">
-              {closing.needsLabel} <span>{closing.needsHint}</span>
-            </p>
-            <div class="chips" role="group" aria-labelledby="needs-label">
-              {
-                closing.needs.map((n) => (
-                  <button class="chip" type="button" aria-pressed="false" data-need={n.id}>
-                    <Icon name={needIcons[n.id]} size={16} class="chip-ic" />
-                    {n.label}
-                    <Icon name="check" size={14} class="chip-tick" />
-                  </button>
-                ))
-              }
-            </div>
-          </div>
-
-          <div class="cta-action">
-            <CtaButton size="large" withNeeds />
-            <ol class="steps">
-              {
-                closing.steps.map((step, i) => (
-                  <li>
-                    <span>{i + 1}</span>
-                    {step}
-                  </li>
-                ))
-              }
-            </ol>
-          </div>
-          {!bookingUrl && <p class="pending" role="note" data-booking-pending>{closing.pendingNotice}</p>}
-          <p class="visually-hidden" aria-live="polite" data-convo-summary>{closing.call.summaryEmpty}</p>
-        </div>
-
-        <div class="call" aria-hidden="true">
-          <div class="call-head">
-            <span class="call-ic">
-              <img src={icon.src} width="24" height="12" alt="" />
-            </span>
-            <span class="call-who">
-              <small>{closing.call.label}</small>
-              <b>{closing.call.lead}</b>
-            </span>
-            <span class="call-one">
-              <Icon name="contact" size={14} />1
-            </span>
-          </div>
-          <p class="call-k">{closing.call.brief}</p>
-          <ul class="call-rows">
+        <div class="needs">
+          <p class="needs-k" id="needs-label">
+            {closing.needsLabel} <span>{closing.needsHint}</span>
+          </p>
+          <div class="chips" role="group" aria-labelledby="needs-label">
             {
               closing.needs.map((n) => (
-                <li class="call-row" data-need-row={n.id}>
-                  <span class="row-ic">
-                    <Icon name={needIcons[n.id]} size={16} />
-                  </span>
-                  <span class="row-txt">
-                    <b>{n.label}</b>
-                    <small>{n.detail}</small>
-                  </span>
-                  <span class="row-tick">
-                    <Icon name="check" size={12} />
-                  </span>
+                <button class="chip" type="button" aria-pressed="false" data-need={n.id}>
+                  <Icon name={needIcons[n.id]} size={16} class="chip-ic" />
+                  {n.label}
+                  <Icon name="check" size={14} class="chip-tick" />
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="cta-action">
+          <CtaButton size="large" withNeeds />
+          <ol class="steps">
+            {
+              closing.steps.map((step, i) => (
+                <li>
+                  <span>{i + 1}</span>
+                  {step}
                 </li>
               ))
             }
-          </ul>
-          <p class="call-empty">{closing.call.empty}</p>
-          <p class="call-note">
-            <Icon name="contact" size={14} />
-            {closing.call.note}
-          </p>
+          </ol>
         </div>
+        {!bookingUrl && <p class="pending" role="note" data-booking-pending>{closing.pendingNotice}</p>}
+        <p class="visually-hidden" aria-live="polite" data-convo-summary>{closing.call.summaryEmpty}</p>
+      </div>
+
+      <div class="call" aria-hidden="true">
+        <div class="call-head">
+          <span class="call-ic">
+            <img src={icon.src} width="24" height="12" alt="" />
+          </span>
+          <span class="call-who">
+            <small>{closing.call.label}</small>
+            <b>{closing.call.lead}</b>
+          </span>
+          <span class="call-one">
+            <Icon name="contact" size={14} />1
+          </span>
+        </div>
+        <p class="call-k">{closing.call.brief}</p>
+        <ul class="call-rows">
+          {
+            closing.needs.map((n) => (
+              <li class="call-row" data-need-row={n.id}>
+                <span class="row-ic">
+                  <Icon name={needIcons[n.id]} size={16} />
+                </span>
+                <span class="row-txt">
+                  <b>{n.label}</b>
+                  <small>{n.detail}</small>
+                </span>
+                <span class="row-tick">
+                  <Icon name="check" size={12} />
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="call-empty">{closing.call.empty}</p>
+        <p class="call-note">
+          <Icon name="contact" size={14} />
+          {closing.call.note}
+        </p>
       </div>
     </div>
   </div>
@@ -125,60 +128,70 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
 
 <style>
   .cta-sec {
-    padding-block: 2.5rem;
-  }
-
-  .cta-card {
     position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-    background: linear-gradient(120deg, var(--glow-a), var(--glow-b) 55%, var(--glow-c));
-    transform-origin: 50% 100%;
     isolation: isolate;
+    padding-block: 8.5rem 7rem;
   }
 
-  .blob {
+  /* The wash: a warm tint with the brand glows over it, faded to nothing at the top
+     and bottom on an eased curve, so the page runs into the section and out again
+     with no edge. Full width, like the talent section's wash below it. */
+  .cta-wash {
+    --fade: linear-gradient(
+      180deg,
+      transparent,
+      rgb(0 0 0 / 0.12) 7%,
+      rgb(0 0 0 / 0.42) 15%,
+      rgb(0 0 0 / 0.8) 24%,
+      #000 32%,
+      #000 70%,
+      rgb(0 0 0 / 0.8) 78%,
+      rgb(0 0 0 / 0.42) 87%,
+      rgb(0 0 0 / 0.12) 94%,
+      transparent
+    );
     position: absolute;
+    inset: 0;
     z-index: -1;
-    border-radius: 50%;
-    filter: blur(50px);
+    overflow: hidden;
+    background: color-mix(in srgb, var(--glow-c) 62%, var(--page));
+    -webkit-mask-image: var(--fade);
+    mask-image: var(--fade);
     pointer-events: none;
   }
 
+  /* Glows: blue behind the words, peach behind the brief, a white lift between.
+     Placed with the translate property so Motion's pointer drift (transform)
+     adds to it instead of replacing it. */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(64px);
+    translate: -50% -50%;
+  }
+
   .blob-a {
-    width: 32rem;
-    height: 32rem;
-    left: -7.5rem;
-    top: -11rem;
+    width: min(44rem, 80vw);
+    aspect-ratio: 1;
+    left: 24%;
+    top: 50%;
     background: var(--glow-a);
   }
 
   .blob-b {
-    width: 29rem;
-    height: 29rem;
-    right: -5rem;
-    bottom: -12.5rem;
+    width: min(38rem, 72vw);
+    aspect-ratio: 1;
+    left: 76%;
+    top: 56%;
     background: var(--glow-b);
   }
 
   .blob-c {
-    width: 19rem;
-    height: 19rem;
-    right: 28%;
-    top: -5.5rem;
-    background: rgb(255 255 255 / 0.55);
-  }
-
-  .grain {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    opacity: 0.35;
-    mix-blend-mode: soft-light;
-    background-image:
-      repeating-radial-gradient(circle at 17% 32%, rgb(0 0 0 / 0.18) 0 1px, transparent 1px 3px),
-      repeating-radial-gradient(circle at 73% 61%, rgb(255 255 255 / 0.3) 0 1px, transparent 1px 4px);
-    pointer-events: none;
+    width: min(22rem, 46vw);
+    aspect-ratio: 1;
+    left: 52%;
+    top: 34%;
+    background: rgb(255 255 255 / 0.6);
   }
 
   .cta-grid {
@@ -186,7 +199,6 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     grid-template-columns: minmax(0, 1fr) minmax(0, 23rem);
     align-items: center;
     gap: 3rem;
-    padding: 3rem;
   }
 
   .cta-in {
@@ -212,9 +224,10 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     font-weight: 500;
   }
 
+  /* 78% ink, like the body copy: it sits over the blue glow, where 62% fell short of 4.5:1 */
   .needs-k span {
     font-weight: 400;
-    color: color-mix(in srgb, var(--ink) 62%, transparent);
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
   }
 
   .chips {
@@ -420,14 +433,14 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     padding: 0.5rem 0.625rem;
     border-radius: 12px;
     border: 1px dashed var(--rule);
-    opacity: 0.45;
     transition:
-      opacity 200ms ease,
       border-color 200ms ease,
       background-color 200ms ease,
       transform 250ms var(--ease-out);
   }
 
+  /* Unpicked rows read as empty through the dashed line, grey names and faint
+     icon and tick. The text itself is never faded, so it keeps 4.5:1. */
   .row-ic {
     display: grid;
     place-items: center;
@@ -437,9 +450,11 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     border-radius: 9px;
     background: var(--page);
     color: var(--muted);
+    opacity: 0.5;
     transition:
       background-color 200ms ease,
-      color 200ms ease;
+      color 200ms ease,
+      opacity 200ms ease;
   }
 
   .row-txt {
@@ -452,6 +467,8 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
   .row-txt b {
     font-size: 0.8125rem;
     font-weight: 500;
+    color: var(--muted);
+    transition: color 200ms ease;
   }
 
   .row-txt small {
@@ -467,17 +484,18 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     border-radius: 50%;
     border: 1.5px solid var(--rule);
     color: transparent;
+    opacity: 0.5;
     transition:
       background-color 200ms ease,
       border-color 200ms ease,
-      color 200ms ease;
+      color 200ms ease,
+      opacity 200ms ease;
   }
 
   /* Picked needs join the brief */
   .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'],
   .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'],
   .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] {
-    opacity: 1;
     border-style: solid;
     border-color: color-mix(in srgb, var(--sgi-electric) 30%, var(--rule));
     background: var(--paper);
@@ -489,6 +507,13 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
   .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-ic {
     background: color-mix(in srgb, var(--sgi-electric) 12%, var(--paper));
     color: var(--accent-text);
+    opacity: 1;
+  }
+
+  .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-txt b,
+  .cta-grid[data-on~='develop'] .call-row[data-need-row='develop'] .row-txt b,
+  .cta-grid[data-on~='manage'] .call-row[data-need-row='manage'] .row-txt b {
+    color: var(--ink);
   }
 
   .cta-grid[data-on~='recruit'] .call-row[data-need-row='recruit'] .row-tick,
@@ -497,6 +522,7 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     background: var(--sgi-electric);
     border-color: var(--sgi-electric);
     color: #fff;
+    opacity: 1;
   }
 
   .call-empty {
@@ -531,13 +557,28 @@ const needIcons = { recruit: 'pathways', develop: 'institute', manage: 'sales' }
     .cta-grid {
       grid-template-columns: 1fr;
       gap: 2rem;
-      padding: 2rem;
+    }
+
+    /* One column: blue behind the words up top, peach behind the brief below */
+    .blob-a {
+      left: 30%;
+      top: 32%;
+    }
+
+    .blob-b {
+      left: 70%;
+      top: 72%;
+    }
+
+    .blob-c {
+      left: 60%;
+      top: 18%;
     }
   }
 
   @media (max-width: 45rem) {
-    .cta-grid {
-      padding: 1.5rem;
+    .cta-sec {
+      padding-block: 6rem 5rem;
     }
 
     .call-one {
