@@ -97,11 +97,21 @@ test.describe('SGI home page', () => {
     await expect(story.locator('[data-count="ready"]')).toHaveText('12');
     await expect(story.getByText('SGI, your one point of contact')).toBeVisible();
 
-    // Where the story is tied to the scroll, it rewinds on the way back up.
+    // Each seat is a profile: initials, name and role (invented for the illustration, no photos).
+    const lead = story.locator('[data-seat]').first();
+    await expect(lead.locator('.seat-initials')).toHaveText('LK');
+    await expect(lead.locator('.seat-name b')).toBeVisible();
+    await expect(lead.locator('.seat-name b')).toHaveText('Lerato K.');
+    await expect(lead.locator('.seat-role')).toHaveText('Team lead');
+    await expect(story.locator('[data-seat] img')).toHaveCount(0);
+
+    // Where the story is tied to the scroll, it rewinds on the way back up, to open roles.
     if (isDesktop(page)) {
       await page.evaluate(() => window.scrollTo(0, 0));
       await expect(story.locator('[data-seat][data-s="0"]')).toHaveCount(12);
       await expect(story).not.toHaveAttribute('data-managed', '');
+      await expect(lead.locator('.seat-name i')).toHaveText('Open role');
+      await expect(lead.locator('.seat-name b')).toHaveCSS('opacity', '0');
     }
   });
 

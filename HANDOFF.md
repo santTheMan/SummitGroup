@@ -22,6 +22,13 @@
     `ui.ts`; the story is in `motion.ts`.
   - **Copy:** `illustrations.panel` is trimmed to what is shown, with `readyLabel` added. The
     team of 12 is still an invented example and needs a yes before launch.
+  - **Profiles (later the same night):** Daniel found the person icons too general, so each
+    seat is now a small profile: an initials avatar in a brand tone, first name and surname
+    initial, role and city. Empty seats read "Open role" with the role waiting to be filled.
+    Placed seats show the person; Summit-Ready ones get a tick on the avatar. On phones the
+    city is dropped and the role may wrap. **The 12 names, roles and cities are invented for
+    the illustration** (`illustrations.panel.team`): first name and initial only, no photos.
+    They need a yes before launch, or real Summit-Ready placements with their consent.
 - **The last two sections now stand on type alone (latest).** Daniel removed the illustration
   beside each: the "Your brief" card next to "Start with a conversation." and the Summit-Ready
   journey card next to "Looking for training or a role?". He asked for each section's authority

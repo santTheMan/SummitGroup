@@ -331,6 +331,27 @@ export const illustrations = {
     teamLabel: 'people',
     readyLabel: 'Summit-Ready',
     speed: 'Placed in days, not weeks',
+    /** Shown on a seat before someone is placed in it. */
+    openLabel: 'Open role',
+    /**
+     * The example team, as profiles on the tablet's seats. INVENTED for the illustration
+     * (first name and surname initial only, no photos): not real recruits. Needs a yes
+     * before launch, or swap in real Summit-Ready placements with their consent.
+     */
+    team: [
+      { name: 'Lerato K.', role: 'Team lead', city: 'Johannesburg' },
+      { name: 'Thandi M.', role: 'Sales rep', city: 'Johannesburg' },
+      { name: 'Sipho N.', role: 'Sales rep', city: 'Durban' },
+      { name: 'Ayesha P.', role: 'Sales rep', city: 'Cape Town' },
+      { name: 'Pieter V.', role: 'Account manager', city: 'Pretoria' },
+      { name: 'Naledi D.', role: 'Sales rep', city: 'Johannesburg' },
+      { name: 'Kagiso M.', role: 'Sales rep', city: 'Pretoria' },
+      { name: 'Zanele B.', role: 'Account manager', city: 'Durban' },
+      { name: 'Ruan S.', role: 'Sales rep', city: 'Cape Town' },
+      { name: 'Priya G.', role: 'Sales rep', city: 'Durban' },
+      { name: 'Musa L.', role: 'Sales rep', city: 'Johannesburg' },
+      { name: 'Chloe F.', role: 'Sales rep', city: 'Cape Town' },
+    ],
   },
   scenes: {
     institute: {
