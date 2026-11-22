@@ -42,6 +42,87 @@ scopeMotion(
       });
     }
 
+    /* The tablet's story, for someone who only scrolls past: as the tablet comes into
+       view, its seats fill with people (Recruit), each turns Summit-Ready (Develop), then
+       the team is framed as one, with SGI as the contact (Manage). The steps light up in
+       step. Scroll-linked, so it plays at the reader's pace and rewinds on the way back
+       up. Where the page is too short to scroll it through (tall screens), it plays once
+       in view. The markup is the finished team, which is what reduced motion shows. */
+    const story = $('[data-team-story]');
+    let endStory: (() => void) | undefined;
+    if (story) {
+      const seats = $$('[data-seat]', story);
+      const steps = $$('[data-step]', story);
+      const people = $('[data-count="people"]', story);
+      const ready = $('[data-count="ready"]', story);
+      const n = seats.length;
+      const part = (p: number, from: number, to: number) => Math.min(1, Math.max(0, (p - from) / (to - from)));
+      let last = '';
+      const render = (p: number) => {
+        const found = Math.round(part(p, 0.04, 0.38) * n);
+        const set = Math.round(part(p, 0.44, 0.74) * n);
+        const stage = p < 0.41 ? 0 : p < 0.78 ? 1 : 2;
+        const managed = p >= 0.84;
+        const key = `${found}:${set}:${stage}:${managed}`;
+        if (key === last) return;
+        last = key;
+        seats.forEach((seat, i) => (seat.dataset.s = i < set ? '2' : i < found ? '1' : '0'));
+        steps.forEach((step, i) => (step.dataset.state = i < stage || (managed && i === stage) ? 'done' : i === stage ? 'now' : 'next'));
+        story.toggleAttribute('data-managed', managed);
+        if (people) people.textContent = String(found);
+        if (ready) ready.textContent = String(set);
+      };
+
+      /* Progress follows the team itself: it starts as the seats come up into the screen and
+         ends once the whole team, with its count and contact line, sits in view. Layout
+         positions (offsetTop), so the tablet's tilt and entrance do not skew it. */
+      const view = $('[data-team-view]', story) ?? story;
+      const docTop = (el: HTMLElement) => {
+        let y = 0;
+        for (let e: HTMLElement | null = el; e; e = e.offsetParent as HTMLElement | null) y += e.offsetTop;
+        return y;
+      };
+      const range = () => {
+        const top = docTop(view);
+        const vh = window.innerHeight;
+        return { start: Math.max(0, top - vh * 0.95), end: top + view.offsetHeight - vh * 0.8 };
+      };
+      let { start, end } = range();
+
+      if (end - start < 160) {
+        render(0);
+        const play = animate(0, 1, { duration: 2.6, ease: 'easeInOut', autoplay: false, onUpdate: render });
+        inView(story, () => void play.play(), { amount: 0.5 });
+        endStory = () => play.stop();
+      } else {
+        let frame = 0;
+        const update = () => {
+          frame = 0;
+          render(Math.min(1, Math.max(0, (window.scrollY - start) / (end - start))));
+        };
+        const queue = () => {
+          if (!frame) frame = requestAnimationFrame(update);
+        };
+        const resize = () => {
+          ({ start, end } = range());
+          queue();
+        };
+        update();
+        window.addEventListener('scroll', queue, { passive: true });
+        window.addEventListener('resize', resize);
+        endStory = () => {
+          window.removeEventListener('scroll', queue);
+          window.removeEventListener('resize', resize);
+          cancelAnimationFrame(frame);
+        };
+      }
+      const stop = endStory;
+      endStory = () => {
+        stop?.();
+        render(1);
+      };
+    }
+
     const hero = $('.hero');
     if (hero) {
       scroll(animate('.hero-glow', { y: ['0%', '30%'], scale: [1, 1.25] }, { ease: 'linear' }), {
@@ -173,6 +254,7 @@ scopeMotion(
     return () => {
       html.dataset.motion = 'off';
       $('[data-map]')?.removeAttribute('data-pending');
+      endStory?.();
     };
   },
   { matchMedia: 'motion' },

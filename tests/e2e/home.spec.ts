@@ -82,10 +82,27 @@ test.describe('SGI home page', () => {
     await expect(page.locator('[data-panel]')).toContainText('Your contact: SGI');
   });
 
-  test('the hero gauge sweeps up to its value', async ({ page }) => {
-    const gauge = page.locator('[data-panel]').getByRole('meter', { name: 'Summit-Ready' });
-    await expect(gauge).toHaveAttribute('aria-valuenow', '75', { timeout: 6000 });
-    await expect(gauge.locator('[data-gauge-count]')).toHaveText('9');
+  test('the hero tablet tells one story: a team of 12 filled, made Summit-Ready and managed as one', async ({ page }) => {
+    const story = page.locator('[data-team-story]');
+    await expect(story.locator('[data-seat]')).toHaveCount(12);
+    await expect(story.locator('[data-step]')).toHaveText([/Recruit/, /Develop/, /Manage/]);
+    // The old dashboard is gone: no sidebar, stage switcher, gauge or activity log.
+    await expect(story.locator('.side, .seg, [data-gauge], .recent, button')).toHaveCount(0);
+
+    // Scrolled past, the whole team is in, Summit-Ready and framed as one, every step done.
+    await page.locator('#about').evaluate((el) => el.scrollIntoView());
+    await expect(story).toHaveAttribute('data-managed', '');
+    await expect(story.locator('[data-seat][data-s="2"]')).toHaveCount(12);
+    await expect(story.locator('[data-step][data-state="done"]')).toHaveCount(3);
+    await expect(story.locator('[data-count="ready"]')).toHaveText('12');
+    await expect(story.getByText('SGI, your one point of contact')).toBeVisible();
+
+    // Where the story is tied to the scroll, it rewinds on the way back up.
+    if (isDesktop(page)) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await expect(story.locator('[data-seat][data-s="0"]')).toHaveCount(12);
+      await expect(story).not.toHaveAttribute('data-managed', '');
+    }
   });
 
   test('the hero panel stands alone, with no floating cards beside it', async ({ page }) => {
@@ -239,20 +256,13 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await page.goto('/');
   });
 
-  test('the brief panel steps through the stages and spotlights part of the brief', async ({ page }) => {
-    const panel = page.locator('[data-panel]');
-    const gauge = panel.getByRole('meter', { name: 'Summit-Ready' });
-    await panel.getByRole('button', { name: 'Placed', exact: true }).click();
-    await expect(panel.getByRole('button', { name: 'Placed', exact: true })).toHaveAttribute('aria-pressed', 'true');
-    await expect(gauge).toHaveAttribute('aria-valuetext', '12 of 12 people Summit-Ready');
-    await expect(gauge).toHaveAttribute('aria-valuenow', '100');
-
-    const manage = panel.locator('.acc[data-focus="manage"]');
-    await manage.click();
-    await expect(manage).toHaveAttribute('aria-pressed', 'true');
-    await expect(panel).toHaveAttribute('data-spot', 'manage');
-    await manage.click();
-    await expect(panel).not.toHaveAttribute('data-spot', /.+/);
+  test('with reduced motion the hero tablet shows the finished team at rest', async ({ page }) => {
+    const story = page.locator('[data-team-story]');
+    await expect(story).toHaveAttribute('data-managed', '');
+    await expect(story.locator('[data-seat][data-s="2"]')).toHaveCount(12);
+    await expect(story.locator('[data-step][data-state="done"]')).toHaveCount(3);
+    await expect(story.locator('[data-count="people"]')).toHaveText('12');
+    await expect(story.getByRole('button')).toHaveCount(0);
   });
 
   test('the talent chooser points to the right business', async ({ page }) => {
@@ -364,7 +374,7 @@ test.describe('reduced motion', () => {
     await expect(page.locator('.hero-word').first()).toHaveCSS('transform', 'none');
     await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
     await expect(page.locator('.revenue [data-gauge-count]')).toHaveText('$428,000');
-    await expect(page.locator('.dash [data-gauge]')).toHaveAttribute('aria-valuenow', '75');
+    await expect(page.locator('[data-team-story] [data-seat][data-s="2"]')).toHaveCount(12);
     // No floating: the illustrations hold still.
     await page.locator('#businesses').scrollIntoViewIfNeeded();
     const moving = await page.$$eval('.floating', (els) =>

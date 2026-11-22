@@ -1,606 +1,500 @@
 ---
 /**
- * The hero's working panel, in the place of Teal Treasury's dashboard: the
- * client's view of an example brief, with SGI as their one point of contact.
- * The work is shown by what SGI covers (Recruit, Develop, Manage), never by
- * specialist business, so the panel never suggests more than one contact.
- * Visitors can step through the stages and spotlight a part of the brief.
- * All labels are illustrative (src/content/site.ts → illustrations).
- * Behaviour: src/scripts/ui.ts (panel) and src/scripts/gauge.ts.
+ * The hero tablet: one picture of what SGI does, for someone who has never
+ * heard of it and only scrolls past.
+ *
+ * On 22 Nov 2026 Daniel asked for the tablet to be simplified so a newcomer
+ * leaves with a picture in their head. The old dashboard (sidebar, stage
+ * switcher, gauge, status cards, activity log) became this:
+ *  - left: an example brief in large type, then the three things SGI does,
+ *    Recruit, Develop and Manage, in plain words;
+ *  - right: the team of 12, as seats. As the tablet stands up on scroll, the
+ *    seats fill with people (Recruit), each turns Summit-Ready (Develop), and
+ *    the whole team is framed as one, with SGI as the one point of contact
+ *    (Manage). The steps on the left light up in step with the seats.
+ *
+ * The markup is the finished state, so without motion (reduced motion, no
+ * JavaScript) the tablet simply shows the finished team. The scroll story is
+ * in src/scripts/motion.ts. SGI is the only contact named: no specialist
+ * business appears here. All of it is illustrative (src/content/site.ts →
+ * illustrations.panel).
  */
 import icon from '../assets/brand/SGI-icon-colour.svg';
 import { closing, illustrations } from '../content/site.ts';
-import Gauge from './Gauge.astro';
 import Icon from './Icon.astro';
 
 const p = illustrations.panel;
-const start = p.ranges.find((r) => r.id === p.defaultRange) ?? p.ranges[0]!;
-const pct = (ready: number) => Math.round((ready / p.teamSize) * 100);
-const streams = closing.needs;
-const labelOf = Object.fromEntries(streams.map((s) => [s.id, s.label]));
-/* Colour only: each part of the brief keeps a brand blue. */
-const tone = { recruit: 'pathways', develop: 'institute', manage: 'sales' } as const;
+const seats = Array.from({ length: p.teamSize }, (_, i) => i);
 ---
 
-<div
-  class="dash"
-  data-panel
-  data-range={start.id}
-  data-team={p.teamSize}
-  data-ranges={JSON.stringify(p.ranges.map((r) => ({ id: r.id, value: pct(r.ready), ready: r.ready })))}
->
-  <aside class="side" aria-label={p.streamsLabel}>
-    <div class="side-brand">
+<div class="tab" data-panel data-team-story data-managed>
+  <div class="tab-bar">
+    <span class="tab-brand">
       <img src={icon.src} width="22" height="11" alt="" />
       {p.workspace}
-    </div>
-    {
-      p.nav.map((item, i) => (
-        <span class="side-item" data-on={i === 0 ? '' : undefined}>
-          {item}
-        </span>
-      ))
-    }
-    <p class="side-label">{p.streamsLabel}</p>
-    {
-      streams.map((s) => (
-        <button class="side-biz" type="button" aria-pressed="false" data-focus={s.id} style={`--c: var(--c-${tone[s.id]})`}>
-          <i />
-          <span>{s.label}</span>
-          <small>
-            {p.ranges.map((r) => (
-              <span data-r={r.id}>{p.status[s.id][r.id]}</span>
-            ))}
-          </small>
-        </button>
-      ))
-    }
-    <p class="side-foot">
-      <Icon name="contact" size={16} />
-      {p.footer}
-    </p>
-  </aside>
+    </span>
+    <span class="tab-contact">
+      <Icon name="contact" size={14} />
+      {p.contact}
+    </span>
+    <span class="tab-note">{illustrations.note}</span>
+  </div>
 
-  <div class="main">
-    <div class="crumbs">
-      <span>{p.crumbs[0]}</span>
-      <span aria-hidden="true">/</span>
-      <b>{p.crumbs[1]}</b>
-      <span class="live"><i></i>{illustrations.note}</span>
-    </div>
-
-    <div class="ov">
-      <div class="ov-brief">
-        <p class="k">{p.briefLabel}</p>
-        <p class="brief-title">{p.briefTitle}</p>
-        <p class="brief-meta">{p.teamSize} {p.teamLabel} · {p.contact} · <b>{p.speed}</b></p>
-        <div class="seg" role="group" aria-label={p.rangeLabel}>
-          {
-            p.ranges.map((r) => (
-              <button type="button" aria-pressed={r.id === start.id ? 'true' : 'false'} data-range-btn={r.id}>
-                {r.label}
-              </button>
-            ))
-          }
-        </div>
+  <div class="tab-body">
+    <div class="tab-brief">
+      <div class="tab-head">
+        <p class="tab-k">{p.briefLabel}</p>
+        <p class="tab-title">{p.briefTitle}</p>
+        <p class="tab-meta">{p.teamSize} {p.teamLabel} · <b>{p.speed}</b></p>
       </div>
-      <div class="ov-gauge">
-        <Gauge
-          value={pct(start.ready)}
-          label={p.gaugeLabel}
-          valueText={`${start.ready} of ${p.teamSize} ${p.teamLabel} ${p.gaugeLabel}`}
-          class="panel-gauge"
-          delay={1.1}
-        >
-          <b class="g-num"><span data-gauge-count data-max={p.teamSize}>{start.ready}</span><small>/{p.teamSize}</small></b>
-          <span class="g-label">{p.gaugeLabel}</span>
-        </Gauge>
-        <p class="g-cap">{p.gaugeCaption}</p>
-      </div>
-    </div>
 
-    <p class="sub">{p.streamsHeading}</p>
-    <div class="accs">
-      {
-        streams.map((s) => (
-          <button class="acc" type="button" aria-pressed="false" data-focus={s.id} style={`--c: var(--c-${tone[s.id]})`}>
-            <span class="acc-top">
-              <i />
-              {s.label}
-              <Icon name="arrow" size={14} class="acc-go" />
-            </span>
-            <span class="acc-status">
-              {p.ranges.map((r) => (
-                <span data-r={r.id}>{p.status[s.id][r.id]}</span>
-              ))}
-            </span>
-            <span class="acc-role">{s.detail}</span>
-          </button>
-        ))
-      }
-    </div>
-
-    <div class="recent">
-      <p class="recent-head"><b>{p.activityHeading}</b></p>
-      <ul>
+      <ol class="tab-steps">
         {
-          p.activity.map((row) => (
-            <li data-row-r={row.range} data-row-b={row.stream} style={`--c: var(--c-${tone[row.stream]})`}>
-              <span class="r-day">{row.time}</span>
-              <span class="r-text">{row.text}</span>
-              <span class="r-biz">
-                <i />
-                {labelOf[row.stream]}
+          closing.needs.map((n, i) => (
+            <li data-step data-state="done">
+              <span class="st-n" aria-hidden="true">
+                <span class="st-num">{i + 1}</span>
+                <Icon name="check" size={12} class="st-tick" />
+              </span>
+              <span class="st-txt">
+                <b>{n.label}</b>
+                <small>{n.detail}</small>
               </span>
             </li>
           ))
         }
-      </ul>
+      </ol>
+    </div>
+
+    <div class="tab-team" data-team-view>
+      <div class="team-grid" aria-hidden="true">
+        {
+          seats.map((i) => (
+            <span class="seat" data-seat data-s="2" style={`--i:${i}`}>
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="8.5" r="4" />
+                <path d="M4 21c0-4.6 3.6-7.6 8-7.6s8 3 8 7.6z" />
+              </svg>
+              <span class="seat-tick">
+                <Icon name="check" size={10} />
+              </span>
+            </span>
+          ))
+        }
+      </div>
+      <p class="team-count" aria-hidden="true">
+        <span><b data-count="people">{p.teamSize}</b>/{p.teamSize} {p.teamLabel}</span>
+        <span><b data-count="ready">{p.teamSize}</b>/{p.teamSize} {p.readyLabel}</span>
+      </p>
+      <p class="team-one">
+        <Icon name="contact" size={16} />
+        {p.footer}
+      </p>
     </div>
   </div>
 </div>
 
 <style>
-  .dash {
-    display: grid;
-    grid-template-columns: 13rem minmax(0, 1fr);
-    height: 35rem;
+  .tab {
+    display: flex;
+    flex-direction: column;
+    min-height: 35rem;
     border-radius: 13px;
     overflow: hidden;
     background: var(--paper);
     color: var(--ink);
-    font-size: 0.8125rem;
     text-align: left;
   }
 
-  /* Side */
-  .side {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 1rem 0.625rem;
-    background: color-mix(in srgb, var(--page) 70%, var(--paper));
-    border-right: 1px solid var(--rule);
-  }
-
-  .side-brand {
+  /* ---- Top bar: who this is with, and that it is an example ---- */
+  .tab-bar {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 2px 0.5rem 0.875rem;
-    font-family: var(--font-display);
-    font-weight: 600;
+    gap: 0.75rem;
+    padding: 0.875rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
     font-size: 0.8125rem;
   }
 
-  .side-brand img {
+  .tab-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: auto;
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+
+  .tab-brand img {
     width: 22px;
     height: auto;
   }
 
-  .side-label {
-    padding: 0.75rem 0.5rem 0.375rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.07em;
+  .tab-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sgi-electric) 9%, transparent);
+    color: var(--accent-text);
+    font-weight: 500;
+  }
+
+  .tab-note {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--page);
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  /* ---- Body: the brief and the three steps on the left, the team on the right ---- */
+  .tab-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 3rem;
+    padding: 2.25rem 2.5rem 2.5rem;
+  }
+
+  .tab-k {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
   }
 
-  .side-item,
-  .side-biz {
-    display: flex;
-    align-items: center;
-    gap: 0.5625rem;
-    width: 100%;
-    padding: 0.4375rem 0.5rem;
-    border-radius: 7px;
-    text-align: left;
+  .tab-title {
+    margin-top: 0.5rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.625rem, 1.1rem + 1.6vw, 2.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .tab-meta {
+    margin-top: 0.625rem;
+    font-size: 0.875rem;
     color: var(--muted);
-    transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      box-shadow 150ms ease;
   }
 
-  .side-item[data-on],
-  .side-biz[aria-pressed='true'] {
-    background: var(--paper);
-    color: var(--ink);
-    box-shadow:
-      0 1px 2px rgb(7 27 52 / 0.08),
-      0 0 0 1px var(--rule);
+  .tab-meta b {
+    font-weight: 500;
+    color: var(--accent-text);
   }
 
-  .side-biz i,
-  .acc-top i,
-  .r-biz i {
-    width: 8px;
-    height: 8px;
-    border-radius: 3px;
-    flex: none;
-    background: var(--c);
-  }
-
-  .side-biz span {
-    flex: 1;
-  }
-
-  .side-biz small {
-    font-size: 0.7rem;
-  }
-
-  .side-foot {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: auto;
-    padding: 0.4375rem 0.5rem;
-    color: var(--muted);
-    font-size: 0.75rem;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .side-biz:hover {
-      background: color-mix(in srgb, var(--ink) 5%, transparent);
-      color: var(--ink);
-    }
-
-    .acc:hover {
-      translate: 0 -2px;
-      border-color: color-mix(in srgb, var(--ink) 25%, transparent);
-      box-shadow: 0 14px 26px -18px rgb(7 27 52 / 0.4);
-    }
-
-    .acc:hover :global(.acc-go) {
-      opacity: 1;
-      transform: none;
-    }
-
-    .seg button:hover {
-      color: var(--ink);
-    }
-  }
-
-  /* Main */
-  .main {
+  /* Steps: next (grey), now (electric number), done (electric tick) */
+  .tab-steps {
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    padding: 1.125rem 1.625rem;
-    overflow: hidden;
+    gap: 0.25rem;
+    margin-top: 1.75rem;
   }
 
-  .crumbs {
+  .tab-steps li {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding-bottom: 0.875rem;
-    border-bottom: 1px solid var(--rule);
-    font-size: 0.75rem;
-    color: var(--muted);
+    gap: 0.875rem;
+    padding: 0.625rem 0.75rem;
+    margin-inline: -0.75rem;
+    border-radius: 12px;
+    transition: background-color 220ms ease;
   }
 
-  .crumbs b {
-    color: var(--ink);
-    font-weight: 500;
-  }
-
-  .live {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    margin-left: auto;
-    padding: 3px 9px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--sgi-electric) 9%, transparent);
-    color: var(--accent-text);
-    font-size: 0.6875rem;
-  }
-
-  .live i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
-  .ov {
+  .st-n {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 11.5rem;
-    gap: 1.5rem;
-    align-items: center;
-    padding-top: 1rem;
-  }
-
-  .ov-brief .k {
-    margin-bottom: 0.25rem;
-  }
-
-  .brief-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.375rem, 1rem + 1.3vw, 2rem);
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-  }
-
-  .brief-meta {
-    margin-top: 0.375rem;
+    place-items: center;
+    flex: none;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1.5px solid var(--rule);
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    transition:
+      background-color 220ms ease,
+      border-color 220ms ease,
+      color 220ms ease;
   }
 
-  .brief-meta b {
+  .st-n > * {
+    grid-area: 1 / 1;
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 220ms var(--ease-out);
+  }
+
+  .st-n :global(.st-tick) {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .st-txt {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  .st-txt b {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
     font-weight: 500;
+    color: var(--muted);
+    transition: color 220ms ease;
+  }
+
+  .st-txt small {
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  li[data-state='now'] {
+    background: color-mix(in srgb, var(--sgi-sky) 14%, transparent);
+  }
+
+  li[data-state='now'] .st-n {
+    background: var(--sgi-electric);
+    border-color: var(--sgi-electric);
+    color: var(--paper);
+  }
+
+  li[data-state='done'] .st-n {
+    border-color: var(--sgi-electric);
     color: var(--accent-text);
   }
 
-  .seg {
-    display: inline-flex;
-    margin-top: 1rem;
-    padding: 3px;
-    border-radius: 9px;
-    background: var(--page);
-    border: 1px solid var(--rule);
+  li[data-state='done'] .st-num {
+    opacity: 0;
+    transform: scale(0.6);
   }
 
-  .seg button {
-    padding: 0.25rem 0.625rem;
-    border-radius: 6px;
-    font-size: 0.72rem;
-    color: var(--muted);
-    transition:
-      background-color 150ms ease,
-      color 150ms ease,
-      box-shadow 150ms ease;
+  li[data-state='done'] .st-n :global(.st-tick) {
+    opacity: 1;
+    transform: none;
   }
 
-  .seg button[aria-pressed='true'] {
-    background: var(--paper);
+  li[data-state='now'] .st-txt b,
+  li[data-state='done'] .st-txt b {
     color: var(--ink);
-    box-shadow: 0 1px 2px rgb(7 27 52 / 0.12);
   }
 
-  .ov-gauge {
+  /* ---- The team: twelve seats that fill, turn Summit-Ready, then become one team ---- */
+  .tab-team {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
 
-  .g-num {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 2rem;
-    letter-spacing: -0.04em;
-    line-height: 1;
+  .team-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 26rem;
+  }
+
+  /* The "one team" frame, drawn round the seats once SGI manages them */
+  .team-grid::after {
+    content: '';
+    position: absolute;
+    inset: -0.75rem;
+    border-radius: 24px;
+    corner-shape: squircle;
+    border: 1.5px solid color-mix(in srgb, var(--sgi-electric) 45%, transparent);
+    background: color-mix(in srgb, var(--sgi-sky) 7%, transparent);
+    z-index: -1;
+    opacity: 0;
+    transform: scale(0.97);
+    transition:
+      opacity 260ms var(--ease-out),
+      transform 260ms var(--ease-out);
+  }
+
+  [data-managed] .team-grid::after {
+    opacity: 1;
+    transform: none;
+  }
+
+  .team-grid {
+    isolation: isolate;
+  }
+
+  .seat {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    corner-shape: squircle;
+    border: 1.5px dashed color-mix(in srgb, var(--ink) 18%, transparent);
+    background: transparent;
+    transition:
+      background-color 220ms ease,
+      border-color 220ms ease;
+  }
+
+  .seat svg {
+    width: 44%;
+    color: color-mix(in srgb, var(--ink) 14%, transparent);
+    transform: translateY(6%) scale(0.9);
+    transition:
+      color 220ms ease,
+      transform 260ms var(--ease-out);
+  }
+
+  .seat[data-s='1'],
+  .seat[data-s='2'] {
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--sgi-sky) 40%, var(--rule));
+    background: color-mix(in srgb, var(--sgi-sky) 16%, var(--paper));
+  }
+
+  .seat[data-s='1'] svg,
+  .seat[data-s='2'] svg {
+    color: var(--sgi-navy);
+    transform: translateY(6%);
+  }
+
+  .seat-tick {
+    position: absolute;
+    top: 7%;
+    right: 7%;
+    display: grid;
+    place-items: center;
+    width: 26%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--sgi-electric);
+    color: var(--paper);
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 220ms var(--ease-out);
+  }
+
+  .seat[data-s='2'] .seat-tick {
+    opacity: 1;
+    transform: none;
+  }
+
+  .team-count {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--muted);
     font-variant-numeric: tabular-nums;
   }
 
-  .g-num small {
-    font-size: 0.95rem;
-    color: var(--muted);
-    letter-spacing: 0;
-  }
-
-  .g-label {
-    font-size: 0.68rem;
-    color: var(--muted);
-  }
-
-  .g-cap {
-    margin-top: 0.25rem;
-    font-size: 0.68rem;
-    color: var(--muted);
-  }
-
-  .sub {
-    margin-top: 0.75rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  .accs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.625rem;
-    margin-top: 0.5rem;
-  }
-
-  .acc {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 0.75rem;
-    border-radius: 10px;
-    border: 1px solid var(--rule);
-    background: var(--paper);
-    text-align: left;
-    transition:
-      translate 200ms var(--ease-out),
-      border-color 200ms ease,
-      box-shadow 200ms ease,
-      opacity 200ms ease;
-  }
-
-  .acc:active {
-    scale: 0.98;
-  }
-
-  .acc[aria-pressed='true'] {
-    border-color: var(--sgi-electric);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--sgi-electric) 16%, transparent);
-  }
-
-  .dash[data-spot] .acc[aria-pressed='false'] {
-    opacity: 0.5;
-  }
-
-  .acc-top {
-    display: flex;
-    align-items: center;
-    gap: 0.4375rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  .acc-top :global(.acc-go) {
-    margin-left: auto;
-    opacity: 0;
-    transform: translateX(-4px);
-    transition:
-      opacity 150ms ease,
-      transform 150ms var(--ease-out);
-  }
-
-  .acc-status {
+  .team-count b {
     font-family: var(--font-display);
-    font-size: 0.95rem;
-    letter-spacing: -0.01em;
-  }
-
-  .acc-role {
-    font-size: 0.6875rem;
-    color: var(--muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Stage-dependent labels: only the current stage's text is rendered. */
-  [data-r] {
-    display: none;
-  }
-
-  .dash[data-range='brief'] [data-r='brief'],
-  .dash[data-range='shortlist'] [data-r='shortlist'],
-  .dash[data-range='placed'] [data-r='placed'] {
-    display: inline;
-  }
-
-  .recent {
-    margin-top: auto;
-    padding-top: 1rem;
-  }
-
-  .recent-head {
-    padding-bottom: 0.375rem;
-    font-size: 0.78rem;
-  }
-
-  .recent-head b {
+    font-size: 1.125rem;
     font-weight: 500;
+    color: var(--ink);
   }
 
-  .recent li {
-    display: none;
-    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
-    gap: 0.75rem;
-    align-items: center;
-    padding: 0.4375rem 0;
-    border-top: 1px solid var(--rule);
-    font-size: 0.75rem;
-  }
-
-  .dash[data-range='brief'] li[data-row-r='brief'],
-  .dash[data-range='shortlist'] li[data-row-r='shortlist'],
-  .dash[data-range='placed'] li[data-row-r='placed'] {
-    display: grid;
-    animation: row-in 300ms var(--ease-out) both;
-  }
-
-  .recent li:nth-child(3n + 2) {
-    animation-delay: 40ms;
-  }
-
-  .recent li:nth-child(3n) {
-    animation-delay: 70ms;
-  }
-
-  .dash[data-spot='recruit'] li:not([data-row-b='recruit']),
-  .dash[data-spot='develop'] li:not([data-row-b='develop']),
-  .dash[data-spot='manage'] li:not([data-row-b='manage']) {
-    opacity: 0.35;
-  }
-
-  @keyframes row-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-  }
-
-  .r-day {
-    color: var(--muted);
-  }
-
-  .r-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .r-biz {
+  .team-one {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--page);
-    color: var(--muted);
-    font-size: 0.6875rem;
+    gap: 0.5rem;
+    margin-top: 0.625rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent-text);
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 240ms var(--ease-out),
+      transform 240ms var(--ease-out);
   }
 
+  [data-managed] .team-one {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Tablets: the team sits a little smaller beside the brief */
+  @media (max-width: 64rem) {
+    .tab-body {
+      gap: 2rem;
+      padding: 1.75rem;
+    }
+  }
+
+  /* Phones: the brief, then the team (the picture), then the steps */
   @media (max-width: 45rem) {
-    .dash {
-      grid-template-columns: 1fr;
-      height: auto;
+    .tab {
+      min-height: 0;
     }
 
-    .side {
+    .tab-bar {
+      padding: 0.75rem 1rem;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .tab-brand {
+      font-size: 0.8125rem;
+    }
+
+    .tab-note {
       display: none;
     }
 
-    .main {
-      padding: 0.875rem;
+    .tab-body {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1.75rem;
+      padding: 1.25rem 1.25rem 1.5rem;
     }
 
-    .ov {
-      grid-template-columns: minmax(0, 1fr) 7.5rem;
-      gap: 0.75rem;
+    .tab-brief {
+      display: contents;
     }
 
-    .g-num {
-      font-size: 1.4rem;
+    .tab-team {
+      order: 1;
     }
 
-    .g-cap {
-      display: none;
+    .tab-steps {
+      order: 2;
+      margin-top: 0;
     }
 
-    .accs {
-      grid-template-columns: 1fr;
+    .team-grid {
+      gap: 0.5rem;
+      max-width: 18rem;
     }
 
-    .acc {
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: baseline;
-      gap: 2px 0.75rem;
+    .team-grid::after {
+      inset: -0.5rem;
+      border-radius: 18px;
     }
 
-    .acc-top {
-      flex: 1;
+    .seat {
+      border-radius: 12px;
     }
 
-    .acc-role {
-      width: 100%;
+    .team-count {
+      margin-top: 1.125rem;
     }
+  }
 
-    .recent li {
-      grid-template-columns: 2.5rem minmax(0, 1fr);
-    }
-
-    .r-biz {
-      display: none;
+  @media (prefers-reduced-motion: reduce) {
+    .seat svg,
+    .seat-tick,
+    .st-n > *,
+    .team-grid::after,
+    .team-one {
+      transition: none;
     }
   }
 </style>

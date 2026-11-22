@@ -316,47 +316,21 @@ export const faq = {
  */
 export const illustrations = {
   note: 'Illustration',
+  /**
+   * The hero tablet (simplified 22 Nov 2026): an example brief, the three things SGI does
+   * (closing.needs) and a team of 12 that fills as the tablet scrolls into view. The client's
+   * view: SGI is the only contact named.
+   */
   panel: {
     workspace: 'Summit Group',
-    nav: ['Overview', 'Team', 'Updates'],
-    /** The client's view: SGI is the only contact, so the brief is shown as what SGI covers. */
-    streamsLabel: 'Your brief',
     footer: 'SGI, your one point of contact',
-    crumbs: ['Your account', 'Example brief'],
     contact: 'Your contact: SGI',
     briefLabel: 'Example brief',
     briefTitle: 'Grow an outbound sales team',
     teamSize: 12,
     teamLabel: 'people',
-    rangeLabel: 'Show stage',
+    readyLabel: 'Summit-Ready',
     speed: 'Placed in days, not weeks',
-    ranges: [
-      { id: 'brief', label: 'Brief in', ready: 5 },
-      { id: 'shortlist', label: 'Shortlist', ready: 9 },
-      { id: 'placed', label: 'Placed', ready: 12 },
-    ],
-    defaultRange: 'shortlist',
-    gaugeLabel: 'Summit-Ready',
-    gaugeCaption: 'Trained, tested and supported',
-    streamsHeading: 'What SGI is covering',
-    /** Keyed by the needs in closing.needs (Recruit, Develop, Manage). */
-    status: {
-      recruit: { brief: 'Matching', shortlist: 'Shortlisted', placed: 'Placed' },
-      develop: { brief: 'Ready', shortlist: 'Assessing', placed: 'Supporting' },
-      manage: { brief: 'Planning', shortlist: 'Onboarding', placed: 'Coaching' },
-    },
-    activityHeading: 'Recent activity',
-    activity: [
-      { range: 'brief', time: '09:10', stream: 'recruit', text: 'Brief received and matched to Summit-Ready talent' },
-      { range: 'brief', time: '11:30', stream: 'develop', text: 'Readiness checked for the first matches' },
-      { range: 'brief', time: '15:00', stream: 'manage', text: 'Team plan agreed with you' },
-      { range: 'shortlist', time: '09:00', stream: 'recruit', text: 'Shortlist shared for all 12 roles' },
-      { range: 'shortlist', time: '12:15', stream: 'develop', text: 'Practice-call assessments passed' },
-      { range: 'shortlist', time: '16:40', stream: 'manage', text: 'Onboarding plan set' },
-      { range: 'placed', time: '08:30', stream: 'recruit', text: '12 people placed' },
-      { range: 'placed', time: '10:00', stream: 'manage', text: 'First team coaching session' },
-      { range: 'placed', time: '15:30', stream: 'develop', text: 'Check-in with every placement' },
-    ],
   },
   scenes: {
     institute: {

@@ -2,6 +2,26 @@
 
 ## 22 Nov 2026 changes (Daniel's review)
 
+- **Hero tablet simplified (latest).** Daniel asked for the tablet to leave a picture in
+  the head of someone who doesn't know the business and only scrolls past.
+  - **Gone:** the dashboard: its sidebar, breadcrumbs, Brief in / Shortlist / Placed switcher,
+    Summit-Ready gauge, status cards and time-stamped activity log.
+  - **The picture now:** you tell SGI the team you need, and SGI finds the people, gets them
+    ready and manages them, as your one contact.
+    - Left: the example brief in large type ("Grow an outbound sales team · 12 people ·
+      Placed in days, not weeks"), then the three steps in plain words: Recruit, Develop and
+      Manage, with their existing one-line descriptions.
+    - Right: a team of 12 seats.
+  - **On scroll:** as the tablet comes into view, the seats fill with people (Recruit), each
+    gets a Summit-Ready tick (Develop), then the whole team is framed as one, with "SGI, your
+    one point of contact" (Manage). The steps light up in step. It is tied to the scroll, so
+    it plays at the reader's pace and rewinds on the way up. On screens too tall to scroll it
+    through, it plays once when the tablet is in view.
+  - **Reduced motion and no JavaScript:** the tablet shows the finished team at rest.
+  - **Code:** the tablet is no longer interactive (no buttons). `initPanel` is gone from
+    `ui.ts`; the story is in `motion.ts`.
+  - **Copy:** `illustrations.panel` is trimmed to what is shown, with `readyLabel` added. The
+    team of 12 is still an invented example and needs a yes before launch.
 - **The last two sections now stand on type alone (latest).** Daniel removed the illustration
   beside each: the "Your brief" card next to "Start with a conversation." and the Summit-Ready
   journey card next to "Looking for training or a role?". He asked for each section's authority
@@ -144,10 +164,9 @@ picker (question, Recruit / Develop / Manage with their one-line details, and th
 line "Your brief: …" under them), the talent chooser
 (question, options, answers), the heatmap captions, "See how we work",
 `audiences.visuals` (supplier names, "One point of contact", the working-hours caption about
-the UK and Europe), and every label in `illustrations` (example brief, stages, statuses,
-activity rows, scene labels). The panels are marked "Illustration" on the page, but their
-numbers (a team of 12, 9 of 12 Summit-Ready, 8 coaching sessions and so on) are invented
-examples and need a yes before launch.
+the UK and Europe), and every label in `illustrations` (the hero tablet's example brief and
+team, scene labels). The panels are marked "Illustration" on the page, but their numbers (a
+team of 12, 8 coaching sessions and so on) are invented examples and need a yes before launch.
 
 **Heatmap data is illustrative.** `src/lib/placements.ts` spreads exactly 450 placements over
 weekdays since 1 June 2025 (seeded, so every build is identical) and the card says so. Replace

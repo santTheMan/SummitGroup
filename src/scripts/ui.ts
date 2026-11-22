@@ -1,5 +1,5 @@
 import { animate, inView, scroll } from 'motion';
-import { initGauges, replayGauge, setGauge } from './gauge.ts';
+import { initGauges, replayGauge } from './gauge.ts';
 
 /**
  * Page behaviour that works with or without motion: the header, the
@@ -209,37 +209,6 @@ function initSheet() {
   document.addEventListener('click', (e) => {
     if (isOpen() && !sheet.contains(e.target as Node) && !burger.contains(e.target as Node)) set(false);
   });
-}
-
-/* Hero brief panel: step through the stages, spotlight a part of the brief */
-function initPanel() {
-  const panel = $('[data-panel]');
-  if (!panel) return;
-  const gauge = $('[data-gauge]', panel);
-  const ranges = JSON.parse(panel.dataset.ranges ?? '[]') as { id: string; value: number; ready: number }[];
-  const team = Number(panel.dataset.team);
-  const rangeButtons = $$<HTMLButtonElement>('[data-range-btn]', panel);
-  const focusButtons = $$<HTMLButtonElement>('[data-focus]', panel);
-
-  rangeButtons.forEach((btn) =>
-    btn.addEventListener('click', () => {
-      const range = ranges.find((r) => r.id === btn.dataset.rangeBtn);
-      if (!range || panel.dataset.range === range.id) return;
-      panel.dataset.range = range.id;
-      rangeButtons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      if (gauge) setGauge(gauge, range.value, `${range.ready} of ${team} people Summit-Ready`);
-    }),
-  );
-
-  focusButtons.forEach((btn) =>
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.focus!;
-      const next = panel.dataset.spot === id ? null : id;
-      if (next) panel.dataset.spot = next;
-      else delete panel.dataset.spot;
-      focusButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.focus === next)));
-    }),
-  );
 }
 
 /* Sticky stage: the scene follows whichever business copy sits mid-screen */
@@ -468,7 +437,6 @@ initHeader();
 initBusinessesMenu();
 initNavGlass();
 initSheet();
-initPanel();
 initStage();
 initInlineScenes();
 initFloating();
