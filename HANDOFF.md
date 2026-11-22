@@ -2,28 +2,44 @@
 
 ## 22 Nov 2026 changes (Daniel's review)
 
-- **Hero:** the floating "New brief: Outbound sales team" card above the panel is gone, because
-  it pulled focus from the panel. Only the "Update from SGI" card remains.
-- **Client revenue gauge** (About, under the proof points), after bklit's Gauge chart
+- **Hero:** both floating cards are gone: "New brief: Outbound sales team" above the panel and,
+  later the same day, "Update from SGI: Shortlist ready" below it. They pulled focus from
+  the panel, which now stands alone.
+- **Section labels:** the small pulsing dot before each section label ("About SGI", "Our
+  businesses", "How we work", "Who we work with") is gone. The labels are plain blue text,
+  and nothing on the page loops on a ping any more.
+- **"Looking for training or a role?"** is no longer a dark navy box. It sits on a soft wash in
+  the brand glows (sky behind the journey card, peach behind the copy, the same `--glow-*`
+  tokens as the closing card), which fades into the page colour on every edge. Text, the
+  Training / A role toggle and the Summit-Ready journey card are now in the light page style:
+  ink type, an ink selected pill, and a frosted white card with electric ticks.
+- **About figures removed:** the 450+ / 1 / 3 proof row under the statement is gone at
+  Daniel's request. The figures stay in `proof` in `src/content/site.ts`, and 450+ is still
+  shown by the placements heatmap in How we work, so `signOffs.placementsFigure` still applies.
+- **Client revenue gauge** (About, under the statement), after bklit's Gauge chart
   (`value 66`, `spacing 25`, `inactiveFillOpacity 0.4`, USD with no cents). It reads "Revenue
   generated for clients in the past 3 months". **The $428,000 and the 66% fill are bklit's
   example values.** Set the real amount, period and fill in `clientRevenue` in
   `src/content/site.ts`, then `signOffs.clientRevenueFigure`. The note under the gauge says
   "Example figure until confirmed". Change it to plain "not SGI revenue" wording once the
   figure is real. It is a client-results claim, like the pending $1.5m.
-- **Where we work map** (Who we work with, under the heading), after bklit's Choropleth chart.
-  It uses a Mercator projection, a graticule that fades out at the edges, hover-to-fade and a
-  tooltip. It is drawn at build time with d3-geo from world-atlas 110m, so the page ships plain
-  SVG (about 43 KB) and no map library. South Africa is shown as where the talent is. The
-  United States, the United Kingdom and Australia are shown as client markets: these are Summit
-  Sales' confirmed markets. To add or change countries, edit `audiences.markets` (ISO numeric ids).
-  The map uses categories, not values. Per-country client counts could turn it into a true
-  heat scale.
-- **International clients card:** the live working-hours clock (Johannesburg, London and New
-  York with their shared hours) is gone. It now reads **Covered 24/7**: New York, London and
-  Sydney (the client markets on the map) with their live local time on a fully lit 24-hour
-  day, and the caption "We work 24/7, in line with your needs, wherever you are." Copy is in
-  `audiences.visuals.coverage`, part of the homepage copy sign-off.
+- **Who we work with (reworked later on 22 Nov):** all three card illustrations are gone. That
+  covers the corporates Without/With SGI toggle, the International clients "Covered 24/7" card
+  and the Partners talent pipeline, and the "Book a conversation" links under each card went
+  with them. The section is type and the map: the three audiences as a list under hairlines
+  on the left, and the map on the right. On tablets the map sits on top with three columns
+  below; on phones everything is one column. The 24/7 line lives on in the international
+  clients text: "We work 24/7, in line with your needs." It is part of the homepage copy
+  sign-off.
+- **Where we work map:** the first version, a filled choropleth, did not blend with the page.
+  It is now a **dot map** after bklit's choropleth dot grid. Land is a grid of soft dots in the
+  page's own ink, fading out at every edge. South Africa (navy, "Our talent") and the US, UK and
+  Australia (blue, "Clients", Summit Sales' confirmed markets) are picked out. Labels sit on
+  the map, and thin arcs draw from South Africa to each market on first view. Pointing at a
+  country quietens the others. It is drawn at build time with d3-geo from world-atlas 110m:
+  each dot is a zero-length round-capped stroke, so the whole map is about 15 KB of SVG and no
+  map library. To add or change countries, edit `audiences.markets` (ISO numeric id, plus
+  `at` for where the label points).
 - **Header:** the Book a conversation button is gone from the header pill. The hero and the
   closing section still carry the call to action, and the small-screen menu still ends with
   it. The selected item is now a liquid-glass lens (after Apple's Liquid Glass tab bars). It

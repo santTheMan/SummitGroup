@@ -88,10 +88,30 @@ test.describe('SGI home page', () => {
     await expect(gauge.locator('[data-gauge-count]')).toHaveText('9');
   });
 
-  test('the hero keeps only the "Update from SGI" card beside the panel', async ({ page }) => {
-    await expect(page.locator('.hero [data-float]')).toHaveCount(1);
-    await expect(page.locator('.hero .floats')).toContainText('Update from SGI');
-    await expect(page.locator('.hero')).not.toContainText('New brief');
+  test('the hero panel stands alone, with no floating cards beside it', async ({ page }) => {
+    await expect(page.locator('.hero [data-float], .hero .floats')).toHaveCount(0);
+    await expect(page.locator('.hero')).not.toContainText(/New brief|Update from SGI|Shortlist ready/);
+  });
+
+  test('section labels are plain text, with no pulsing dot', async ({ page }) => {
+    const labels = page.locator('p.label');
+    await expect(labels).toHaveCount(4);
+    const marks = await labels.evaluateAll((els) =>
+      els.map((el) => {
+        const dot = getComputedStyle(el, '::before');
+        return { content: dot.content, animation: dot.animationName };
+      }),
+    );
+    for (const mark of marks) {
+      expect(mark.content).toBe('none');
+      expect(mark.animation).toBe('none');
+    }
+  });
+
+  test('the About section has no 450+ / 1 / 3 figures row', async ({ page }) => {
+    const about = page.locator('#about');
+    await expect(about.locator('[data-stats], .stats, [data-count]')).toHaveCount(0);
+    await expect(about).not.toContainText(/placements since June 2025|point of contact for every client|specialist businesses in one group/);
   });
 
   test('the client revenue gauge sweeps up and counts to its figure', async ({ page }) => {
@@ -102,25 +122,33 @@ test.describe('SGI home page', () => {
     await expect(page.locator('.revenue')).toContainText('not SGI revenue');
   });
 
-  test('the international card shows 24/7 cover in each client city', async ({ page }) => {
-    const card = page.locator('[data-tz]');
-    await expect(card).toContainText('Covered 24/7');
-    await expect(card).not.toContainText(/shared|Johannesburg|working hours/i);
-    const rows = card.locator('[data-zone]');
-    await expect(rows).toHaveCount(3);
-    for (let i = 0; i < 3; i++) {
-      await expect(rows.nth(i).locator('[data-time]')).toHaveText(/^\d{2}:\d{2}$/);
-      await expect(rows.nth(i).locator('[data-hour]')).toHaveCount(24);
-      await expect(rows.nth(i).locator('[data-hour][data-now]')).toHaveCount(1);
-    }
+  test('who we work with: three audiences as text beside the map, no illustrations or booking links', async ({ page }) => {
+    const section = page.locator('#who-we-work-with');
+    await expect(section.locator('.card')).toHaveCount(3);
+    await expect(section.locator('[data-merge], [data-tz], [data-pipe], .floating')).toHaveCount(0);
+    await expect(section.locator('.card-title')).toHaveText([
+      'South African corporates and banks',
+      'International clients',
+      'Partners and funders',
+    ]);
+    await expect(section.getByRole('link', { name: CTA })).toHaveCount(0);
+    await expect(section.locator('.card--1')).toContainText('We work 24/7, in line with your needs.');
+    await expect(section).not.toContainText(/shared|Johannesburg|working hours/i);
   });
 
-  test('the world map marks South Africa and the three client markets', async ({ page }) => {
+  test('the dot map marks South Africa and the three client markets', async ({ page }) => {
     const map = page.locator('[data-map]');
     await expect(map.getByRole('img', { name: /South Africa.*United States.*United Kingdom.*Australia/ })).toBeVisible();
-    const marks = await map.locator('[data-map-id]').evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.name));
-    expect(marks.sort()).toEqual(['Australia', 'South Africa', 'United Kingdom', 'United States']);
-    await expect(map.locator('.map-legend')).toContainText('South Africa');
+    const pins = map.locator('.map-pin');
+    await expect(pins).toHaveCount(4);
+    for (const name of ['South Africa', 'United States', 'United Kingdom', 'Australia']) {
+      await expect(pins.filter({ hasText: name })).toHaveCount(1);
+    }
+    // Every marked country has dots of its own, and South Africa links to each client market
+    for (const id of ['710', '840', '826', '036']) {
+      expect(await map.locator(`path.map-dots[data-map-id="${id}"]`).getAttribute('d')).toMatch(/h0/);
+    }
+    await expect(map.locator('path.map-link')).toHaveCount(3);
   });
 
   test('the placements heatmap adds up to the approved 450', async ({ page }) => {
@@ -151,17 +179,15 @@ test.describe('SGI home page', () => {
   test('the illustrations float while on screen and rest off screen', async ({ page }) => {
     const playing = (sel: string) =>
       page.$eval(sel, (el) => el.getAnimations().some((a) => a.playState === 'running'));
-    const cards = page.locator('#who-we-work-with .cards');
-    await expect(cards).toHaveAttribute('data-float-paused', '');
-    expect(await playing('#who-we-work-with .tz.floating')).toBe(false);
-    await cards.scrollIntoViewIfNeeded();
-    await expect(cards).not.toHaveAttribute('data-float-paused', /.*/);
-    expect(await playing('#who-we-work-with .tz.floating')).toBe(true);
-    if (isDesktop(page)) {
-      await page.locator('#business-sales').scrollIntoViewIfNeeded();
-      await expect(page.locator('[data-stage]')).not.toHaveAttribute('data-float-paused', /.*/);
-      expect(await playing('[data-stage] .rep-card.floating')).toBe(true);
-    }
+    // The business scenes: the sticky stage on desktop, the inline scenes on smaller screens
+    const desktop = isDesktop(page);
+    const floats = page.locator(desktop ? '[data-stage]' : '.feat-inline[data-floats]').first();
+    const floating = desktop ? '[data-stage] .rep-card.floating' : '.feat-inline[data-floats] .floating';
+    await expect(floats).toHaveAttribute('data-float-paused', '');
+    expect(await playing(floating)).toBe(false);
+    await (desktop ? page.locator('#business-sales') : floats).scrollIntoViewIfNeeded();
+    await expect(floats).not.toHaveAttribute('data-float-paused', /.*/);
+    expect(await playing(floating)).toBe(true);
   });
 
   test('marks previews noindex by default', async ({ page }) => {
@@ -229,16 +255,6 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(panel).not.toHaveAttribute('data-spot', /.+/);
   });
 
-  test('the corporates card flips between three suppliers and one relationship', async ({ page }) => {
-    const merge = page.locator('[data-merge]');
-    await expect(merge).toHaveAttribute('data-state', 'after');
-    await merge.getByRole('button', { name: 'Without SGI' }).click();
-    await expect(merge).toHaveAttribute('data-state', 'before');
-    await expect(merge.getByRole('button', { name: 'Without SGI' })).toHaveAttribute('aria-pressed', 'true');
-    await merge.getByRole('button', { name: 'With SGI' }).click();
-    await expect(merge).toHaveAttribute('data-state', 'after');
-  });
-
   test('the talent chooser points to the right business', async ({ page }) => {
     const card = page.locator('[data-talent]');
     await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeVisible();
@@ -264,21 +280,16 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(convo).toHaveAttribute('data-on', 'manage');
   });
 
-  test('hovering a marked country fades the rest and names it in a tooltip', async ({ page }) => {
+  test('pointing at a country label quietens the other marked countries', async ({ page }) => {
     test.skip(!isDesktop(page), 'hover is for mouse screens');
     const map = page.locator('[data-map]');
     await map.scrollIntoViewIfNeeded();
-    const tip = map.locator('[data-map-tip]');
-    // Australia: the middle of its outline is on land (the US outline's middle, with Alaska, is in Canada)
-    await map.locator('[data-map-id="036"]').hover();
-    await expect(map).toHaveAttribute('data-hover', '');
-    await expect(tip).toHaveAttribute('data-on', '');
-    await expect(tip).toContainText('Australia');
-    await expect(tip).toContainText('Where our clients are');
-    await expect(map.locator('[data-map-land]')).toHaveCSS('opacity', '0.4');
+    await map.locator('.map-pin[data-map-id="036"]').hover();
+    await expect(map).toHaveAttribute('data-focus', '');
+    await expect(map.locator('path.map-dots[data-map-id="036"]')).toHaveCSS('opacity', '1');
+    await expect(map.locator('path.map-dots[data-map-id="840"]')).toHaveCSS('opacity', '0.35');
     await page.mouse.move(5, 5);
-    await expect(map).not.toHaveAttribute('data-hover', /.*/);
-    await expect(tip).not.toHaveAttribute('data-on', /.*/);
+    await expect(map).not.toHaveAttribute('data-focus', /.*/);
   });
 
   test('FAQ rows open and close', async ({ page }) => {
@@ -298,10 +309,10 @@ test.describe('reduced motion', () => {
     await expect(page.locator('html')).not.toHaveAttribute('data-motion', 'on');
     await expect(page.locator('.hero-word').first()).toHaveCSS('transform', 'none');
     await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
-    await expect(page.locator('[data-count]').first()).toHaveText('450+');
+    await expect(page.locator('.revenue [data-gauge-count]')).toHaveText('$428,000');
     await expect(page.locator('.dash [data-gauge]')).toHaveAttribute('aria-valuenow', '75');
     // No floating: the illustrations hold still.
-    await page.locator('#who-we-work-with .cards').scrollIntoViewIfNeeded();
+    await page.locator('#businesses').scrollIntoViewIfNeeded();
     const moving = await page.$$eval('.floating', (els) =>
       els.some((el) =>
         el.getAnimations().some((a) => a.playState === 'running' && a.effect?.getTiming().iterations === Infinity),

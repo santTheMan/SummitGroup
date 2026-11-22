@@ -101,7 +101,6 @@ export const about = {
   eyebrow: 'About SGI',
   statement:
     'Building a team is complicated, but it doesn\u2019t need to be fragmented. With *Summit Group International*, you recruit, develop and manage the people your business depends on through one relationship.',
-  proofLabel: 'SGI in numbers',
 } as const;
 
 /**
@@ -228,53 +227,20 @@ export const howWeWork = {
 export const audiences = {
   eyebrow: 'Who we work with',
   heading: 'For South African companies, international clients and partners.',
-  /** Drafted for the redesign (part of the homepage copy sign-off). */
-  visuals: {
-    suppliers: {
-      toggle: ['Without SGI', 'With SGI'],
-      before: ['Recruitment agency', 'Training provider', 'Sales management'],
-      beforeMeta: 'Separate supplier',
-      after: 'Summit Group International',
-      afterMeta: 'One relationship \u00b7 three specialists',
-      badge: 'One point of contact',
-    },
-    /**
-     * 24/7 cover (Daniel, 22 Nov 2026: "we work 24/7 inline with our clients'
-     * needs"). Replaces the shared-working-hours clock. Cities follow the
-     * client markets on the map: the US, the UK and Australia.
-     */
-    coverage: {
-      label: 'Covered 24/7',
-      cities: [
-        { name: 'New York', zone: 'America/New_York' },
-        { name: 'London', zone: 'Europe/London' },
-        { name: 'Sydney', zone: 'Australia/Sydney' },
-      ],
-      status: 'Covered',
-      caption: 'We work 24/7, in line with your needs, wherever you are.',
-    },
-    pipeline: {
-      label: 'Talent pipeline',
-      partner: 'Your organisation',
-      steps: ['Trained', 'Tested', 'Supported', 'Placed'],
-    },
-  },
   /**
-   * World map under the heading (Daniel, 22 Nov 2026), after bklit's
-   * Choropleth chart. Client markets are Summit Sales' confirmed markets
-   * (UK, US, Australia). Ids are ISO 3166-1 numeric, as in world-atlas.
+   * "Where we work" map (Daniel, 22 Nov 2026), a dot map after bklit's
+   * Choropleth chart and its dot grid. Client markets are Summit Sales'
+   * confirmed markets (UK, US, Australia). Ids are ISO 3166-1 numeric, as in
+   * world-atlas; `at` is where the label points ([longitude, latitude]).
    */
   markets: {
-    label: 'Where we work',
     caption: 'Our talent is in South Africa. Our international clients are in the United States, the United Kingdom and Australia.',
-    home: { id: '710', name: 'South Africa', role: 'Where our talent is based' },
+    home: { id: '710', name: 'South Africa', role: 'Our talent', at: [24, -29] },
     clients: [
-      { id: '840', name: 'United States', role: 'Where our clients are' },
-      { id: '826', name: 'United Kingdom', role: 'Where our clients are' },
-      { id: '036', name: 'Australia', role: 'Where our clients are' },
+      { id: '840', name: 'United States', role: 'Clients', at: [-97, 39] },
+      { id: '826', name: 'United Kingdom', role: 'Clients', at: [-2, 53] },
+      { id: '036', name: 'Australia', role: 'Clients', at: [134, -25] },
     ],
-    legendHome: 'Talent',
-    legendClients: 'Clients',
   },
   groups: [
     {
@@ -283,7 +249,8 @@ export const audiences = {
     },
     {
       title: 'International clients',
-      body: 'Access to South African talent through one group, with one point of contact from the first conversation.',
+      /** The 24/7 line kept from the removed "Covered 24/7" card (22 Nov). */
+      body: 'Access to South African talent through one group, with one point of contact from the first conversation. We work 24/7, in line with your needs.',
     },
     {
       title: 'Partners and funders',
@@ -397,9 +364,6 @@ export const illustrations = {
       { range: 'placed', time: '10:00', stream: 'manage', text: 'First team coaching session' },
       { range: 'placed', time: '15:30', stream: 'develop', text: 'Check-in with every placement' },
     ],
-    floats: {
-      update: { label: 'Update from SGI', text: 'Shortlist ready', from: 'SGI', to: 'You' },
-    },
   },
   scenes: {
     institute: {

@@ -188,43 +188,17 @@ main {
   color: var(--muted);
 }
 
-/* Section label with the template's pinging dot */
+/* Section label. Daniel removed the template's pinging dot on 22 Nov 2026:
+   the label is plain text now. */
 .label {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
   height: max-content;
   padding-top: 0.5rem;
   font-size: var(--t-small);
   color: var(--accent-text);
 }
 
-.label::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
 .on-dark .label {
   color: var(--sgi-sky);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .label::before {
-    animation: ping 2.4s ease-out infinite;
-  }
-}
-
-@keyframes ping {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 50%, transparent);
-  }
-  80%,
-  100% {
-    box-shadow: 0 0 0 8px transparent;
-  }
 }
 
 /* Buttons: Apple-style squircles (continuous corners), Emil's press feedback.

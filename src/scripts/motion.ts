@@ -1,4 +1,4 @@
-import { animate, delay, inView, scopeMotion, scroll, stagger, type AnimationSequence } from 'motion';
+import { animate, inView, scopeMotion, scroll, stagger, type AnimationSequence } from 'motion';
 
 /**
  * The page's motion, after Teal Treasury's GSAP choreography, rebuilt with
@@ -19,7 +19,6 @@ window.__sgiMotion = true;
 
 const html = document.documentElement;
 const out = [0.16, 1, 0.3, 1] as const;
-const inOut = [0.77, 0, 0.175, 1] as const;
 const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector<T>(sel);
 const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) =>
   Array.from(root.querySelectorAll<T>(sel));
@@ -33,7 +32,6 @@ scopeMotion(
     animate('.hero-word', { y: ['110%', '0%'], rotate: [3, 0] }, { duration: 1.1, delay: stagger(0.045), ease: out });
     animate('.hero-fade', { opacity: [0, 1], y: [18, 0] }, { duration: 0.8, delay: stagger(0.08, { startDelay: 0.35 }), ease: out });
     animate('.device-wrap', { opacity: [0, 1], y: [120, 0] }, { duration: 1.2, delay: 0.45, ease: out });
-    animate('.float-in', { opacity: [0, 1], x: [60, 0] }, { duration: 1, delay: stagger(0.14, { startDelay: 0.75 }), ease: out });
 
     /* The panel lies back, and stands up as it scrolls into view */
     const deviceWrap = $('.device-wrap');
@@ -64,30 +62,6 @@ scopeMotion(
       scroll(animate(sequence), { target: statement, offset: ['start 0.82', 'end 0.48'] });
     }
 
-    /* Stats: hairlines draw in and the numbers count up, once */
-    const stats = $('[data-stats]');
-    const counters = stats ? $$('[data-count]', stats) : [];
-    const finalText = (c: HTMLElement) => `${c.dataset.prefix ?? ''}${c.dataset.count ?? ''}${c.dataset.suffix ?? ''}`;
-    if (stats) {
-      counters.forEach((c) => (c.textContent = `${c.dataset.prefix ?? ''}0${c.dataset.suffix ?? ''}`));
-      inView(
-        stats,
-        () => {
-          animate($$('.stat-rule', stats), { scaleX: [0, 1] }, { duration: 1.1, delay: stagger(0.12), ease: inOut });
-          counters.forEach((c, i) => {
-            const prefix = c.dataset.prefix ?? '';
-            const suffix = c.dataset.suffix ?? '';
-            animate(0, Number(c.dataset.count), {
-              duration: 1.4,
-              delay: 0.1 + i * 0.12,
-              ease: out,
-              onUpdate: (v) => (c.textContent = `${prefix}${Math.round(v)}${suffix}`),
-            });
-          });
-        },
-        { amount: 0.2 },
-      );
-    }
 
     /* Section heads and cards that start below the fold rise in once */
     $$('[data-reveal]').forEach((el) => {
@@ -98,7 +72,8 @@ scopeMotion(
       });
     });
 
-    /* Where we work map: once in view, South Africa then each client market colours in (CSS transition, staggered by --d) */
+    /* Where we work map: once in view, South Africa then each client market colours in, the links
+       draw and the labels rise (CSS transitions, staggered by --d) */
     const map = $('[data-map]');
     if (map && below(map)) {
       map.setAttribute('data-pending', '');
@@ -127,24 +102,6 @@ scopeMotion(
       );
     }
 
-    /* Who we work with: each card's piece of UI plays once as it comes into view */
-    const merge = $('[data-merge]');
-    if (merge && below(merge)) {
-      merge.dataset.state = 'before';
-      inView(
-        merge,
-        () =>
-          void delay(() => {
-            if (!merge.hasAttribute('data-touched')) merge.dataset.state = 'after';
-          }, 0.6),
-        { amount: 0.6 },
-      );
-    }
-    $$('[data-tz], [data-pipe]').forEach((el) => {
-      if (!below(el)) return;
-      el.removeAttribute('data-on');
-      inView(el, () => el.setAttribute('data-on', ''), { amount: 0.5 });
-    });
 
     /* Closing card settles from a rounder, smaller card */
     const card = $('[data-cta-card]');
@@ -165,21 +122,6 @@ scopeMotion(
       ]);
       scroll(animate(sequence), { target: bigmark, offset: ['start end', 'end end'] });
     }
-
-    /* Wide screens: the "Update from SGI" card drifts */
-    scopeMotion(
-      () => {
-        if (hero) {
-          $$('[data-float]').forEach((float) => {
-            scroll(animate(float, { y: [0, -40], rotate: [0, 2] }, { ease: 'linear' }), {
-              target: hero,
-              offset: ['start start', 'end start'],
-            });
-          });
-        }
-      },
-      { matchMedia: '>=900' },
-    );
 
     /* Mouse only: the closing card's glows follow the pointer at different speeds */
     scopeMotion(
@@ -223,9 +165,7 @@ scopeMotion(
 
     return () => {
       html.dataset.motion = 'off';
-      if (merge) merge.dataset.state = 'after';
-      $$('[data-tz], [data-pipe]').forEach((el) => el.setAttribute('data-on', ''));
-      counters.forEach((c) => (c.textContent = finalText(c)));
+      $('[data-map]')?.removeAttribute('data-pending');
     };
   },
   { matchMedia: 'motion' },

@@ -337,79 +337,23 @@ function initHeatmap() {
   scroller.addEventListener('scroll', clear, { passive: true });
 }
 
-/* Where we work map: hovering a marked country (or its legend key) fades the
-   rest to 0.4, and on the map a tooltip follows the pointer (bklit's choropleth) */
+/* Where we work map: pointing at a country (its dots, link or label) keeps it
+   bright and quietens the other marked countries */
 function initMap() {
   const map = $('[data-map]');
-  const stage = map && $('[data-map-stage]', map);
-  const tip = map && $('[data-map-tip]', map);
-  if (!map || !stage || !tip) return;
-  const marks = $$<SVGPathElement>('[data-map-id]', map);
-  let active: SVGPathElement | null = null;
-
-  const highlight = (mark: SVGPathElement | null) => {
-    if (mark === active) return;
-    active?.removeAttribute('data-active');
-    active = mark;
-    map.toggleAttribute('data-hover', Boolean(mark));
-    if (!mark) {
-      tip.removeAttribute('data-on');
-      return;
-    }
-    mark.setAttribute('data-active', '');
-    mark.parentNode?.appendChild(mark); // draw the hovered country above its neighbours' outlines
-    const name = document.createElement('b');
-    name.textContent = mark.dataset.name ?? '';
-    const role = document.createElement('span');
-    const dot = document.createElement('i');
-    if (mark.classList.contains('map-mark--home')) dot.setAttribute('data-home', '');
-    role.append(dot, mark.dataset.role ?? '');
-    tip.replaceChildren(name, role);
+  if (!map) return;
+  const marks = $$<HTMLElement>('[data-map-id]', map);
+  let focus: string | null = null;
+  const set = (id: string | null) => {
+    if (id === focus) return;
+    focus = id;
+    map.toggleAttribute('data-focus', Boolean(id));
+    marks.forEach((m) => m.toggleAttribute('data-active', m.dataset.mapId === id));
   };
-  const place = (e: PointerEvent) => {
-    const box = stage.getBoundingClientRect();
-    tip.style.setProperty('--x', `${e.clientX - box.left}px`);
-    tip.style.setProperty('--y', `${e.clientY - box.top}px`);
-  };
-
-  stage.addEventListener('pointermove', (e) => {
-    const mark = (e.target as Element).closest<SVGPathElement>('[data-map-id]');
-    highlight(mark);
-    if (!mark) return;
-    place(e);
-    tip.setAttribute('data-on', '');
+  map.addEventListener('pointerover', (e) => {
+    set((e.target as Element).closest<HTMLElement>('[data-map-id]')?.dataset.mapId ?? null);
   });
-  stage.addEventListener('pointerleave', () => highlight(null));
-
-  $$('[data-map-key]', map).forEach((key) => {
-    const mark = marks.find((m) => m.dataset.mapId === key.dataset.mapKey) ?? null;
-    key.addEventListener('pointerenter', () => {
-      highlight(mark);
-      tip.removeAttribute('data-on');
-    });
-    key.addEventListener('pointerleave', () => highlight(null));
-  });
-
-  /* Touch: a tap elsewhere clears the highlight */
-  document.addEventListener('pointerdown', (e) => {
-    if (active && !map.contains(e.target as Node)) highlight(null);
-  });
-}
-
-/* Corporates card: flip between three suppliers and one relationship */
-function initMerge() {
-  const merge = $('[data-merge]');
-  if (!merge) return;
-  const buttons = $$<HTMLButtonElement>('[data-merge-btn]', merge);
-  const sync = () => buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mergeBtn === merge.dataset.state)));
-  buttons.forEach((btn) =>
-    btn.addEventListener('click', () => {
-      merge.setAttribute('data-touched', '');
-      merge.dataset.state = btn.dataset.mergeBtn;
-    }),
-  );
-  new MutationObserver(sync).observe(merge, { attributes: true, attributeFilter: ['data-state'] });
-  sync();
+  map.addEventListener('pointerleave', () => set(null));
 }
 
 /* Start with a conversation: optional needs build the client's brief (SGI stays
@@ -461,26 +405,6 @@ function initTalent() {
   );
 }
 
-/* Covered 24/7: each client city's live local time, and the hour it is there now lit white */
-function initClock() {
-  const tz = $('[data-tz]');
-  if (!tz) return;
-  const rows = $$('[data-zone]', tz);
-  const update = () => {
-    const now = new Date();
-    rows.forEach((row) => {
-      const zone = row.dataset.zone ?? 'UTC';
-      const time = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
-      const el = $('[data-time]', row);
-      if (el && el.textContent?.trim() !== time) el.textContent = time;
-      const hour = String(Number(time.slice(0, 2)));
-      $$('[data-hour]', row).forEach((h) => h.toggleAttribute('data-now', h.dataset.hour === hour));
-    });
-  };
-  update();
-  window.setInterval(update, 30_000);
-}
-
 /* Squircle fallback: where CSS corner-shape is missing (Safari, Firefox), clip
    each button to the same superellipse (|x|^4 + |y|^4 = 1 in each corner). */
 function squirclePath(w: number, h: number, r: number, steps = 10) {
@@ -526,8 +450,6 @@ initFloating();
 initFaq();
 initHeatmap();
 initMap();
-initMerge();
 initConversation();
 initTalent();
-initClock();
 initGauges();

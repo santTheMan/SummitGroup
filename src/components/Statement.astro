@@ -1,18 +1,16 @@
 ---
 /**
  * Teal Treasury's benefits block: a statement that inks in word by word as it
- * scrolls, then the approved proof points counting up over hairlines that
- * draw in, and the client revenue gauge (after bklit's Gauge chart) sweeping
- * to its value as its figure counts up. Motion: src/scripts/motion.ts and
- * src/scripts/gauge.ts.
+ * scrolls, then the client revenue gauge (after bklit's Gauge chart) sweeping
+ * to its value as its figure counts up. The 450+ / 1 / 3 proof row was
+ * removed on 22 Nov 2026 at Daniel's request (the figures stay in site.ts).
+ * Motion: src/scripts/motion.ts and src/scripts/gauge.ts.
  */
 import { about, clientRevenue } from '../content/site.ts';
-import { publishedProof } from '../lib/release.ts';
-import { plain, splitNumber, words } from '../lib/text.ts';
+import { plain, words } from '../lib/text.ts';
 import Gauge from './Gauge.astro';
 
 const statement = words(about.statement);
-const stats = publishedProof().map((p) => ({ ...p, number: splitNumber(p.value) }));
 
 const revenueFormat = { style: 'currency', currency: clientRevenue.currency, maximumFractionDigits: 0 } as const;
 const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientRevenue.amount);
@@ -35,30 +33,6 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
           }
         </span>
       </p>
-
-      <h2 class="visually-hidden">{about.proofLabel}</h2>
-      <dl class="stats" data-stats>
-        {
-          stats.map((s) => (
-            <div class="stat">
-              <span class="stat-rule" aria-hidden="true" />
-              <dt class="visually-hidden">{s.label}</dt>
-              <dd class="stat-value">
-                <span
-                  data-count={s.number?.value}
-                  data-prefix={s.number?.prefix}
-                  data-suffix={s.number?.suffix}
-                >
-                  {s.value}
-                </span>
-              </dd>
-              <dd class="stat-label" aria-hidden="true">
-                {s.label}
-              </dd>
-            </div>
-          ))
-        }
-      </dl>
 
       <div class="revenue" data-reveal>
         <span class="revenue-rule" aria-hidden="true"></span>
@@ -102,46 +76,6 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
     letter-spacing: -0.02em;
   }
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.5rem;
-    max-width: 51rem;
-    margin-top: 5rem;
-  }
-
-  .stat {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    padding-top: 1.125rem;
-  }
-
-  .stat-rule {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--ink);
-    opacity: 0.25;
-    transform-origin: 0 50%;
-  }
-
-  .stat-value {
-    font-family: var(--font-display);
-    font-size: var(--t-stat);
-    letter-spacing: -0.04em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .stat-label {
-    font-size: var(--t-small);
-    color: var(--muted);
-  }
-
   /* Client revenue: the gauge beside its label, under its own hairline */
   .revenue {
     position: relative;
@@ -150,7 +84,7 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
     align-items: center;
     gap: 2.5rem;
     max-width: 51rem;
-    margin-top: 3.5rem;
+    margin-top: 4.5rem;
     padding-top: 2rem;
   }
 
@@ -193,13 +127,8 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
   }
 
   @media (max-width: 45rem) {
-    .stats {
-      grid-template-columns: 1fr;
-      gap: 1.75rem;
-      margin-top: 3.5rem;
-    }
-
     .revenue {
+      margin-top: 3rem;
       grid-template-columns: 1fr;
       justify-items: center;
       gap: 1.25rem;

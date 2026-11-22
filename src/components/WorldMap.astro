@@ -1,316 +1,343 @@
 ---
 /**
- * Where we work: a world map after bklit's Choropleth chart
- * (bklit.com/docs/components/choropleth-chart): Mercator, a 10° graticule,
- * countries with a hairline in the page colour, and on hover every other
- * country fading to 0.4 while a tooltip follows the pointer. Drawn here at
- * build time with d3-geo from world-atlas (110m), so the page ships plain SVG
- * and no map library. Hover and tooltip: src/scripts/ui.ts; the countries
- * colour in on first view in src/scripts/motion.ts.
+ * Where we work: a dot map, after bklit's Choropleth chart and its dot grid
+ * (bklit.com/docs/components/choropleth-chart). Land is a grid of soft dots
+ * in the page's own ink that fades out at the edges, so the map has no box
+ * and sits in the page. South Africa (our talent) and the client markets
+ * (US, UK, Australia) are picked out, with labels on the map and thin links
+ * from South Africa to each market.
+ *
+ * Everything is worked out at build time with d3-geo from world-atlas (110m):
+ * each dot is a zero-length round-capped line, so the whole map is a handful
+ * of short SVG paths and no map library ships. Entrance: src/scripts/motion.ts
+ * (the marked countries colour in, then the links draw); pointing at a country
+ * quietens the others: src/scripts/ui.ts.
  */
-import { geoMercator, geoPath } from 'd3-geo';
-import type { FeatureCollection, Geometry } from 'geojson';
+import { geoBounds, geoContains, geoMercator } from 'd3-geo';
+import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import { feature } from 'topojson-client';
 import type { GeometryCollection, Topology } from 'topojson-specification';
 import world from 'world-atlas/countries-110m.json';
 import { audiences } from '../content/site.ts';
-import { compactPath } from '../lib/svgpath.ts';
 
 const m = audiences.markets;
 
-/* bklit's example: aspectRatio "2 / 1", margin { top: 8, right: 8, bottom: 40, left: 8 } */
+/* Mercator from 76°N to 56°S (no polar caps or Antarctica): close to bklit's 2 / 1 */
 const width = 1000;
-const height = 500;
-const margin = { top: 8, right: 8, bottom: 40, left: 8 };
+const north = 76;
+const south = -56;
+const scale = width / (2 * Math.PI);
+const mercY = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+const height = Math.round(scale * (mercY(north) - mercY(south)));
+const projection = geoMercator()
+  .scale(scale)
+  .translate([width / 2, scale * mercY(north)]);
 
+type Country = Feature<Geometry, { name: string }>;
 const topo = world as unknown as Topology<{ countries: GeometryCollection<{ name: string }> }>;
 const countries = (feature(topo, topo.objects.countries) as FeatureCollection<Geometry, { name: string }>).features.filter(
-  (f) => f.id !== '010', // Antarctica
-);
+  (f) => f.id !== '010',
+) as Country[];
 
-/* Mercator scaled to the width and centred on 20°N, as bklit's default */
-const projection = geoMercator()
-  .scale((width - margin.left - margin.right) / (2 * Math.PI))
-  .center([0, 20])
-  .translate([width / 2, (margin.top + height - margin.bottom) / 2]);
-const path = geoPath(projection);
+/* Longitude/latitude boxes first, so each dot is only tested against a few countries */
+const boxes = countries.map((f) => {
+  const [[w, s], [e, n]] = geoBounds(f);
+  return { f, id: String(f.id), w, s, e, n };
+});
+const countryAt = (lon: number, lat: number) => {
+  for (const b of boxes) {
+    if (lat < b.s || lat > b.n) continue;
+    const inLon = b.w <= b.e ? lon >= b.w && lon <= b.e : lon >= b.w || lon <= b.e; // crosses 180°
+    if (inLon && geoContains(b.f, [lon, lat])) return b.id;
+  }
+  return null;
+};
 
+/* The dot grid: one dot every `step` units, offset half a step from the edges */
+const step = 9;
 const marked = [
   { ...m.home, kind: 'home' as const },
   ...m.clients.map((c) => ({ ...c, kind: 'client' as const })),
 ];
 const markedIds = new Set<string>(marked.map((c) => c.id));
+const dots = new Map<string, [number, number][]>([['land', []], ...marked.map((c) => [c.id, []] as [string, [number, number][]])]);
+for (let y = step / 2; y < height; y += step) {
+  for (let x = step / 2; x < width; x += step) {
+    const ll = projection.invert!([x, y]);
+    if (!ll) continue;
+    const id = countryAt(ll[0], ll[1]);
+    if (!id) continue;
+    dots.get(markedIds.has(id) ? id : 'land')!.push([x, y]);
+  }
+}
 
-/* In Mercator the 10° graticule is straight lines, so it is drawn as plain rules */
-const meridians = Array.from({ length: 36 }, (_, i) => projection([-180 + i * 10, 0])![0]);
-const parallels = Array.from({ length: 17 }, (_, i) => projection([0, -80 + i * 10])![1]).filter(
-  (y) => y > 0 && y < height,
-);
-const graticule =
-  meridians.map((x) => `M${Math.round(x * 10) / 10} 0V${height}`).join('') +
-  parallels.map((y) => `M0 ${Math.round(y * 10) / 10}H${width}`).join('');
+/* Dots as zero-length segments ("M x y h0"); with round caps each draws as a circle */
+const dotPath = (pts: [number, number][]) => {
+  let d = '';
+  let px = 0;
+  let py = Number.NaN;
+  for (const [x, y] of pts) {
+    d += y === py ? `m${+(x - px).toFixed(1)} 0h0` : `M${+x.toFixed(1)} ${+y.toFixed(1)}h0`;
+    px = x;
+    py = y;
+  }
+  return d;
+};
 
-/* Unmarked countries in whole units (the 110m outlines are coarser than that); marked ones to 0.1 */
-const land = countries
-  .filter((f) => !markedIds.has(String(f.id)))
-  .map((f) => compactPath(path(f) ?? '', 0))
-  .join('');
+const point = (at: readonly [number, number]) => projection([at[0], at[1]]) as [number, number];
+const pct = ([x, y]: [number, number]) => `left:${((x / width) * 100).toFixed(2)}%;top:${((y / height) * 100).toFixed(2)}%`;
+
+const home = point(m.home.at);
 const shapes = marked.map((c, i) => {
-  const f = countries.find((x) => String(x.id) === c.id);
-  if (!f) throw new Error(`WorldMap: no country with id ${c.id} in world-atlas`);
-  return { ...c, d: compactPath(path(f) ?? '', 1), delay: i * 120 };
+  const pts = dots.get(c.id)!;
+  // A country too small for the grid still gets a dot at its label point
+  if (!pts.length) pts.push(point(c.at));
+  return { ...c, d: dotPath(pts), anchor: point(c.at), delay: i * 140 };
 });
+
+/* Links: a gentle arc from South Africa to each client market, bowed to the
+   side of the line that faces north (as flight paths look on a flat map) */
+const links = shapes
+  .filter((s) => s.kind === 'client')
+  .map((s, i) => {
+    const [x1, y1] = home;
+    const [x2, y2] = s.anchor;
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    let [nx, ny] = [-(y2 - y1) / len, (x2 - x1) / len];
+    if (ny > 0) [nx, ny] = [-nx, -ny];
+    const bow = Math.min(len * 0.2, 80);
+    const cx = (x1 + x2) / 2 + nx * bow;
+    const cy = (y1 + y2) / 2 + ny * bow;
+    const f = (n: number) => n.toFixed(1);
+    return { id: s.id, d: `M${f(x1)} ${f(y1)}Q${f(cx)} ${f(cy)} ${f(x2)} ${f(y2)}`, delay: 500 + i * 160 };
+  });
 ---
 
-<figure class="map" data-map data-reveal>
-  <p class="label map-label">{m.label}</p>
-  <div class="map-stage" data-map-stage>
+<figure class="map" data-map>
+  <div class="map-stage">
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={m.caption}>
-      <defs>
-        <radialGradient id="map-fade">
-          <stop offset="0.3" stop-color="#fff"></stop>
-          <stop offset="1" stop-color="#000"></stop>
-        </radialGradient>
-        <mask id="map-grat-mask">
-          <rect width={width} height={height} fill="url(#map-fade)"></rect>
-        </mask>
-      </defs>
-      <path class="map-grat" d={graticule} mask="url(#map-grat-mask)"></path>
-      <g class="map-land" data-map-land>
-        <path d={land}></path>
-      </g>
+      <path class="map-land" d={dotPath(dots.get('land')!)}></path>
+      {
+        links.map((l) => (
+          <path class="map-link" d={l.d} pathLength="1" data-map-id={l.id} style={`--d:${l.delay}ms`} />
+        ))
+      }
       {
         shapes.map((s) => (
-          <path
-            class:list={['map-mark', `map-mark--${s.kind}`]}
-            d={s.d}
-            data-map-id={s.id}
-            data-name={s.name}
-            data-role={s.role}
-            style={`--d:${s.delay}ms`}
-          />
+          <path class:list={['map-dots', `map-dots--${s.kind}`]} d={s.d} data-map-id={s.id} style={`--d:${s.delay}ms`} />
         ))
       }
     </svg>
-    <p class="map-tip" data-map-tip aria-hidden="true"></p>
+    {
+      shapes.map((s) => (
+        <span
+          class:list={['map-pin', `map-pin--${s.kind}`, s.anchor[0] > width * 0.75 && 'map-pin--left']}
+          style={`${pct(s.anchor)};--d:${s.delay + 200}ms`}
+          data-map-id={s.id}
+          aria-hidden="true"
+        >
+          <i></i>
+          <span class="map-tag">
+            <b>{s.name}</b>
+            <small>{s.role}</small>
+          </span>
+        </span>
+      ))
+    }
   </div>
-  <figcaption class="map-foot">
-    <p class="map-caption">{m.caption}</p>
-    <ul class="map-legend" aria-hidden="true">
-      <li class="map-key-group">
-        <span class="map-key-label">{m.legendHome}</span>
-        <span class="map-key" data-map-key={m.home.id}><i class="map-dot map-dot--home"></i>{m.home.name}</span>
-      </li>
-      <li class="map-key-group">
-        <span class="map-key-label">{m.legendClients}</span>
-        {
-          m.clients.map((c) => (
-            <span class="map-key" data-map-key={c.id}>
-              <i class="map-dot" />
-              {c.name}
-            </span>
-          ))
-        }
-      </li>
-    </ul>
-  </figcaption>
 </figure>
 
 <style>
   .map {
-    --land: #dedcd2;
+    --land: color-mix(in srgb, var(--ink) 15%, var(--page));
     --home: var(--sgi-navy);
     --client: var(--sgi-electric);
-    max-width: 46rem;
-    margin: 0 0 5rem;
-  }
-
-  /* Wide screens: the map sits in the heading's column, as in .split */
-  @media (min-width: 56.3rem) {
-    .map {
-      margin-inline-start: calc(12.5rem + 2.5rem);
-    }
-  }
-
-  .map-label {
-    margin-bottom: 1rem;
+    margin: 0;
   }
 
   .map-stage {
     position: relative;
   }
 
+  /* The dots dissolve into the page towards every edge: no box, no border */
   .map svg {
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 2 / 1;
-  }
-
-  /* The grid fades out towards the edges (#map-fade), so the map has no box around it */
-  .map-grat {
-    fill: none;
-    stroke: var(--rule);
-    stroke-width: 0.75;
+    overflow: visible;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent),
+      linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent),
+      linear-gradient(180deg, transparent, #000 12%, #000 86%, transparent);
+    mask-composite: intersect;
   }
 
   .map-land,
-  .map-mark {
-    stroke: var(--page);
-    stroke-width: 0.5;
-    stroke-linejoin: round;
-    transition: opacity 180ms ease-out;
+  .map-dots {
+    fill: none;
+    stroke-linecap: round;
+    stroke-width: 4.6;
   }
 
-  /* bklit's base layer sits at 0.85 */
   .map-land {
-    fill: var(--land);
-    opacity: 0.85;
+    stroke: var(--land);
   }
 
-  .map-mark {
+  .map-dots {
     transition:
-      opacity 180ms ease-out,
-      fill 700ms cubic-bezier(0.23, 1, 0.32, 1) var(--d, 0ms);
+      stroke 700ms cubic-bezier(0.23, 1, 0.32, 1) var(--d, 0ms),
+      opacity 200ms ease;
   }
 
-  .map-mark--home {
-    fill: var(--home);
+  .map-dots--home {
+    stroke: var(--home);
   }
 
-  .map-mark--client {
-    fill: var(--client);
+  .map-dots--client {
+    stroke: var(--client);
   }
 
-  /* Before the first view (motion.ts): the marked countries wait as plain land */
-  .map[data-pending] .map-mark {
-    fill: var(--land);
+  .map-link {
+    fill: none;
+    stroke: var(--client);
+    stroke-width: 1.25;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    opacity: 0.45;
+    transition:
+      stroke-dashoffset 1100ms cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0ms),
+      opacity 200ms ease;
   }
 
-  /* Hovering a country (or its legend key) fades every other country to 0.4 */
-  .map[data-hover] .map-land,
-  .map[data-hover] .map-mark:not([data-active]) {
-    opacity: 0.4;
-  }
-
-  .map-mark {
-    cursor: default;
-  }
-
-  .map-tip {
+  /* Labels: a dot on the spot and a quiet tag beside it */
+  .map-pin {
     position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.4375rem;
+    transform: translate(-0.3125rem, -50%);
+    transition:
+      opacity 400ms ease var(--d, 0ms),
+      translate 500ms cubic-bezier(0.23, 1, 0.32, 1) var(--d, 0ms);
+    pointer-events: auto;
+  }
+
+  /* Near the right edge the tag sits on the dot's left */
+  .map-pin--left {
+    flex-direction: row-reverse;
+    transform: translate(calc(-100% + 0.3125rem), -50%);
+  }
+
+  /* South Africa's tag hangs under its dot, clear of the links and of Australia's tag */
+  .map-pin--home {
+    flex-direction: column;
+    gap: 0.3125rem;
+    transform: translate(-50%, -0.3125rem);
+  }
+
+  .map-pin--home .map-tag {
+    text-align: center;
+  }
+
+  .map-pin i {
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background: var(--client);
+    box-shadow:
+      0 0 0 3px var(--page),
+      0 0 0 4px color-mix(in srgb, var(--client) 35%, transparent);
+  }
+
+  .map-pin--home i {
+    background: var(--home);
+    box-shadow:
+      0 0 0 3px var(--page),
+      0 0 0 4px color-mix(in srgb, var(--home) 30%, transparent);
+  }
+
+  .map-tag {
     display: grid;
-    gap: 0.125rem;
-    padding: 0.4375rem 0.625rem;
+    padding: 0.25rem 0.5rem;
     border-radius: 8px;
-    background: var(--ink);
-    color: var(--paper);
-    font-size: 0.72rem;
+    background: color-mix(in srgb, var(--page) 82%, transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    line-height: 1.2;
     white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transform: translate(var(--x, 0), var(--y, 0)) translate(-50%, calc(-100% - 12px));
-    transition: opacity 120ms ease;
   }
 
-  .map-tip[data-on] {
-    opacity: 1;
-  }
-
-  .map-tip :global(b) {
+  .map-tag b {
+    font-size: 0.75rem;
     font-weight: 500;
   }
 
-  .map-tip :global(span) {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    color: rgb(255 255 255 / 0.72);
-  }
-
-  .map-tip :global(i) {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 2px;
-    background: var(--client);
-    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.3);
-  }
-
-  .map-tip :global(i[data-home]) {
-    background: var(--sgi-sky);
-  }
-
-  .map-foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem 2.5rem;
-    margin-top: 1rem;
-  }
-
-  .map-caption {
-    max-width: 30rem;
-    font-size: var(--t-small);
+  .map-tag small {
+    font-size: 0.66rem;
     color: var(--muted);
   }
 
-  .map-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem 1.75rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: var(--t-small);
+  /* Before the first view (motion.ts): marked countries wait as plain land, links undrawn, labels hidden */
+  .map[data-pending] .map-dots {
+    stroke: var(--land);
   }
 
-  .map-key-group {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 0.875rem;
+  .map[data-pending] .map-link {
+    stroke-dashoffset: 1;
   }
 
-  .map-key-label {
-    color: var(--muted);
+  .map[data-pending] .map-pin {
+    opacity: 0;
+    translate: 0 4px;
   }
 
-  .map-key {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4375rem;
-    cursor: default;
+  /* Pointing at a country quietens the other marked countries and their links */
+  .map[data-focus] .map-dots:not([data-active]),
+  .map[data-focus] .map-link:not([data-active]),
+  .map[data-focus] .map-pin:not([data-active]) {
+    opacity: 0.35;
+    transition-delay: 0ms;
   }
 
-  .map-dot {
-    width: 0.625rem;
-    height: 0.625rem;
-    border-radius: 3px;
-    background: var(--client);
-  }
-
-  .map-dot--home {
-    background: var(--home);
+  .map[data-focus] .map-link[data-active] {
+    opacity: 0.9;
   }
 
   @media (max-width: 45rem) {
-    .map {
-      margin-bottom: 3.5rem;
+    .map-land,
+    .map-dots {
+      stroke-width: 6.2;
     }
 
-    .map-foot {
-      flex-direction: column;
+    .map-tag small {
+      display: none;
+    }
+
+    /* Narrow map: Australia's tag goes above its dot, clear of South Africa's */
+    .map-pin--left {
+      flex-direction: column-reverse;
+      gap: 0.3125rem;
+      transform: translate(-50%, calc(-100% + 0.3125rem));
+    }
+
+    .map-tag {
+      padding: 0.125rem 0.375rem;
+    }
+
+    .map-tag b {
+      font-size: 0.6875rem;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .map-land,
-    .map-mark,
-    .map-tip {
+    .map-dots,
+    .map-link,
+    .map-pin {
       transition: none;
     }
   }

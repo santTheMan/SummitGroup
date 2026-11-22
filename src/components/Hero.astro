@@ -1,15 +1,16 @@
 ---
 /**
  * Hero after Teal Treasury: the approved promise rises out of line masks,
- * then the working panel stands up from a tilt as it scrolls into view, with
- * the "Update from SGI" card drifting at its own speed. Motion: src/scripts/motion.ts.
+ * then the working panel stands up from a tilt as it scrolls into view. The
+ * panel stands alone: Daniel removed both floating cards ("New brief" and
+ * "Update from SGI") on 22 Nov 2026 because they pulled focus from it.
+ * Motion: src/scripts/motion.ts.
  */
-import { hero, illustrations } from '../content/site.ts';
+import { hero } from '../content/site.ts';
 import BriefPanel from './BriefPanel.astro';
 import CtaButton from './CtaButton.astro';
 
 const headlineWords = hero.headline.split(' ');
-const f = illustrations.panel.floats;
 ---
 
 <section class="hero" id="top" aria-labelledby="hero-title">
@@ -40,22 +41,6 @@ const f = illustrations.panel.floats;
     <div class="device">
       <div class="bezel">
         <BriefPanel />
-      </div>
-    </div>
-    <div class="floats" aria-hidden="true">
-      <div class="float" data-float>
-        <div class="float-in">
-          <div class="flow">
-            <p class="flow-top"><b>{f.update.label}</b> <em>{f.update.text}</em></p>
-            <div class="flow-row">
-              <span class="flow-chip flow-chip-b"><i></i>{f.update.from}</span>
-              <svg class="flow-arrow" width="34" height="10" viewBox="0 0 34 10">
-                <path d="M1 5h28"></path><path d="m27 1 4 4-4 4"></path>
-              </svg>
-              <span class="flow-chip"><i></i>{f.update.to}</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -161,133 +146,9 @@ const f = illustrations.panel.floats;
       0 20px 40px -30px rgb(7 27 52 / 0.4);
   }
 
-  .floats {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    pointer-events: none;
-  }
-
-  .float {
-    position: absolute;
-    left: -4.5rem;
-    bottom: -1.75rem;
-  }
-
-  .flow {
-    width: 20rem;
-    padding: 0.75rem;
-    border-radius: 12px;
-    background: var(--deep);
-    color: var(--deep-ink);
-    border: 1px solid rgb(255 255 255 / 0.06);
-    box-shadow: 0 24px 50px -24px rgb(0 0 0 / 0.55);
-  }
-
-  .flow-top {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.375rem;
-    margin-bottom: 0.625rem;
-    font-size: 0.75rem;
-    color: var(--deep-muted);
-  }
-
-  .flow-top b {
-    font-weight: 500;
-    color: var(--deep-ink);
-  }
-
-  .flow-top em {
-    font-style: normal;
-    color: var(--sgi-sky);
-  }
-
-  .flow-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .flow-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    min-width: 0;
-    padding: 0.4375rem 0.5625rem;
-    border-radius: 8px;
-    background: rgb(255 255 255 / 0.07);
-    font-size: 0.75rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .flow-chip i {
-    width: 16px;
-    height: 16px;
-    flex: none;
-    border-radius: 5px;
-    background: var(--sgi-electric);
-  }
-
-  .flow-chip-b i {
-    background: var(--sgi-sky);
-  }
-
-  .flow-arrow {
-    flex: none;
-    color: var(--deep-muted);
-  }
-
-  .flow-arrow path {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linecap: round;
-  }
-
-  .flow-arrow path:first-child {
-    stroke-dasharray: 3 4;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .flow-arrow path:first-child {
-      animation: dash 1s linear infinite;
-    }
-  }
-
-  @keyframes dash {
-    to {
-      stroke-dashoffset: -14;
-    }
-  }
-
-  @media (max-width: 67.5rem) {
-    .float {
-      left: -0.5rem;
-    }
-  }
-
   @media (max-width: 56.25rem) {
     .hero {
       padding-top: 3rem;
-    }
-
-    .floats {
-      position: relative;
-      inset: auto;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.625rem;
-      margin-top: 1.125rem;
-    }
-
-    .float {
-      position: relative;
-      inset: auto;
     }
   }
 
@@ -300,10 +161,6 @@ const f = illustrations.panel.floats;
     .bezel {
       padding: 6px;
       border-radius: 16px;
-    }
-
-    .flow {
-      width: min(21rem, calc(100vw - 3rem));
     }
   }
 </style>
