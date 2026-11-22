@@ -30,11 +30,28 @@ function render(el: HTMLElement, state: GaugeState, v: number) {
   }
   for (let i = 0; i < state.counts.length; i++) {
     const count = state.counts[i]!;
-    const max = Number(count.dataset.max);
-    const text = String(Math.round((v / 100) * max));
+    const text = countText(el, count, v);
     if (count.textContent !== text) count.textContent = text;
   }
-  el.setAttribute('aria-valuenow', String(Math.round(v)));
+  if (el.getAttribute('role') === 'meter') el.setAttribute('aria-valuenow', String(Math.round(v)));
+}
+
+const formats = new WeakMap<HTMLElement, Intl.NumberFormat>();
+
+/**
+ * [data-max]: the count at a full gauge (whole numbers).
+ * [data-total]: the count once the gauge reaches its value, formatted with the
+ * Intl options in [data-format] (bklit's centerValue + formatOptions).
+ */
+function countText(el: HTMLElement, count: HTMLElement, v: number) {
+  if (count.dataset.total === undefined) return String(Math.round((v / 100) * Number(count.dataset.max)));
+  let format = formats.get(count);
+  if (!format) {
+    format = new Intl.NumberFormat('en-US', JSON.parse(count.dataset.format ?? '{}'));
+    formats.set(count, format);
+  }
+  const end = Number(el.dataset.value) || 100;
+  return format.format(Math.round((Math.min(v, end) / end) * Number(count.dataset.total)));
 }
 
 function stateOf(el: HTMLElement): GaugeState {

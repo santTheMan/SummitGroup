@@ -1,0 +1,317 @@
+---
+/**
+ * Where we work: a world map after bklit's Choropleth chart
+ * (bklit.com/docs/components/choropleth-chart): Mercator, a 10° graticule,
+ * countries with a hairline in the page colour, and on hover every other
+ * country fading to 0.4 while a tooltip follows the pointer. Drawn here at
+ * build time with d3-geo from world-atlas (110m), so the page ships plain SVG
+ * and no map library. Hover and tooltip: src/scripts/ui.ts; the countries
+ * colour in on first view in src/scripts/motion.ts.
+ */
+import { geoMercator, geoPath } from 'd3-geo';
+import type { FeatureCollection, Geometry } from 'geojson';
+import { feature } from 'topojson-client';
+import type { GeometryCollection, Topology } from 'topojson-specification';
+import world from 'world-atlas/countries-110m.json';
+import { audiences } from '../content/site.ts';
+import { compactPath } from '../lib/svgpath.ts';
+
+const m = audiences.markets;
+
+/* bklit's example: aspectRatio "2 / 1", margin { top: 8, right: 8, bottom: 40, left: 8 } */
+const width = 1000;
+const height = 500;
+const margin = { top: 8, right: 8, bottom: 40, left: 8 };
+
+const topo = world as unknown as Topology<{ countries: GeometryCollection<{ name: string }> }>;
+const countries = (feature(topo, topo.objects.countries) as FeatureCollection<Geometry, { name: string }>).features.filter(
+  (f) => f.id !== '010', // Antarctica
+);
+
+/* Mercator scaled to the width and centred on 20°N, as bklit's default */
+const projection = geoMercator()
+  .scale((width - margin.left - margin.right) / (2 * Math.PI))
+  .center([0, 20])
+  .translate([width / 2, (margin.top + height - margin.bottom) / 2]);
+const path = geoPath(projection);
+
+const marked = [
+  { ...m.home, kind: 'home' as const },
+  ...m.clients.map((c) => ({ ...c, kind: 'client' as const })),
+];
+const markedIds = new Set<string>(marked.map((c) => c.id));
+
+/* In Mercator the 10° graticule is straight lines, so it is drawn as plain rules */
+const meridians = Array.from({ length: 36 }, (_, i) => projection([-180 + i * 10, 0])![0]);
+const parallels = Array.from({ length: 17 }, (_, i) => projection([0, -80 + i * 10])![1]).filter(
+  (y) => y > 0 && y < height,
+);
+const graticule =
+  meridians.map((x) => `M${Math.round(x * 10) / 10} 0V${height}`).join('') +
+  parallels.map((y) => `M0 ${Math.round(y * 10) / 10}H${width}`).join('');
+
+/* Unmarked countries in whole units (the 110m outlines are coarser than that); marked ones to 0.1 */
+const land = countries
+  .filter((f) => !markedIds.has(String(f.id)))
+  .map((f) => compactPath(path(f) ?? '', 0))
+  .join('');
+const shapes = marked.map((c, i) => {
+  const f = countries.find((x) => String(x.id) === c.id);
+  if (!f) throw new Error(`WorldMap: no country with id ${c.id} in world-atlas`);
+  return { ...c, d: compactPath(path(f) ?? '', 1), delay: i * 120 };
+});
+---
+
+<figure class="map" data-map data-reveal>
+  <p class="label map-label">{m.label}</p>
+  <div class="map-stage" data-map-stage>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={m.caption}>
+      <defs>
+        <radialGradient id="map-fade">
+          <stop offset="0.3" stop-color="#fff"></stop>
+          <stop offset="1" stop-color="#000"></stop>
+        </radialGradient>
+        <mask id="map-grat-mask">
+          <rect width={width} height={height} fill="url(#map-fade)"></rect>
+        </mask>
+      </defs>
+      <path class="map-grat" d={graticule} mask="url(#map-grat-mask)"></path>
+      <g class="map-land" data-map-land>
+        <path d={land}></path>
+      </g>
+      {
+        shapes.map((s) => (
+          <path
+            class:list={['map-mark', `map-mark--${s.kind}`]}
+            d={s.d}
+            data-map-id={s.id}
+            data-name={s.name}
+            data-role={s.role}
+            style={`--d:${s.delay}ms`}
+          />
+        ))
+      }
+    </svg>
+    <p class="map-tip" data-map-tip aria-hidden="true"></p>
+  </div>
+  <figcaption class="map-foot">
+    <p class="map-caption">{m.caption}</p>
+    <ul class="map-legend" aria-hidden="true">
+      <li class="map-key-group">
+        <span class="map-key-label">{m.legendHome}</span>
+        <span class="map-key" data-map-key={m.home.id}><i class="map-dot map-dot--home"></i>{m.home.name}</span>
+      </li>
+      <li class="map-key-group">
+        <span class="map-key-label">{m.legendClients}</span>
+        {
+          m.clients.map((c) => (
+            <span class="map-key" data-map-key={c.id}>
+              <i class="map-dot" />
+              {c.name}
+            </span>
+          ))
+        }
+      </li>
+    </ul>
+  </figcaption>
+</figure>
+
+<style>
+  .map {
+    --land: #dedcd2;
+    --home: var(--sgi-navy);
+    --client: var(--sgi-electric);
+    max-width: 46rem;
+    margin: 0 0 5rem;
+  }
+
+  /* Wide screens: the map sits in the heading's column, as in .split */
+  @media (min-width: 56.3rem) {
+    .map {
+      margin-inline-start: calc(12.5rem + 2.5rem);
+    }
+  }
+
+  .map-label {
+    margin-bottom: 1rem;
+  }
+
+  .map-stage {
+    position: relative;
+  }
+
+  .map svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2 / 1;
+  }
+
+  /* The grid fades out towards the edges (#map-fade), so the map has no box around it */
+  .map-grat {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 0.75;
+  }
+
+  .map-land,
+  .map-mark {
+    stroke: var(--page);
+    stroke-width: 0.5;
+    stroke-linejoin: round;
+    transition: opacity 180ms ease-out;
+  }
+
+  /* bklit's base layer sits at 0.85 */
+  .map-land {
+    fill: var(--land);
+    opacity: 0.85;
+  }
+
+  .map-mark {
+    transition:
+      opacity 180ms ease-out,
+      fill 700ms cubic-bezier(0.23, 1, 0.32, 1) var(--d, 0ms);
+  }
+
+  .map-mark--home {
+    fill: var(--home);
+  }
+
+  .map-mark--client {
+    fill: var(--client);
+  }
+
+  /* Before the first view (motion.ts): the marked countries wait as plain land */
+  .map[data-pending] .map-mark {
+    fill: var(--land);
+  }
+
+  /* Hovering a country (or its legend key) fades every other country to 0.4 */
+  .map[data-hover] .map-land,
+  .map[data-hover] .map-mark:not([data-active]) {
+    opacity: 0.4;
+  }
+
+  .map-mark {
+    cursor: default;
+  }
+
+  .map-tip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    gap: 0.125rem;
+    padding: 0.4375rem 0.625rem;
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(var(--x, 0), var(--y, 0)) translate(-50%, calc(-100% - 12px));
+    transition: opacity 120ms ease;
+  }
+
+  .map-tip[data-on] {
+    opacity: 1;
+  }
+
+  .map-tip :global(b) {
+    font-weight: 500;
+  }
+
+  .map-tip :global(span) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  .map-tip :global(i) {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 2px;
+    background: var(--client);
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.3);
+  }
+
+  .map-tip :global(i[data-home]) {
+    background: var(--sgi-sky);
+  }
+
+  .map-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem 2.5rem;
+    margin-top: 1rem;
+  }
+
+  .map-caption {
+    max-width: 30rem;
+    font-size: var(--t-small);
+    color: var(--muted);
+  }
+
+  .map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--t-small);
+  }
+
+  .map-key-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.875rem;
+  }
+
+  .map-key-label {
+    color: var(--muted);
+  }
+
+  .map-key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4375rem;
+    cursor: default;
+  }
+
+  .map-dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 3px;
+    background: var(--client);
+  }
+
+  .map-dot--home {
+    background: var(--home);
+  }
+
+  @media (max-width: 45rem) {
+    .map {
+      margin-bottom: 3.5rem;
+    }
+
+    .map-foot {
+      flex-direction: column;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .map-land,
+    .map-mark,
+    .map-tip {
+      transition: none;
+    }
+  }
+</style>

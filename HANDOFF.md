@@ -1,5 +1,35 @@
 # Handoff: SGI website, Phase 1
 
+## 22 Nov 2026 changes (Daniel's review)
+
+- **Hero:** the floating "New brief: Outbound sales team" card above the panel is gone, because
+  it pulled focus from the panel. Only the "Update from SGI" card remains.
+- **Client revenue gauge** (About, under the proof points), after bklit's Gauge chart
+  (`value 66`, `spacing 25`, `inactiveFillOpacity 0.4`, USD with no cents). It reads "Revenue
+  generated for clients in the past 3 months". **The $428,000 and the 66% fill are bklit's
+  example values.** Set the real amount, period and fill in `clientRevenue` in
+  `src/content/site.ts`, then `signOffs.clientRevenueFigure`. The note under the gauge says
+  "Example figure until confirmed". Change it to plain "not SGI revenue" wording once the
+  figure is real. It is a client-results claim, like the pending $1.5m.
+- **Where we work map** (Who we work with, under the heading), after bklit's Choropleth chart.
+  It uses a Mercator projection, a graticule that fades out at the edges, hover-to-fade and a
+  tooltip. It is drawn at build time with d3-geo from world-atlas 110m, so the page ships plain
+  SVG (about 43 KB) and no map library. South Africa is shown as where the talent is. The
+  United States, the United Kingdom and Australia are shown as client markets: these are Summit
+  Sales' confirmed markets. To add or change countries, edit `audiences.markets` (ISO numeric ids).
+  The map uses categories, not values. Per-country client counts could turn it into a true
+  heat scale.
+- **International clients card:** the live working-hours clock (Johannesburg, London and New
+  York with their shared hours) is gone. It now reads **Covered 24/7**: New York, London and
+  Sydney (the client markets on the map) with their live local time on a fully lit 24-hour
+  day, and the caption "We work 24/7, in line with your needs, wherever you are." Copy is in
+  `audiences.visuals.coverage`, part of the homepage copy sign-off.
+- **Header:** the Book a conversation button is gone from the header pill. The hero and the
+  closing section still carry the call to action, and the small-screen menu still ends with
+  it. The selected item is now a liquid-glass lens (after Apple's Liquid Glass tab bars). It
+  sits under the section being read, springs to the link under the pointer or the focused link
+  (and to "Our businesses" while its fold-out is open), and swells while pressed.
+
 ## Redesign on branch `redesign/teal-look` (20 Nov 2026)
 
 The funnel build below was rejected as looking AI-made. This branch rebuilds the page on two

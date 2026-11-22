@@ -58,6 +58,8 @@ export function getReleaseIssues(env: ReleaseEnv): ReleaseIssue[] {
     pathwaysName: '"Summit Pathways" is a working name and is not confirmed.',
     placementsFigure: 'The wording and scope of "450+ placements since June 2025" are not confirmed.',
     legalDetails: 'The registered company name and privacy/legal requirements are not confirmed.',
+    clientRevenueFigure:
+      'The client revenue gauge shows bklit’s example figure ($428,000, 66% fill). Confirm the real amount and period.',
   };
   for (const [key, approved] of Object.entries(signOffs) as [keyof typeof signOffs, boolean][]) {
     if (!approved) issues.push({ id: `sign-off:${key}`, message: labels[key] });

@@ -3,8 +3,8 @@
  * Lilac Meadow's three feature cards (one light, two dark), each carrying a
  * small working piece of UI in the shadcn manner instead of a drawing:
  *   corporates: three separate suppliers collapse into one SGI relationship;
- *   international: live working hours in Johannesburg, London and New York,
- *     with the hours they share;
+ *   international: 24/7 cover, with the live local time in New York, London
+ *     and Sydney on a fully lit 24-hour day;
  *   partners: your organisation and SGI on one talent pipeline.
  * States are driven by src/scripts/motion.ts (entrances) and ui.ts (clock).
  * Each illustration floats over a soft ground shadow, its inner pieces on
@@ -16,35 +16,21 @@ import iconReversed from '../assets/brand/SGI-icon-reversed.svg';
 import { ctaHref } from '../config/env.ts';
 import { audiences, cta } from '../content/site.ts';
 import Icon from './Icon.astro';
+import WorldMap from './WorldMap.astro';
 
 const v = audiences.visuals;
 const supplierIcons = ['people', 'institute', 'sales'] as const;
 
-/* Static first render of the clock (build-time offsets); ui.ts keeps it live. */
+/* Static first render of the clocks (build time); ui.ts keeps them live. */
 const now = new Date();
-const offsetHours = (zone: string) => {
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: zone, timeZoneName: 'shortOffset' }).formatToParts(now);
-  const name = parts.find((p) => p.type === 'timeZoneName')?.value ?? 'GMT';
-  const m = /GMT([+-]\d+)(?::(\d+))?/.exec(name);
-  return m ? Number(m[1]) + Math.sign(Number(m[1])) * (Number(m[2] ?? 0) / 60) : 0;
-};
-const work = (zone: string) => {
-  const start = 8 - offsetHours(zone);
-  return { start, end: start + 9 };
-};
-const home = work(v.timezones.cities[0]!.zone);
-const rows = v.timezones.cities.map((c) => {
-  const w = work(c.zone);
-  const o = { start: Math.max(w.start, home.start), end: Math.min(w.end, home.end) };
-  return {
-    ...c,
-    work: w,
-    overlap: c.home ? null : o.end > o.start ? o : null,
-    time: new Intl.DateTimeFormat('en-GB', { timeZone: c.zone, hour: '2-digit', minute: '2-digit' }).format(now),
-  };
+const hours = Array.from({ length: 24 }, (_, h) => h);
+const cover = v.coverage.cities.map((c) => {
+  const [h, m] = new Intl.DateTimeFormat('en-GB', { timeZone: c.zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .format(now)
+    .split(':')
+    .map(Number) as [number, number];
+  return { ...c, time: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`, hour: h, now: (h + m / 60) / 24 };
 });
-const pct = (h: number) => `${(((h % 24) + 24) % 24 / 24) * 100}%`;
-const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
 ---
 
 <section class="sec aud" id="who-we-work-with" aria-labelledby="aud-title">
@@ -53,6 +39,8 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
       <p class="label">{audiences.eyebrow}</p>
       <h2 class="h2" id="aud-title">{audiences.heading}</h2>
     </div>
+
+    <WorldMap />
 
     <ul class="cards" data-floats data-float-paused>
       {
@@ -109,34 +97,29 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
 
             {i === 1 && (
               <div class="float-unit">
-              <div class="tz floating" data-tz data-on data-overlap-label={v.timezones.overlap} aria-hidden="true" style="--f-amp:8px; --f-dur:6.9s; --f-delay:-2.2s; --f-rot:-0.35deg">
+              <div class="tz floating" data-tz data-on aria-hidden="true" style="--f-amp:8px; --f-dur:6.9s; --f-delay:-2.2s; --f-rot:-0.35deg">
                 <p class="tz-k">
                   <i class="tz-live" />
-                  {v.timezones.label}
+                  {v.coverage.label}
                 </p>
-                {rows.map((r, j) => (
-                  <div class:list={['tz-row', r.home && 'tz-row--home']} data-zone={r.zone} style={`--d:${j * 90}ms`}>
+                {cover.map((r, j) => (
+                  <div class="tz-row" data-zone={r.zone} style={`--d:${j * 120}ms`}>
                     <span class="tz-city">{r.name}</span>
+                    <span class="tz-status">
+                      <Icon name="check" size={10} />
+                      {v.coverage.status}
+                    </span>
                     <span class="tz-time" data-time>
                       {r.time}
                     </span>
-                    <span class="tz-bar">
-                      <i class="tz-work" data-work style={`left:${pct(r.work.start)}; width:${width(r.work.start, r.work.end)}`} />
-                      {r.overlap && (
-                        <i
-                          class="tz-overlap"
-                          data-overlap
-                          style={`left:${pct(r.overlap.start)}; width:${width(r.overlap.start, r.overlap.end)}`}
-                        />
-                      )}
-                      <i class="tz-now" data-now style={`--now:${pct(now.getUTCHours() + now.getUTCMinutes() / 60)}`} />
-                    </span>
-                    <span class="tz-share" data-share>
-                      {r.overlap ? `${Math.round(r.overlap.end - r.overlap.start)}h ${v.timezones.overlap}` : ''}
+                    <span class="tz-day">
+                      {hours.map((h) => (
+                        <i style={`--h:${h}`} data-hour={h} data-now={h === r.hour ? '' : undefined} />
+                      ))}
                     </span>
                   </div>
                 ))}
-                <p class="tz-cap">{v.timezones.caption}</p>
+                <p class="tz-cap">{v.coverage.caption}</p>
               </div>
               <span class="float-shadow" style="--f-dur:6.9s; --f-delay:-2.2s" />
               </div>
@@ -445,7 +428,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     transition-delay: 0ms;
   }
 
-  /* ---- 2. Live working hours ---- */
+  /* ---- 2. Covered 24/7 ---- */
   .tz,
   .pipe {
     width: 100%;
@@ -502,78 +485,64 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
 
   .tz-row {
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.25rem 0.5rem;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.375rem 0.5rem;
     font-size: 0.75rem;
   }
 
   .tz-city {
-    color: var(--deep-muted);
-  }
-
-  .tz-row--home .tz-city {
     color: var(--deep-ink);
     font-weight: 500;
+  }
+
+  .tz-status {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.0625rem 0.4375rem 0.0625rem 0.3125rem;
+    border-radius: 999px;
+    background: rgb(74 222 128 / 0.12);
+    color: #86efac;
+    font-size: 0.64rem;
   }
 
   .tz-time {
     font-variant-numeric: tabular-nums;
     text-align: right;
+    color: var(--deep-muted);
   }
 
-  .tz-bar {
-    position: relative;
+  /* A whole day in 24 hours, every one lit: the hour it is there now glows white */
+  .tz-day {
     grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    gap: 2px;
     height: 0.5rem;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.07);
   }
 
-  .tz-work,
-  .tz-overlap {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    border-radius: 999px;
-    transform-origin: left;
-    transition: transform 600ms var(--ease-out) var(--d);
-  }
-
-  .tz-work {
-    background: rgb(255 255 255 / 0.22);
-  }
-
-  .tz-row--home .tz-work {
-    background: var(--sgi-electric);
-  }
-
-  .tz-overlap {
+  .tz-day i {
+    border-radius: 2px;
     background: var(--sgi-sky);
-    transition-delay: calc(var(--d) + 250ms);
+    opacity: 0.6;
+    transform-origin: 50% 100%;
+    transition:
+      transform 500ms var(--ease-out) calc(var(--d) + var(--h) * 18ms),
+      opacity 500ms var(--ease-out) calc(var(--d) + var(--h) * 18ms),
+      background-color 300ms ease;
   }
 
-  .tz:not([data-on]) .tz-work,
-  .tz:not([data-on]) .tz-overlap {
-    transform: scaleX(0);
+  .tz-day i[data-now] {
+    background: #fff;
+    opacity: 1;
+  }
+
+  .tz:not([data-on]) .tz-day i {
+    transform: scaleY(0.25);
+    opacity: 0.12;
     transition-delay: 0ms;
-  }
-
-  .tz-now {
-    position: absolute;
-    top: -3px;
-    bottom: -3px;
-    left: var(--now, 50%);
-    width: 2px;
-    border-radius: 1px;
-    background: var(--deep-ink);
-    opacity: 0.75;
-  }
-
-  .tz-share {
-    grid-column: 1 / -1;
-    min-height: 0.9rem;
-    font-size: 0.68rem;
-    color: var(--sgi-sky);
   }
 
   .tz-cap {
@@ -728,8 +697,7 @@ const width = (a: number, b: number) => `${((b - a) / 24) * 100}%`;
     .merge-before .row > *,
     .merge-toggle-active,
     .merge-after,
-    .tz-work,
-    .tz-overlap,
+    .tz-day i,
     .bar i,
     .dot {
       transition: none;

@@ -88,6 +88,41 @@ test.describe('SGI home page', () => {
     await expect(gauge.locator('[data-gauge-count]')).toHaveText('9');
   });
 
+  test('the hero keeps only the "Update from SGI" card beside the panel', async ({ page }) => {
+    await expect(page.locator('.hero [data-float]')).toHaveCount(1);
+    await expect(page.locator('.hero .floats')).toContainText('Update from SGI');
+    await expect(page.locator('.hero')).not.toContainText('New brief');
+  });
+
+  test('the client revenue gauge sweeps up and counts to its figure', async ({ page }) => {
+    const gauge = page.getByRole('img', { name: /Revenue generated for clients in the past 3 months: \$428,000/ });
+    await gauge.scrollIntoViewIfNeeded();
+    await expect(gauge.locator('[data-gauge-count]')).toHaveText('$428,000', { timeout: 6000 });
+    await expect(gauge.locator('path[data-on]')).toHaveCount(26);
+    await expect(page.locator('.revenue')).toContainText('not SGI revenue');
+  });
+
+  test('the international card shows 24/7 cover in each client city', async ({ page }) => {
+    const card = page.locator('[data-tz]');
+    await expect(card).toContainText('Covered 24/7');
+    await expect(card).not.toContainText(/shared|Johannesburg|working hours/i);
+    const rows = card.locator('[data-zone]');
+    await expect(rows).toHaveCount(3);
+    for (let i = 0; i < 3; i++) {
+      await expect(rows.nth(i).locator('[data-time]')).toHaveText(/^\d{2}:\d{2}$/);
+      await expect(rows.nth(i).locator('[data-hour]')).toHaveCount(24);
+      await expect(rows.nth(i).locator('[data-hour][data-now]')).toHaveCount(1);
+    }
+  });
+
+  test('the world map marks South Africa and the three client markets', async ({ page }) => {
+    const map = page.locator('[data-map]');
+    await expect(map.getByRole('img', { name: /South Africa.*United States.*United Kingdom.*Australia/ })).toBeVisible();
+    const marks = await map.locator('[data-map-id]').evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.name));
+    expect(marks.sort()).toEqual(['Australia', 'South Africa', 'United Kingdom', 'United States']);
+    await expect(map.locator('.map-legend')).toContainText('South Africa');
+  });
+
   test('the placements heatmap adds up to the approved 450', async ({ page }) => {
     const total = await page.$$eval('[data-hm] i[data-n]', (cells) =>
       cells.reduce((sum, c) => sum + Number((c as HTMLElement).dataset.n), 0),
@@ -229,6 +264,23 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(convo).toHaveAttribute('data-on', 'manage');
   });
 
+  test('hovering a marked country fades the rest and names it in a tooltip', async ({ page }) => {
+    test.skip(!isDesktop(page), 'hover is for mouse screens');
+    const map = page.locator('[data-map]');
+    await map.scrollIntoViewIfNeeded();
+    const tip = map.locator('[data-map-tip]');
+    // Australia: the middle of its outline is on land (the US outline's middle, with Alaska, is in Canada)
+    await map.locator('[data-map-id="036"]').hover();
+    await expect(map).toHaveAttribute('data-hover', '');
+    await expect(tip).toHaveAttribute('data-on', '');
+    await expect(tip).toContainText('Australia');
+    await expect(tip).toContainText('Where our clients are');
+    await expect(map.locator('[data-map-land]')).toHaveCSS('opacity', '0.4');
+    await page.mouse.move(5, 5);
+    await expect(map).not.toHaveAttribute('data-hover', /.*/);
+    await expect(tip).not.toHaveAttribute('data-on', /.*/);
+  });
+
   test('FAQ rows open and close', async ({ page }) => {
     const row = page.getByRole('button', { name: 'What does Summit-Ready mean?' });
     await expect(row).toHaveAttribute('aria-expanded', 'false');
@@ -268,10 +320,42 @@ test.describe('header navigation', () => {
     expect(pill!.y).toBeLessThan(24);
   });
 
-  test('desktop: keyboard order runs logo, navigation, then the call to action', async ({ page }) => {
+  test('the header carries no booking button', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('[data-nav] .pill > a.button, [data-nav] .nav-links a.button')).toHaveCount(0);
+  });
+
+  test('desktop: a liquid-glass lens marks the section being read and follows the pointer', async ({ page }) => {
     await page.goto('/');
     test.skip(!isDesktop(page), 'inline navigation is desktop-only');
-    const expected = ['Skip to main content', 'Summit Group International', 'Our businesses', 'How we work', 'Who we work with', 'FAQ', CTA];
+    const glass = page.locator('[data-nav-glass]');
+    await expect(glass).toHaveCSS('opacity', '0');
+
+    await page.locator('#how-we-work').evaluate((el) => el.scrollIntoView());
+    const how = page.locator('[data-nav-item="how-we-work"]');
+    await expect(how).toHaveAttribute('data-selected', '');
+    await expect(glass).toHaveCSS('opacity', '1');
+    await expect
+      .poll(async () => {
+        const [g, l] = await Promise.all([glass.boundingBox(), how.boundingBox()]);
+        return Math.round(Math.abs(g!.x - l!.x) + Math.abs(g!.width - l!.width));
+      })
+      .toBeLessThan(2);
+
+    const faq = page.locator('[data-nav-item="faq"]');
+    await faq.hover();
+    await expect
+      .poll(async () => {
+        const [g, l] = await Promise.all([glass.boundingBox(), faq.boundingBox()]);
+        return Math.round(Math.abs(g!.x - l!.x));
+      })
+      .toBeLessThan(2);
+  });
+
+  test('desktop: keyboard order runs logo, then navigation', async ({ page }) => {
+    await page.goto('/');
+    test.skip(!isDesktop(page), 'inline navigation is desktop-only');
+    const expected = ['Skip to main content', 'Summit Group International', 'Our businesses', 'How we work', 'Who we work with', 'FAQ'];
     for (const name of expected) {
       await page.keyboard.press('Tab');
       const label = await page.evaluate(() => {

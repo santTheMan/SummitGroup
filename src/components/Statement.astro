@@ -2,14 +2,20 @@
 /**
  * Teal Treasury's benefits block: a statement that inks in word by word as it
  * scrolls, then the approved proof points counting up over hairlines that
- * draw in. Motion: src/scripts/motion.ts.
+ * draw in, and the client revenue gauge (after bklit's Gauge chart) sweeping
+ * to its value as its figure counts up. Motion: src/scripts/motion.ts and
+ * src/scripts/gauge.ts.
  */
-import { about } from '../content/site.ts';
+import { about, clientRevenue } from '../content/site.ts';
 import { publishedProof } from '../lib/release.ts';
 import { plain, splitNumber, words } from '../lib/text.ts';
+import Gauge from './Gauge.astro';
 
 const statement = words(about.statement);
 const stats = publishedProof().map((p) => ({ ...p, number: splitNumber(p.value) }));
+
+const revenueFormat = { style: 'currency', currency: clientRevenue.currency, maximumFractionDigits: 0 } as const;
+const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientRevenue.amount);
 ---
 
 <section class="sec statement" id="about" aria-labelledby="about-label">
@@ -53,6 +59,32 @@ const stats = publishedProof().map((p) => ({ ...p, number: splitNumber(p.value) 
           ))
         }
       </dl>
+
+      <div class="revenue" data-reveal>
+        <span class="revenue-rule" aria-hidden="true"></span>
+        <Gauge
+          class="revenue-gauge"
+          value={clientRevenue.fill}
+          label={clientRevenue.label}
+          valueText={revenueText}
+          meter={false}
+          spacing={25}
+          inactiveFillOpacity={0.4}
+          delay={0.2}
+        >
+          <span
+            class="revenue-value"
+            data-gauge-count
+            data-total={clientRevenue.amount}
+            data-format={JSON.stringify(revenueFormat)}>{revenueText}</span
+          >
+          <span class="revenue-caption">Client revenue</span>
+        </Gauge>
+        <div class="revenue-text">
+          <p class="revenue-label" aria-hidden="true">{clientRevenue.label}</p>
+          <p class="revenue-note">{clientRevenue.note}</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -110,11 +142,77 @@ const stats = publishedProof().map((p) => ({ ...p, number: splitNumber(p.value) 
     color: var(--muted);
   }
 
+  /* Client revenue: the gauge beside its label, under its own hairline */
+  .revenue {
+    position: relative;
+    display: grid;
+    grid-template-columns: 19rem minmax(0, 1fr);
+    align-items: center;
+    gap: 2.5rem;
+    max-width: 51rem;
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+  }
+
+  .revenue-rule {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--ink);
+    opacity: 0.25;
+  }
+
+  .revenue-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .revenue-caption {
+    font-size: var(--t-small);
+    color: var(--muted);
+  }
+
+  .revenue-label {
+    max-width: 22ch;
+    font-family: var(--font-display);
+    font-size: var(--t-statement);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  .revenue-note {
+    max-width: 34ch;
+    margin-top: 0.875rem;
+    font-size: var(--t-small);
+    color: var(--muted);
+  }
+
   @media (max-width: 45rem) {
     .stats {
       grid-template-columns: 1fr;
       gap: 1.75rem;
       margin-top: 3.5rem;
+    }
+
+    .revenue {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 1.25rem;
+      text-align: center;
+    }
+
+    .revenue-gauge {
+      max-width: 18rem;
+    }
+
+    .revenue-label,
+    .revenue-note {
+      margin-inline: auto;
     }
   }
 </style>

@@ -17,6 +17,18 @@ interface Props {
   spacing?: number;
   gradient?: readonly [string, string];
   tone?: 'light' | 'dark';
+  /**
+   * Track (unlit notch) colour, as bklit's `inactiveFill`: any CSS colour, or
+   * "gradient" to keep each notch's own colour. Defaults to the tone's track colour.
+   */
+  inactiveFill?: string;
+  /** Track opacity, 0 to 1, as bklit's `inactiveFillOpacity`. */
+  inactiveFillOpacity?: number;
+  /**
+   * false when the fill is decorative rather than a measured level: the gauge
+   * is then announced as an image with `label: valueText`, not as a meter.
+   */
+  meter?: boolean;
   /** Seconds to wait before the first sweep. */
   delay?: number;
   class?: string;
@@ -30,9 +42,30 @@ const {
   spacing = 25,
   gradient = ['#70bfff', '#2264d2'],
   tone = 'light',
+  inactiveFill,
+  inactiveFillOpacity,
+  meter = true,
   delay,
   class: className,
 } = Astro.props;
+
+const trackGradient = inactiveFill === 'gradient';
+const track = [
+  inactiveFill && !trackGradient && `--track:${inactiveFill}`,
+  inactiveFillOpacity !== undefined && `--track-o:${inactiveFillOpacity}`,
+]
+  .filter(Boolean)
+  .join(';');
+const a11y = meter
+  ? ({
+      role: 'meter',
+      'aria-label': label,
+      'aria-valuemin': '0',
+      'aria-valuemax': '100',
+      'aria-valuenow': value,
+      'aria-valuetext': valueText,
+    } as const)
+  : ({ role: 'img', 'aria-label': `${label}: ${valueText}` } as const);
 
 const size = 200;
 const c = size / 2;
@@ -71,12 +104,9 @@ const height = r(c + Math.sin(Math.PI / 4) * outer + 4);
   data-gauge
   data-value={value}
   data-delay={delay}
-  role="meter"
-  aria-label={label}
-  aria-valuemin="0"
-  aria-valuemax="100"
-  aria-valuenow={value}
-  aria-valuetext={valueText}
+  style={track || undefined}
+  data-track={trackGradient ? 'gradient' : undefined}
+  {...a11y}
 >
   <svg viewBox={`0 0 ${size} ${height}`} aria-hidden="true" focusable="false">
     {shapes.map((s, i) => <path d={s.d} style={`--c:${s.color}`} data-on={i < lit ? '' : undefined} />)}
@@ -101,16 +131,25 @@ const height = r(c + Math.sin(Math.PI / 4) * outer + 4);
   }
 
   .gauge path {
-    fill: var(--gauge-off);
-    transition: fill 180ms ease;
+    fill: var(--track, var(--gauge-off));
+    fill-opacity: var(--track-o, 1);
+    transition:
+      fill 180ms ease,
+      fill-opacity 180ms ease;
   }
 
   .gauge--dark path {
-    fill: var(--gauge-off-deep);
+    fill: var(--track, var(--gauge-off-deep));
+  }
+
+  /* inactiveFill="gradient": the track keeps each notch's own colour, faded */
+  .gauge[data-track='gradient'] path {
+    fill: var(--c);
   }
 
   .gauge path[data-on] {
     fill: var(--c);
+    fill-opacity: 1;
   }
 
   .gauge-center {

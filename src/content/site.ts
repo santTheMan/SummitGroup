@@ -104,6 +104,20 @@ export const about = {
   proofLabel: 'SGI in numbers',
 } as const;
 
+/**
+ * Client revenue gauge under the proof points (Daniel, 22 Nov 2026), after
+ * bklit's Gauge chart. The amount and the 66% fill are bklit's example values
+ * until the real figure is confirmed: see signOffs.clientRevenueFigure.
+ */
+export const clientRevenue = {
+  amount: 428_000,
+  currency: 'USD',
+  /** Gauge fill, 0 to 100. */
+  fill: 66,
+  label: 'Revenue generated for clients in the past 3 months',
+  note: 'Revenue our teams generated for clients, not SGI revenue. Example figure until confirmed.',
+} as const;
+
 export const proof: readonly ProofPoint[] = [
   {
     id: 'placements',
@@ -224,21 +238,43 @@ export const audiences = {
       afterMeta: 'One relationship \u00b7 three specialists',
       badge: 'One point of contact',
     },
-    timezones: {
-      label: 'Working hours, live',
+    /**
+     * 24/7 cover (Daniel, 22 Nov 2026: "we work 24/7 inline with our clients'
+     * needs"). Replaces the shared-working-hours clock. Cities follow the
+     * client markets on the map: the US, the UK and Australia.
+     */
+    coverage: {
+      label: 'Covered 24/7',
       cities: [
-        { name: 'Johannesburg', zone: 'Africa/Johannesburg', home: true },
-        { name: 'London', zone: 'Europe/London', home: false },
-        { name: 'New York', zone: 'America/New_York', home: false },
+        { name: 'New York', zone: 'America/New_York' },
+        { name: 'London', zone: 'Europe/London' },
+        { name: 'Sydney', zone: 'Australia/Sydney' },
       ],
-      overlap: 'shared',
-      caption: 'South Africa works across the same business day as the UK and Europe.',
+      status: 'Covered',
+      caption: 'We work 24/7, in line with your needs, wherever you are.',
     },
     pipeline: {
       label: 'Talent pipeline',
       partner: 'Your organisation',
       steps: ['Trained', 'Tested', 'Supported', 'Placed'],
     },
+  },
+  /**
+   * World map under the heading (Daniel, 22 Nov 2026), after bklit's
+   * Choropleth chart. Client markets are Summit Sales' confirmed markets
+   * (UK, US, Australia). Ids are ISO 3166-1 numeric, as in world-atlas.
+   */
+  markets: {
+    label: 'Where we work',
+    caption: 'Our talent is in South Africa. Our international clients are in the United States, the United Kingdom and Australia.',
+    home: { id: '710', name: 'South Africa', role: 'Where our talent is based' },
+    clients: [
+      { id: '840', name: 'United States', role: 'Where our clients are' },
+      { id: '826', name: 'United Kingdom', role: 'Where our clients are' },
+      { id: '036', name: 'Australia', role: 'Where our clients are' },
+    ],
+    legendHome: 'Talent',
+    legendClients: 'Clients',
   },
   groups: [
     {
@@ -362,7 +398,6 @@ export const illustrations = {
       { range: 'placed', time: '15:30', stream: 'develop', text: 'Check-in with every placement' },
     ],
     floats: {
-      brief: { label: 'New brief', text: 'Outbound sales team', from: 'Your business', to: 'SGI' },
       update: { label: 'Update from SGI', text: 'Shortlist ready', from: 'SGI', to: 'You' },
     },
   },
@@ -429,4 +464,6 @@ export const signOffs = {
   placementsFigure: false,
   /** Registered company name for the footer, and whether a privacy notice is needed. */
   legalDetails: false,
+  /** The client revenue gauge's amount, period and fill (currently bklit's example values). */
+  clientRevenueFigure: false,
 };

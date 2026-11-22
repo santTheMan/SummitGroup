@@ -1,4 +1,4 @@
-import { inView, scroll } from 'motion';
+import { animate, inView, scroll } from 'motion';
 import { initGauges, replayGauge, setGauge } from './gauge.ts';
 
 /**
@@ -20,6 +20,115 @@ function initHeader() {
   const update = () => nav.toggleAttribute('data-scrolled', window.scrollY > 8);
   update();
   window.addEventListener('scroll', update, { passive: true });
+}
+
+/*
+ * Header selection: a liquid-glass lens under the section being read (the
+ * section that crosses 40% of the screen), moving to the link under the
+ * pointer, or to "Our businesses" while its fold-out is open. It travels on a
+ * spring (interruptible, so quick hovers never queue up) and swells while
+ * pressed, as Apple's Liquid Glass tab bars do.
+ */
+function initNavGlass() {
+  const links = $('[data-nav-links]');
+  const glass = $('[data-nav-glass]');
+  if (!links || !glass) return;
+  const items = $$('[data-nav-item]', links);
+  const trigger = $('[data-biz-trigger]', links);
+  const sections = ['about', 'businesses', 'how-we-work', 'who-we-work-with', 'faq', 'book']
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => Boolean(el));
+
+  let current: HTMLElement | null = null;
+  let hovered: HTMLElement | null = null;
+  let shown: HTMLElement | null = null;
+  let placed = false;
+  const spring = () =>
+    reduced.matches ? { duration: 0 } : ({ type: 'spring', visualDuration: 0.4, bounce: 0.22 } as const);
+
+  const target = () => hovered ?? (trigger?.getAttribute('aria-expanded') === 'true' ? trigger : current);
+  const render = (force = false) => {
+    items.forEach((item) => item.toggleAttribute('data-selected', item === current));
+    const next = target();
+    if (next === shown && !force) return;
+    shown = next;
+    if (!next) {
+      animate(glass, { opacity: 0, scale: 0.92 }, reduced.matches ? { duration: 0 } : { duration: 0.18 });
+      placed = false;
+      return;
+    }
+    const box = links.getBoundingClientRect();
+    const r = next.getBoundingClientRect();
+    const to = { x: r.left - box.left, width: r.width };
+    if (!placed) {
+      // Appear in place (no slide in from the left edge)
+      animate(glass, to, { duration: 0 });
+      animate(glass, { opacity: [0, 1], scale: [0.92, 1] }, reduced.matches ? { duration: 0 } : { duration: 0.22 });
+      placed = true;
+      return;
+    }
+    animate(glass, { ...to, opacity: 1, scale: 1 }, spring());
+  };
+
+  /* Scroll position: which section is being read */
+  const spy = () => {
+    const line = window.innerHeight * 0.4;
+    let id: string | null = null;
+    for (const s of sections) if (s.getBoundingClientRect().top <= line) id = s.id;
+    const next = items.find((item) => item.dataset.navItem === id) ?? null;
+    if (next !== current) {
+      current = next;
+      render();
+    }
+  };
+  let ticking = false;
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        spy();
+      });
+    },
+    { passive: true },
+  );
+
+  if (fine.matches) {
+    items.forEach((item) =>
+      item.addEventListener('pointerenter', () => {
+        hovered = item;
+        render();
+      }),
+    );
+    links.addEventListener('pointerleave', () => {
+      hovered = null;
+      render();
+    });
+  }
+  items.forEach((item) => {
+    item.addEventListener('pointerdown', () => {
+      if (reduced.matches) return;
+      animate(glass, { scale: 1.08 }, { type: 'spring', visualDuration: 0.25, bounce: 0.3 });
+    });
+    item.addEventListener('focus', () => {
+      hovered = item;
+      render();
+    });
+    item.addEventListener('blur', () => {
+      if (hovered === item) hovered = null;
+      render();
+    });
+  });
+  window.addEventListener('pointerup', () => {
+    if (!reduced.matches && shown) animate(glass, { scale: 1 }, spring());
+  });
+  if (trigger) new MutationObserver(() => render()).observe(trigger, { attributeFilter: ['aria-expanded'] });
+
+  /* Link widths change once the web fonts load and when the header reflows */
+  new ResizeObserver(() => render(true)).observe(links);
+  spy();
 }
 
 /* "Our businesses" fold-out: hover on mouse, click everywhere, Escape and outside click close */
@@ -228,6 +337,65 @@ function initHeatmap() {
   scroller.addEventListener('scroll', clear, { passive: true });
 }
 
+/* Where we work map: hovering a marked country (or its legend key) fades the
+   rest to 0.4, and on the map a tooltip follows the pointer (bklit's choropleth) */
+function initMap() {
+  const map = $('[data-map]');
+  const stage = map && $('[data-map-stage]', map);
+  const tip = map && $('[data-map-tip]', map);
+  if (!map || !stage || !tip) return;
+  const marks = $$<SVGPathElement>('[data-map-id]', map);
+  let active: SVGPathElement | null = null;
+
+  const highlight = (mark: SVGPathElement | null) => {
+    if (mark === active) return;
+    active?.removeAttribute('data-active');
+    active = mark;
+    map.toggleAttribute('data-hover', Boolean(mark));
+    if (!mark) {
+      tip.removeAttribute('data-on');
+      return;
+    }
+    mark.setAttribute('data-active', '');
+    mark.parentNode?.appendChild(mark); // draw the hovered country above its neighbours' outlines
+    const name = document.createElement('b');
+    name.textContent = mark.dataset.name ?? '';
+    const role = document.createElement('span');
+    const dot = document.createElement('i');
+    if (mark.classList.contains('map-mark--home')) dot.setAttribute('data-home', '');
+    role.append(dot, mark.dataset.role ?? '');
+    tip.replaceChildren(name, role);
+  };
+  const place = (e: PointerEvent) => {
+    const box = stage.getBoundingClientRect();
+    tip.style.setProperty('--x', `${e.clientX - box.left}px`);
+    tip.style.setProperty('--y', `${e.clientY - box.top}px`);
+  };
+
+  stage.addEventListener('pointermove', (e) => {
+    const mark = (e.target as Element).closest<SVGPathElement>('[data-map-id]');
+    highlight(mark);
+    if (!mark) return;
+    place(e);
+    tip.setAttribute('data-on', '');
+  });
+  stage.addEventListener('pointerleave', () => highlight(null));
+
+  $$('[data-map-key]', map).forEach((key) => {
+    const mark = marks.find((m) => m.dataset.mapId === key.dataset.mapKey) ?? null;
+    key.addEventListener('pointerenter', () => {
+      highlight(mark);
+      tip.removeAttribute('data-on');
+    });
+    key.addEventListener('pointerleave', () => highlight(null));
+  });
+
+  /* Touch: a tap elsewhere clears the highlight */
+  document.addEventListener('pointerdown', (e) => {
+    if (active && !map.contains(e.target as Node)) highlight(null);
+  });
+}
+
 /* Corporates card: flip between three suppliers and one relationship */
 function initMerge() {
   const merge = $('[data-merge]');
@@ -293,42 +461,20 @@ function initTalent() {
   );
 }
 
-/* Live working hours: local times, 08:00-17:00 bars on a UTC day, hours shared with Johannesburg */
+/* Covered 24/7: each client city's live local time, and the hour it is there now lit white */
 function initClock() {
   const tz = $('[data-tz]');
   if (!tz) return;
   const rows = $$('[data-zone]', tz);
-  const label = tz.dataset.overlapLabel ?? '';
-  const offset = (zone: string, now: Date) => {
-    const name =
-      new Intl.DateTimeFormat('en-GB', { timeZone: zone, timeZoneName: 'shortOffset' })
-        .formatToParts(now)
-        .find((p) => p.type === 'timeZoneName')?.value ?? 'GMT';
-    const m = /GMT([+-]\d+)(?::(\d+))?/.exec(name);
-    return m ? Number(m[1]) + Math.sign(Number(m[1])) * (Number(m[2] ?? 0) / 60) : 0;
-  };
-  const pct = (h: number) => `${((((h % 24) + 24) % 24) / 24) * 100}%`;
   const update = () => {
     const now = new Date();
-    const utc = now.getUTCHours() + now.getUTCMinutes() / 60;
-    const homeStart = 8 - offset(rows[0]?.dataset.zone ?? 'UTC', now);
     rows.forEach((row) => {
       const zone = row.dataset.zone ?? 'UTC';
-      const start = 8 - offset(zone, now);
-      const time = $('[data-time]', row);
-      if (time) time.textContent = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit' }).format(now);
-      const work = $('[data-work]', row);
-      if (work) Object.assign(work.style, { left: pct(start), width: `${(9 / 24) * 100}%` });
-      const overlap = $('[data-overlap]', row);
-      const share = $('[data-share]', row);
-      if (overlap && share) {
-        const a = Math.max(start, homeStart);
-        const b = Math.min(start + 9, homeStart + 9);
-        overlap.hidden = b <= a;
-        Object.assign(overlap.style, { left: pct(a), width: `${(Math.max(0, b - a) / 24) * 100}%` });
-        share.textContent = b > a ? `${Math.round(b - a)}h ${label}` : '';
-      }
-      $('[data-now]', row)?.style.setProperty('--now', pct(utc));
+      const time = new Intl.DateTimeFormat('en-GB', { timeZone: zone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
+      const el = $('[data-time]', row);
+      if (el && el.textContent?.trim() !== time) el.textContent = time;
+      const hour = String(Number(time.slice(0, 2)));
+      $$('[data-hour]', row).forEach((h) => h.toggleAttribute('data-now', h.dataset.hour === hour));
     });
   };
   update();
@@ -371,6 +517,7 @@ function initSquircles() {
 initSquircles();
 initHeader();
 initBusinessesMenu();
+initNavGlass();
 initSheet();
 initPanel();
 initStage();
@@ -378,6 +525,7 @@ initInlineScenes();
 initFloating();
 initFaq();
 initHeatmap();
+initMap();
 initMerge();
 initConversation();
 initTalent();

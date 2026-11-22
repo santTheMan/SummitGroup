@@ -98,6 +98,13 @@ scopeMotion(
       });
     });
 
+    /* Where we work map: once in view, South Africa then each client market colours in (CSS transition, staggered by --d) */
+    const map = $('[data-map]');
+    if (map && below(map)) {
+      map.setAttribute('data-pending', '');
+      inView(map, () => void requestAnimationFrame(() => map.removeAttribute('data-pending')), { amount: 0.35 });
+    }
+
     /* Placements heatmap: a column wave, each day settling from slightly small and low (bklit's entrance) */
     const heatmap = $('[data-hm]');
     if (heatmap && below(heatmap)) {
@@ -159,12 +166,12 @@ scopeMotion(
       scroll(animate(sequence), { target: bigmark, offset: ['start end', 'end end'] });
     }
 
-    /* Wide screens: the brief cards drift */
+    /* Wide screens: the "Update from SGI" card drifts */
     scopeMotion(
       () => {
         if (hero) {
-          $$('[data-float]').forEach((float, i) => {
-            scroll(animate(float, { y: [0, i ? -40 : -90], rotate: [0, i ? 2 : -2] }, { ease: 'linear' }), {
+          $$('[data-float]').forEach((float) => {
+            scroll(animate(float, { y: [0, -40], rotate: [0, 2] }, { ease: 'linear' }), {
               target: hero,
               offset: ['start start', 'end start'],
             });

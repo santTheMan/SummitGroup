@@ -59,6 +59,7 @@ describe('getReleaseIssues', () => {
         'sign-off:pathwaysName',
         'sign-off:placementsFigure',
         'sign-off:legalDetails',
+        'sign-off:clientRevenueFigure',
       ]),
     );
   });

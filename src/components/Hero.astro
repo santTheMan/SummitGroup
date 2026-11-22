@@ -2,7 +2,7 @@
 /**
  * Hero after Teal Treasury: the approved promise rises out of line masks,
  * then the working panel stands up from a tilt as it scrolls into view, with
- * two brief cards drifting at their own speeds. Motion: src/scripts/motion.ts.
+ * the "Update from SGI" card drifting at its own speed. Motion: src/scripts/motion.ts.
  */
 import { hero, illustrations } from '../content/site.ts';
 import BriefPanel from './BriefPanel.astro';
@@ -43,21 +43,7 @@ const f = illustrations.panel.floats;
       </div>
     </div>
     <div class="floats" aria-hidden="true">
-      <div class="float float-1" data-float>
-        <div class="float-in">
-          <div class="flow">
-            <p class="flow-top"><b>{f.brief.label}</b> <em>{f.brief.text}</em></p>
-            <div class="flow-row">
-              <span class="flow-chip"><i></i>{f.brief.from}</span>
-              <svg class="flow-arrow" width="34" height="10" viewBox="0 0 34 10">
-                <path d="M1 5h28"></path><path d="m27 1 4 4-4 4"></path>
-              </svg>
-              <span class="flow-chip flow-chip-b"><i></i>{f.brief.to}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="float float-2" data-float>
+      <div class="float" data-float>
         <div class="float-in">
           <div class="flow">
             <p class="flow-top"><b>{f.update.label}</b> <em>{f.update.text}</em></p>
@@ -184,29 +170,18 @@ const f = illustrations.panel.floats;
 
   .float {
     position: absolute;
-    right: -1.75rem;
-    top: -2.25rem;
-  }
-
-  .float-2 {
-    right: auto;
-    top: auto;
     left: -4.5rem;
     bottom: -1.75rem;
   }
 
   .flow {
-    width: 19.5rem;
+    width: 20rem;
     padding: 0.75rem;
     border-radius: 12px;
     background: var(--deep);
     color: var(--deep-ink);
     border: 1px solid rgb(255 255 255 / 0.06);
     box-shadow: 0 24px 50px -24px rgb(0 0 0 / 0.55);
-  }
-
-  .float-2 .flow {
-    width: 20rem;
   }
 
   .flow-top {
@@ -291,10 +266,6 @@ const f = illustrations.panel.floats;
 
   @media (max-width: 67.5rem) {
     .float {
-      right: -0.5rem;
-    }
-
-    .float-2 {
       left: -0.5rem;
     }
   }
@@ -314,8 +285,7 @@ const f = illustrations.panel.floats;
       margin-top: 1.125rem;
     }
 
-    .float,
-    .float-2 {
+    .float {
       position: relative;
       inset: auto;
     }
@@ -332,8 +302,7 @@ const f = illustrations.panel.floats;
       border-radius: 16px;
     }
 
-    .flow,
-    .float-2 .flow {
+    .flow {
       width: min(21rem, calc(100vw - 3rem));
     }
   }
