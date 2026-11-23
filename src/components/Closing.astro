@@ -75,7 +75,7 @@ const title = words(closing.heading);
         <div class="chips" role="group" aria-labelledby="needs-label">
           {
             closing.needs.map((n) => (
-              <button class="chip" type="button" aria-pressed="false" data-need={n.id}>
+              <button class="chip" data-glass type="button" aria-pressed="false" data-need={n.id}>
                 <span class="chip-mark" aria-hidden="true">
                   <Icon name="plus" size={14} class="chip-plus" />
                   <Icon name="check" size={14} class="chip-tick" />
@@ -241,38 +241,36 @@ const title = words(closing.heading);
     gap: 0.5rem;
   }
 
-  /* The mark is one fixed slot (a plus that turns into a tick), so pressing a
-     chip never changes its width and the centred row never shifts. */
+  /* Transparent frosted glass (tokens.css --frost-*): the glows behind show through,
+     frosted, so the chips blend into the section. A picked chip is the same clear
+     glass tinted electric, with a blue edge and a blue tick.
+     Pressed, a chip lifts into Liquid Glass (global.css [data-glass]): a brighter
+     skin comes in, light spreads from the fingertip and it flexes.
+     The mark is one fixed slot (a plus that turns into a tick), so pressing a chip
+     never changes its width and the centred row never shifts. */
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     height: 2.75rem;
     padding: 0 1.125rem 0 0.875rem;
-    border-radius: 13px;
-    corner-shape: squircle;
-    background: rgb(255 255 255 / 0.62);
-    border: 1px solid rgb(255 255 255 / 0.9);
+    border-radius: 999px;
+    background: var(--frost-sheen), var(--frost-body);
+    -webkit-backdrop-filter: var(--frost-blur);
+    backdrop-filter: var(--frost-blur);
+    box-shadow: var(--frost-edge), var(--frost-shadow);
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--ink);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     transition:
-      transform var(--press) var(--ease-out),
+      transform var(--glass-flex),
       background-color 180ms ease,
       color 180ms ease,
-      border-color 180ms ease;
-  }
-
-  @supports (corner-shape: squircle) {
-    .chip {
-      border-radius: 17px;
-    }
+      box-shadow 180ms ease;
   }
 
   .chip:active {
-    transform: scale(0.97);
+    box-shadow: var(--frost-edge), var(--glass-shadow-small);
   }
 
   .chip-mark {
@@ -296,13 +294,12 @@ const title = words(closing.heading);
   .chip :global(.chip-tick) {
     opacity: 0;
     transform: scale(0.6);
-    color: var(--sgi-sky);
+    color: var(--accent-text);
   }
 
   .chip[aria-pressed='true'] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--paper);
+    background: var(--frost-sheen), var(--frost-tint);
+    box-shadow: var(--frost-edge-tint), var(--frost-shadow-tint);
   }
 
   .chip[aria-pressed='true'] :global(.chip-plus) {
@@ -317,7 +314,7 @@ const title = words(closing.heading);
 
   @media (hover: hover) and (pointer: fine) {
     .chip[aria-pressed='false']:hover {
-      background: rgb(255 255 255 / 0.88);
+      background: var(--frost-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.2));
     }
   }
 
@@ -379,6 +376,17 @@ const title = words(closing.heading);
     .cta-action,
     .cta-action :global(.button) {
       width: min(100%, 20rem);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .chip,
+    .chip[aria-pressed='false']:hover {
+      background: var(--paper);
+    }
+
+    .chip[aria-pressed='true'] {
+      background: color-mix(in srgb, var(--sgi-electric) 14%, var(--paper));
     }
   }
 

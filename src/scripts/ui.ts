@@ -118,6 +118,8 @@ function initNavGlass() {
   }
   items.forEach((item) => {
     item.addEventListener('pointerdown', () => {
+      // Pressed, the selection lifts into a Liquid Glass lens (Nav.astro [data-lift])
+      glass.toggleAttribute('data-lift', true);
       if (reduced.matches) return;
       animate(glass, { scale: 1.08 }, { type: 'spring', visualDuration: 0.25, bounce: 0.3 });
     });
@@ -130,9 +132,12 @@ function initNavGlass() {
       render();
     });
   });
-  window.addEventListener('pointerup', () => {
+  const settle = () => {
+    glass.toggleAttribute('data-lift', false);
     if (!reduced.matches && shown) animate(glass, { scale: 1 }, spring());
-  });
+  };
+  window.addEventListener('pointerup', settle);
+  window.addEventListener('pointercancel', settle);
   if (trigger) new MutationObserver(() => render()).observe(trigger, { attributeFilter: ['aria-expanded'] });
 
   /* Link widths change once the web fonts load and when the header reflows */
@@ -399,40 +404,53 @@ function initTalent() {
   );
 }
 
-/* Squircle fallback: where CSS corner-shape is missing (Safari, Firefox), clip
-   each button to the same superellipse (|x|^4 + |y|^4 = 1 in each corner). */
-function squirclePath(w: number, h: number, r: number, steps = 10) {
-  const pts: string[] = [];
-  const corner = (cx: number, cy: number, dx: number, dy: number, from: number, to: number) => {
-    for (let k = 0; k <= steps; k++) {
-      const t = ((from + ((to - from) * k) / steps) * Math.PI) / 2;
-      const x = cx + dx * r * Math.cos(t) ** 0.5;
-      const y = cy + dy * r * Math.sin(t) ** 0.5;
-      pts.push(`${x.toFixed(2)} ${y.toFixed(2)}`);
-    }
+/* Liquid Glass light: on the header bar, the specular highlight and the lit rim
+   lean toward the pointer, the web's stand-in for glass catching light as the
+   device moves. Mouse only, and only when motion is welcome. */
+function initGlassLight() {
+  const pill = $('.pill');
+  if (!pill || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  let frame = 0;
+  let x = 0.3;
+  const paint = () => {
+    frame = 0;
+    pill.style.setProperty('--glass-light', `${Math.round(x * 100)}%`);
+    pill.style.setProperty('--glass-rim-angle', `${Math.round(140 + x * 50)}deg`);
   };
-  corner(r, r, -1, -1, 0, 1);
-  corner(w - r, r, 1, -1, 1, 0);
-  corner(w - r, h - r, 1, 1, 0, 1);
-  corner(r, h - r, -1, 1, 1, 0);
-  return `M${pts.join('L')}Z`;
+  document.addEventListener(
+    'pointermove',
+    (e) => {
+      if (reduced.matches || e.pointerType !== 'mouse') return;
+      const r = pill.getBoundingClientRect();
+      x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      if (!frame) frame = requestAnimationFrame(paint);
+    },
+    { passive: true },
+  );
 }
 
-function initSquircles() {
-  if (typeof CSS !== 'undefined' && CSS.supports('corner-shape', 'squircle')) return;
-  document.documentElement.classList.add('sq-js');
-  const shape = (el: HTMLElement) => {
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    if (!w || !h) return;
-    const r = Math.min(parseFloat(getComputedStyle(el).getPropertyValue('--r')) || 16, w / 2, h / 2);
-    el.style.clipPath = `path('${squirclePath(w, h, r)}')`;
+/* Liquid Glass press: the light in a pressed glass button gathers where the finger
+   or pointer lands, and follows it while held (global.css draws it from --gx/--gy) */
+function initGlassPress() {
+  const place = (e: PointerEvent) => {
+    const el = (e.target as Element | null)?.closest<HTMLElement>('.button, [data-glass]');
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--gx', `${Math.round(e.clientX - r.left)}px`);
+    el.style.setProperty('--gy', `${Math.round(e.clientY - r.top)}px`);
   };
-  const observer = new ResizeObserver((entries) => entries.forEach((e) => shape(e.target as HTMLElement)));
-  $$('.button').forEach((el) => observer.observe(el));
+  document.addEventListener('pointerdown', place, { passive: true });
+  document.addEventListener(
+    'pointermove',
+    (e) => {
+      if (e.buttons) place(e);
+    },
+    { passive: true },
+  );
 }
 
-initSquircles();
+initGlassPress();
+initGlassLight();
 initHeader();
 initBusinessesMenu();
 initNavGlass();

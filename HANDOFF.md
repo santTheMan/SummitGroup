@@ -1,5 +1,80 @@
 # Handoff: SGI website, Phase 1
 
+## 23 Nov 2026: Liquid Glass, to Apple's guidelines
+
+Daniel sent a reel about Apple's Liquid Glass and asked for it on the header and all the
+buttons. Then he asked for it to follow Apple's own guidance (WWDC25 "Meet Liquid Glass").
+The material is `--glass-*` in `tokens.css`; the rules it follows:
+
+**Glass is the navigation layer.** Apple keeps glass for the layer that floats over content.
+- Glass: the header bar, the "Our businesses" fold-out and the phone menu panel.
+- The header bar is transparent frosted glass at Daniel's request (`--glass-clear`,
+  `--glass-blur-clear`). It is nearly clear and heavily frosted, so the page shows through
+  and the links stay legible; the scroll edge effect softens what passes under it.
+- The menus are lighter frosted glass than before, still milky enough to read a list over
+  the hero.
+- Regular variant only.
+- Bigger glass reads thicker: the menus get more frost and deeper shadows than the bar.
+
+**Buttons are transparent frosted glass (Daniel's call).** Apple keeps content controls plain
+at rest. Daniel asked first for buttons that blend "as if they were frosted glass", then for
+"transparent buttons, and they should be frosted glass".
+- Covered: buttons, the Recruit / Develop / Manage chips, the Training / A role switch and
+  the FAQ "+".
+- At rest each is nearly clear glass (`--frost-*` in `tokens.css`): the page, grid or glow
+  behind shows through, heavily frosted, inside a crisp bright edge and a hairline outline.
+- **Exception:** "Book a conversation" stays the brand's solid electric blue with white
+  text, at Daniel's request. Pressed, it thins to tinted glass at 90% electric, which keeps
+  white at 4.6:1.
+- A picked chip and an open FAQ question use clear glass with a breath of electric, a blue
+  edge and a blue tick or ×.
+- **Pressed,** they still behave like Liquid Glass:
+  - A brighter glass skin comes in.
+  - Light spreads from under the fingertip (`--gx`/`--gy`, and a registered `--glow` that
+    grows).
+  - The capsule flexes on a Motion spring exported as a CSS `linear()` curve
+    (`--glass-flex`).
+  - The switch knob swells into a clear glass lens.
+- **Reduce Transparency:** solid buttons.
+
+**Never glass on glass.**
+- What sits on the bar uses fills: the selection is a light fill and the menu button a plain
+  symbol.
+- The selection lifts into a glass lens only while pressed (`data-lift`, set in `ui.ts`).
+
+**Tint only the primary action.** "Book a conversation" is the one blue element. Selections
+(a picked chip, an open FAQ question) use a navy fill.
+
+**Lit rim.**
+- The bar and the menus draw it as a true 1px ring (a masked pseudo-element), brightest where
+  it meets the light.
+- On the bar, the rim and sheen lean toward the mouse (`initGlassLight` in `ui.ts`). This is
+  the web's stand-in for glass catching light as the device moves. `--glass-sheen` and
+  `--glass-rim` are re-declared on `.pill`, because a custom property resolves its `var()`
+  where it is declared.
+- Small controls draw the rim with fine inner highlights.
+
+**Menus materialize rather than fade:** the frost comes in with the opacity and scale.
+
+**Scroll edge effect:** once the page scrolls, content passing under the header softly blurs
+and fades, in place of a hard edge.
+
+**Shapes:**
+- Capsules for buttons, chips and the switch.
+- Concentric corners in the menus (fold-out 22px with 14px items; phone sheet 28px with 20px
+  items).
+- The squircle clip fallback in `ui.ts` is gone.
+
+**Accessibility settings:**
+- Reduce Transparency: solid header, menus and buttons, with no frost; the ring becomes a hairline.
+- Increase Contrast: solid glass with an ink border.
+- Reduce Motion: no flex or swell. The light and colour changes stay.
+
+**Not done:**
+- True light-bending refraction. It needs SVG backdrop filters, which Safari (so every iPhone)
+  does not support.
+- Glass flipping to dark over dark content. Nothing dark sits under the header for long.
+
 ## 22 Nov 2026 changes (Daniel's review)
 
 - **Hero tablet simplified (latest).** Daniel asked for the tablet to leave a picture in

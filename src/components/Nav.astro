@@ -2,12 +2,18 @@
 /**
  * Header: a floating pill centred at the top of the screen, holding the logo,
  * the "Our businesses" fold-out and the section links (no booking button: the
- * page's own calls to action carry that). A frosted squircle capsule over the
+ * page's own calls to action carry that). A Liquid Glass capsule over the
  * page; on small screens it keeps the logo and a menu button, and the sheet
  * opens beneath it.
- * Selection: a liquid-glass lens (after Apple's Liquid Glass tab bars) sits
- * under the section you are reading, slides to the link under the pointer and
- * swells while pressed.
+ * Selection (after Apple's glass tab bars): a quiet fill sits under the section
+ * you are reading and slides to the link under the pointer; pressed, it lifts
+ * into a glass lens and swells.
+ * Material (23 Nov 2026, to Apple's Liquid Glass guidance): the header is the
+ * navigation layer, so it is the glass. The bar, the "Our businesses" fold-out
+ * and the small-screen sheet are Regular glass (tokens.css --glass-*); the
+ * menus materialize as they open. What sits on the bar (the selection, the menu
+ * button) uses fills, never glass on glass, and the selection lifts into a glass
+ * lens only while pressed. A scroll edge effect softens content passing under it.
  * Emil's details: the fold-out grows from its trigger and closes faster than it
  * opens, links and buttons press in, hover effects only on devices that hover.
  * Behaviour: src/scripts/ui.ts.
@@ -119,33 +125,72 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     pointer-events: none;
   }
 
+  /* Scroll edge effect (Apple's alternative to a hard divider): once the page has
+     scrolled, content passing under the header softly blurs and fades into the page
+     colour, so the glass bar always floats over a calm ground. */
+  .nav::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 5.5rem;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--page) 70%, transparent), transparent);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent);
+    mask-image: linear-gradient(180deg, #000 35%, transparent);
+    opacity: 0;
+    transition: opacity 300ms ease;
+    pointer-events: none;
+  }
+
+  .nav[data-scrolled]::before {
+    opacity: 1;
+  }
+
+  /* The bar: transparent frosted glass (Daniel, 23 Nov 2026), the navigation layer
+     floating over the page. Nearly clear, so the page shows through, heavily frosted
+     so the links stay easy to read (the scroll edge effect softens what passes
+     under it); a specular rim catches
+     the light (brightest at the top, and following the pointer on desktop, set by
+     ui.ts); a soft inner shade gives it thickness. Its shadow deepens once it floats
+     over content. The glass lives on a layer under the bar (::before), not on the
+     bar itself: an element with its own backdrop-filter becomes the "backdrop root"
+     of everything inside it, and the fold-out and the phone menu would then blur
+     only the bar, not the page behind them. */
   .pill {
     position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     gap: 0.25rem;
     height: 3.5rem;
     padding: 0 0.5rem 0 1.125rem;
     border-radius: 999px;
-    corner-shape: squircle;
-    background: color-mix(in srgb, var(--paper) 72%, transparent);
-    border: 1px solid color-mix(in srgb, var(--rule) 80%, transparent);
     box-shadow:
-      0 1px 0 rgb(255 255 255 / 0.6) inset,
-      0 12px 32px -20px rgb(7 27 52 / 0.35);
-    backdrop-filter: saturate(1.5) blur(16px);
-    -webkit-backdrop-filter: saturate(1.5) blur(16px);
+      0 0 0 0.5px rgb(7 27 52 / 0.06),
+      0 8px 24px -16px rgb(7 27 52 / 0.28);
     pointer-events: auto;
-    transition:
-      background-color 300ms ease,
-      box-shadow 300ms ease;
+    transition: box-shadow 300ms ease;
+  }
+
+  .pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--glass-sheen), var(--glass-clear);
+    box-shadow: var(--glass-thick);
+    -webkit-backdrop-filter: var(--glass-blur-clear);
+    backdrop-filter: var(--glass-blur-clear);
+    pointer-events: none;
   }
 
   .nav[data-scrolled] .pill {
-    background: color-mix(in srgb, var(--paper) 86%, transparent);
     box-shadow:
-      0 1px 0 rgb(255 255 255 / 0.6) inset,
-      0 16px 40px -20px rgb(7 27 52 / 0.45);
+      0 0 0 0.5px rgb(7 27 52 / 0.08),
+      0 16px 40px -18px rgb(7 27 52 / 0.42);
   }
 
   .nav-brand {
@@ -168,11 +213,10 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
   }
 
   /*
-   * Liquid glass selection lens. Layers, outside in: a soft drop shadow, a
-   * bright rim (thin inset highlights top and bottom), blue-tinted light
-   * bending in at the edges, a specular sheen across the top, and the page
-   * behind blurred and saturated through it. Position, width and press are
-   * driven by ui.ts (Motion springs).
+   * The selection, as on Apple's glass tab bars. Never glass on glass: at rest it is
+   * a quiet fill on the bar. While a link is pressed it lifts into a Liquid Glass
+   * lens (data-lift, set by ui.ts), swelling and catching the light, then settles
+   * back to a fill. Position, width and press are driven by ui.ts (Motion springs).
    */
   .nav-glass {
     position: absolute;
@@ -182,24 +226,47 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     height: 2.5rem;
     margin-top: -1.25rem;
     border-radius: 999px;
-    background:
-      radial-gradient(120% 100% at 28% -10%, rgb(255 255 255 / 0.9), rgb(255 255 255 / 0) 52%),
-      linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(232 242 255 / 0.22));
-    -webkit-backdrop-filter: blur(3px) saturate(2.2) brightness(1.06);
-    backdrop-filter: blur(3px) saturate(2.2) brightness(1.06);
-    box-shadow:
-      inset 0 1px 0.5px rgb(255 255 255 / 0.95),
-      inset 0 -1px 1px rgb(255 255 255 / 0.55),
-      inset 0 0 0 0.5px rgb(255 255 255 / 0.7),
-      inset 0 -9px 14px -10px rgb(34 100 210 / 0.32),
-      inset 8px 0 12px -12px rgb(112 191 255 / 0.65),
-      inset -8px 0 12px -12px rgb(112 191 255 / 0.65),
-      0 0 0 0.5px rgb(7 27 52 / 0.06),
-      0 6px 16px -8px rgb(7 27 52 / 0.28),
-      0 1px 2px rgb(7 27 52 / 0.08);
+    background: color-mix(in srgb, var(--ink) 7%, transparent);
     opacity: 0;
     pointer-events: none;
     will-change: transform, width;
+    transition:
+      background-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+
+  .nav-glass[data-lift] {
+    background: var(--glass-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(232 242 255 / 0.2));
+    box-shadow:
+      var(--glass-thick),
+      0 0 0 0.5px rgb(7 27 52 / 0.06),
+      0 8px 18px -8px rgb(7 27 52 / 0.3);
+    -webkit-backdrop-filter: blur(2px) saturate(2.2) brightness(1.08);
+    backdrop-filter: blur(2px) saturate(2.2) brightness(1.08);
+  }
+
+  /* The lit rim: a 1px ring of light, brightest where it meets the light (and, on the
+     bar, leaning toward the pointer). A masked ring, so the gradient never washes
+     over the glass inside it. It doubles as the hairline border under Reduce
+     Transparency and Increase Contrast. */
+  .pill::after,
+  .biz-panel::after,
+  .sheet::after,
+  .nav-glass[data-lift]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--glass-rim);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    pointer-events: none;
   }
 
   .nav-links > :not(.nav-glass) {
@@ -237,7 +304,7 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     }
 
     .biz-item:hover {
-      background: var(--page);
+      background: color-mix(in srgb, var(--ink) 6%, transparent);
     }
   }
 
@@ -261,18 +328,21 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     width: 22.5rem;
     margin-left: -11.25rem;
     padding: 0.5rem;
-    border-radius: 20px;
-    corner-shape: squircle;
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.35);
+    border-radius: 22px;
+    background: var(--glass-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.46));
+    box-shadow: var(--glass-thick), var(--glass-shadow-large);
+    /* Materializes rather than fades: the frost comes in with the opacity and scale */
+    -webkit-backdrop-filter: blur(0px) saturate(1) brightness(1);
+    backdrop-filter: blur(0px) saturate(1) brightness(1);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-4px) scale(0.97);
+    transform: translateY(-4px) scale(0.96);
     transform-origin: 50% 0;
     transition:
       opacity 150ms ease,
       transform 150ms var(--ease-out),
+      backdrop-filter 150ms ease,
+      -webkit-backdrop-filter 150ms ease,
       visibility 150ms;
   }
 
@@ -286,17 +356,19 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
   }
 
   .biz-panel[data-open] {
+    -webkit-backdrop-filter: var(--glass-blur-large);
+    backdrop-filter: var(--glass-blur-large);
     opacity: 1;
     visibility: visible;
     transform: none;
-    transition-duration: 200ms;
+    transition-duration: 220ms;
   }
 
   .biz-item {
     display: flex;
     gap: 0.75rem;
     padding: 0.75rem;
-    border-radius: 12px;
+    border-radius: 14px;
     transition: background-color 150ms ease;
   }
 
@@ -325,6 +397,8 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     color: var(--ci);
   }
 
+  /* The menu button sits on the glass bar, so it is a plain symbol with a fill when
+     pressed or open (never glass on glass) */
   .burger {
     display: none;
     place-items: center;
@@ -332,11 +406,19 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     height: 2.75rem;
     margin-left: auto;
     border-radius: 999px;
-    transition: transform var(--press) var(--ease-out);
+    transition:
+      background-color 150ms ease,
+      transform var(--glass-flex);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .burger:active,
+  .burger[aria-expanded='true'] {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
   }
 
   .burger:active {
-    transform: scale(0.95);
+    transform: scale(1.06);
   }
 
   .burger :global(.burger-close),
@@ -375,26 +457,30 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       display: flex;
       flex-direction: column;
       padding: 0.5rem;
-      border-radius: 22px;
-      corner-shape: squircle;
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      box-shadow: 0 30px 60px -30px rgb(7 27 52 / 0.4);
+      border-radius: 28px;
+      background: var(--glass-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.5));
+      box-shadow: var(--glass-thick), var(--glass-shadow-large);
+      -webkit-backdrop-filter: blur(0px) saturate(1) brightness(1);
+      backdrop-filter: blur(0px) saturate(1) brightness(1);
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-6px);
+      transform: translateY(-6px) scale(0.97);
       transform-origin: top center;
       transition:
         opacity 150ms ease,
         transform 150ms var(--ease-out),
+        backdrop-filter 150ms ease,
+        -webkit-backdrop-filter 150ms ease,
         visibility 150ms;
     }
 
     .sheet[data-open] {
+      -webkit-backdrop-filter: var(--glass-blur-large);
+      backdrop-filter: var(--glass-blur-large);
       opacity: 1;
       visibility: visible;
       transform: none;
-      transition-duration: 220ms;
+      transition-duration: 240ms;
     }
 
     .sheet-k {
@@ -406,8 +492,8 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
-      padding: 0.8rem 0.75rem;
-      border-radius: 12px;
+      padding: 0.8rem 0.875rem;
+      border-radius: 20px;
       font-size: 0.9375rem;
     }
 
@@ -433,6 +519,50 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
     .nav-link,
     .burger {
       transition: none;
+    }
+
+    .burger:active {
+      transform: none;
+    }
+  }
+
+  /* Reduce Transparency: the glass turns frostier and hides more of what is behind */
+  @media (prefers-reduced-transparency: reduce) {
+    .pill::before,
+    .biz-panel,
+    .sheet {
+      background: var(--paper);
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+
+    .pill::after,
+    .biz-panel::after,
+    .sheet::after {
+      background: var(--rule);
+    }
+
+    .nav::before {
+      display: none;
+    }
+  }
+
+  /* Increase Contrast: near-solid glass with a defined, contrasting border */
+  @media (prefers-contrast: more) {
+    .pill::before,
+    .biz-panel,
+    .sheet {
+      background: var(--paper);
+    }
+
+    .pill::after,
+    .biz-panel::after,
+    .sheet::after {
+      background: var(--ink);
+    }
+
+    .nav-glass {
+      background: color-mix(in srgb, var(--ink) 14%, transparent);
     }
   }
 </style>

@@ -83,4 +83,81 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --press: 160ms;
+
+  /*
+   * Liquid Glass, after Apple's WWDC25 guidance ("Meet Liquid Glass"):
+   *  - Glass is the navigation layer that floats over content: the header bar and its
+   *    menus. Content stays out of it. Content buttons rest quietly (fills) and only
+   *    lift into glass while pressed, the way Apple's sliders and switches do.
+   *  - Never glass on glass: what sits on the bar uses fills, not more glass.
+   *  - One variant (Regular), never mixed with Clear. Bigger glass reads thicker:
+   *    more blur, deeper shadow.
+   *  - Light catches the rim (a specular edge, brightest where it meets the light).
+   *  - Tint only for the primary action.
+   *  - Press: the glass lights up from under the fingertip, the glow spreads, and the
+   *    shape flexes on a spring. Reduce Motion drops the flex; Reduce Transparency
+   *    frosts the glass; Increase Contrast adds a border.
+   * --glass-light and --glass-rim-angle move with the pointer on the header (ui.ts).
+   */
+  --glass-body: linear-gradient(180deg, rgb(255 255 255 / 0.58), rgb(255 255 255 / 0.34));
+  /* The header bar: transparent frosted glass, nearly clear, with a heavier frost */
+  --glass-clear: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.05));
+  --glass-blur-clear: blur(18px) saturate(1.8) brightness(1.06);
+  /* Small controls draw their rim with fine inner highlights (top brightest) */
+  --glass-edge-light:
+    inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 -1px 0 rgb(255 255 255 / 0.4),
+    inset 1px 0 0 rgb(255 255 255 / 0.4), inset -1px 0 0 rgb(255 255 255 / 0.25);
+  --glass-thick: inset 0 -10px 18px -14px rgb(7 27 52 / 0.22), inset 0 10px 14px -12px rgb(255 255 255 / 0.9);
+  --glass-blur-small: blur(10px) saturate(1.9) brightness(1.05);
+  --glass-blur-large: blur(26px) saturate(1.9) brightness(1.05);
+  --glass-shadow-small: 0 0 0 0.5px rgb(7 27 52 / 0.08), 0 8px 22px -12px rgb(7 27 52 / 0.32);
+  --glass-shadow-large: 0 0 0 0.5px rgb(7 27 52 / 0.08), 0 30px 60px -28px rgb(7 27 52 / 0.42);
+  /*
+   * Transparent frosted glass for buttons and controls (Daniel, 23 Nov 2026:
+   * "transparent buttons, and they should be frosted glass"). The body is nearly
+   * clear, so the page, grid or glow behind shows through, heavily frosted (blurred
+   * and brightened). A crisp bright edge, brightest on top, and a hairline outline
+   * draw the shape; a soft shadow lifts it. Tinted glass (the primary action, a
+   * picked chip, an open FAQ question) is the same clear glass with a breath of
+   * electric in the body and a blue edge, and dark-blue text, since white text
+   * cannot be read on clear glass.
+   */
+  --frost-blur: blur(16px) saturate(1.8) brightness(1.03);
+  --frost-body: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.03));
+  --frost-tint: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sgi-electric) 22%, transparent),
+    color-mix(in srgb, var(--sgi-electric) 9%, transparent)
+  );
+  --frost-sheen: radial-gradient(120% 90% at 50% -45%, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0) 55%);
+  --frost-edge:
+    inset 0 1px 0 rgb(255 255 255 / 0.95), inset 0 0 0 1px rgb(255 255 255 / 0.55),
+    inset 0 -1px 0 rgb(255 255 255 / 0.3), inset 0 -10px 16px -14px rgb(7 27 52 / 0.12);
+  --frost-edge-tint:
+    inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 0 0 1px color-mix(in srgb, var(--sgi-electric) 38%, transparent),
+    inset 0 -1px 0 rgb(255 255 255 / 0.25), inset 0 -10px 16px -14px color-mix(in srgb, var(--sgi-electric) 30%, transparent);
+  --frost-shadow: 0 0 0 0.5px rgb(7 27 52 / 0.14), 0 1px 2px rgb(7 27 52 / 0.05), 0 10px 26px -14px rgb(7 27 52 / 0.24);
+  --frost-shadow-tint:
+    0 0 0 0.5px color-mix(in srgb, var(--sgi-electric) 45%, transparent),
+    0 10px 26px -12px color-mix(in srgb, var(--sgi-electric) 45%, transparent);
+  /* The flex: a Motion spring (visualDuration 0.32, bounce 0.35) as a CSS curve */
+  --glass-flex: 500ms
+    linear(0, 0.1038, 0.3247, 0.5646, 0.7693, 0.9178, 1.0095, 1.0549, 1.068, 1.062, 1.0474, 1.031, 1.0167, 1.0063, 0.9997, 0.9964, 1);
+}
+
+/* The sheen and the rim gradient are declared here and again on the header bar: a
+   custom property resolves its var() where it is declared, so the bar needs its own
+   copy for its light to follow the pointer (ui.ts sets --glass-light and
+   --glass-rim-angle on .pill). The rim gradient is drawn as a 1px ring (a masked
+   pseudo-element), never as a border-box background under translucent glass. */
+:root,
+.pill {
+  --glass-sheen: radial-gradient(130% 110% at var(--glass-light, 30%) -35%, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0) 55%);
+  --glass-rim: linear-gradient(
+    var(--glass-rim-angle, 165deg),
+    rgb(255 255 255 / 0.98),
+    rgb(255 255 255 / 0.3) 28%,
+    rgb(255 255 255 / 0.1) 55%,
+    rgb(255 255 255 / 0.6)
+  );
 }

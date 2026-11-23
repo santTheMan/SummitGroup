@@ -417,6 +417,85 @@ test.describe('header navigation', () => {
     await expect(faq).toHaveAttribute('data-selected', '');
   });
 
+  test('glass: a Liquid Glass header, frosted glass buttons, and no glass on glass', async ({ page }) => {
+    await page.goto('/');
+    const g = await page.evaluate(() => {
+      const filter = (el: Element | null, pseudo?: string) => {
+        if (!el) return 'missing';
+        const cs = getComputedStyle(el, pseudo);
+        return cs.backdropFilter || cs.getPropertyValue('-webkit-backdrop-filter') || 'none';
+      };
+      const capsule = (el: Element) => {
+        const h = el.getBoundingClientRect().height;
+        return h === 0 || parseFloat(getComputedStyle(el).borderTopLeftRadius) >= h / 2 - 1;
+      };
+      return {
+        bar: filter(document.querySelector('.pill'), '::before'),
+        barRing: getComputedStyle(document.querySelector('.pill')!, '::after').backgroundImage,
+        lens: filter(document.querySelector('[data-nav-glass]')),
+        burger: filter(document.querySelector('[data-burger]')),
+        buttons: [...document.querySelectorAll('.button:not(.button--primary)')].map((b) => `${filter(b)}|${filter(b, '::before')}`),
+        primary: [...document.querySelectorAll('.button--primary')].map((b) => `${filter(b)}|${getComputedStyle(b).backgroundColor}`),
+        chips: [...document.querySelectorAll('[data-need]')].map((c) => filter(c)),
+        capsules: [...document.querySelectorAll('.button, [data-need], .toggle, .toggle-knob')].every(capsule),
+      };
+    });
+    // The navigation layer is the glass, with a lit rim drawn as a ring
+    expect(g.bar).toContain('blur');
+    expect(g.barRing).toContain('linear-gradient');
+    // Never glass on glass: what sits on the bar is a fill at rest
+    expect(g.lens).toBe('none');
+    expect(g.burger).toBe('none');
+    // Buttons and chips are transparent frosted glass at rest: the page behind them blurs through
+    expect(g.buttons.length).toBeGreaterThan(0);
+    for (const b of g.buttons) expect(b).toMatch(/^blur\(\d+px\).*\|none$/);
+    for (const c of g.chips) expect(c).toMatch(/^blur\(\d+px\)/);
+    // ...except "Book a conversation", which stays solid electric blue
+    expect(g.primary.length).toBeGreaterThan(2);
+    for (const p of g.primary) expect(p).toBe('none|rgb(34, 100, 210)');
+    // Capsules, as Apple's controls are
+    expect(g.capsules).toBe(true);
+
+    // The fold-out materializes: its frost comes in as it opens
+    if (isDesktop(page)) {
+      const panel = page.locator('[data-biz-panel]');
+      expect(await panel.evaluate((el) => getComputedStyle(el).backdropFilter)).toMatch(/blur\(0px\)/);
+      await page.locator('[data-biz-trigger]').click();
+      await expect.poll(() => panel.evaluate((el) => getComputedStyle(el).backdropFilter)).toMatch(/blur\(2\dpx\)/);
+    }
+  });
+
+  test('desktop: pressed, controls lift into Liquid Glass and settle back', async ({ page }) => {
+    await page.goto('/');
+    test.skip(!isDesktop(page), 'pointer press');
+    await page.waitForTimeout(1600);
+
+    // The primary button: light gathers where the pointer lands, the glass skin comes in, it flexes
+    const cta = page.locator('.hero .button--primary');
+    const box = (await cta.boundingBox())!;
+    await page.mouse.move(box.x + 24, box.y + box.height / 2);
+    await page.mouse.down();
+    expect(await cta.evaluate((el) => el.style.getPropertyValue('--gx'))).toBe('24px');
+    await expect.poll(() => cta.evaluate((el) => getComputedStyle(el).transform)).toMatch(/^matrix\(1\.0[3-6]/);
+    await expect.poll(() => cta.evaluate((el) => getComputedStyle(el, '::before').opacity)).toBe('1');
+    await expect.poll(() => cta.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('1');
+    await page.mouse.move(5, 400); // release away, so the press does not follow the link
+    await page.mouse.up();
+    await expect.poll(() => cta.evaluate((el) => getComputedStyle(el, '::before').opacity)).toBe('0');
+    await expect.poll(() => cta.evaluate((el) => getComputedStyle(el).transform)).toMatch(/^(none|matrix\(1, 0, 0, 1)/);
+
+    // The header selection lifts into a glass lens only while pressed
+    const lens = page.locator('[data-nav-glass]');
+    const how = (await page.locator('[data-nav-item="how-we-work"]').boundingBox())!;
+    await page.mouse.move(how.x + how.width / 2, how.y + how.height / 2);
+    await page.mouse.down();
+    await expect(lens).toHaveAttribute('data-lift', '');
+    expect(await lens.evaluate((el) => getComputedStyle(el).backdropFilter)).toContain('blur');
+    await page.mouse.move(5, 400);
+    await page.mouse.up();
+    await expect(lens).not.toHaveAttribute('data-lift', '');
+  });
+
   test('the header carries no booking button', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('[data-nav] .pill > a.button, [data-nav] .nav-links a.button')).toHaveCount(0);
