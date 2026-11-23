@@ -404,6 +404,38 @@ function initTalent() {
   );
 }
 
+/* In-page links scroll to their section without writing "#section" into the address.
+   With the hash left in the URL, a refresh in Safari (and Firefox) jumped back to the
+   last section clicked instead of staying where the reader had scrolled to (Daniel,
+   23 Nov 2026). A link that arrives with a hash still lands on its section; the hash
+   is then cleared, so later refreshes keep the reader's place. Focus moves to the
+   section, so keyboard and screen-reader users carry on from there. */
+function initInPageLinks() {
+  const clearHash = () => {
+    if (location.hash) history.replaceState(history.state, '', location.pathname + location.search);
+  };
+  if (location.hash) {
+    if (document.readyState === 'complete') requestAnimationFrame(clearHash);
+    else window.addEventListener('load', () => requestAnimationFrame(clearHash), { once: true });
+  }
+  // A hash typed into the address bar of the open page: let the browser land, then clear it
+  window.addEventListener('hashchange', () => requestAnimationFrame(clearHash));
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = (e.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
+    if (!link || link.target) return;
+    const id = decodeURIComponent(link.hash.slice(1));
+    const target = id ? document.getElementById(id) : null;
+    if (!target) return;
+    e.preventDefault();
+    // Smooth unless the reader prefers reduced motion; scroll-padding keeps it clear of the header
+    target.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
+    if (!target.matches('a[href], button, input, select, textarea, [tabindex]')) target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+    clearHash();
+  });
+}
+
 /* Liquid Glass light: on the header bar, the specular highlight and the lit rim
    lean toward the pointer, the web's stand-in for glass catching light as the
    device moves. Mouse only, and only when motion is welcome. */
@@ -449,6 +481,7 @@ function initGlassPress() {
   );
 }
 
+initInPageLinks();
 initGlassPress();
 initGlassLight();
 initHeader();

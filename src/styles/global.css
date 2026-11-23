@@ -93,6 +93,12 @@ p {
   outline-color: var(--sgi-sky);
 }
 
+/* A section that an in-page link jumped to takes focus (ui.ts initInPageLinks) so
+   keyboard users carry on from it; it is not a control, so it draws no ring */
+:is(main, section)[tabindex='-1']:focus {
+  outline: none;
+}
+
 .visually-hidden:not(:focus):not(:active) {
   position: absolute;
   width: 1px;

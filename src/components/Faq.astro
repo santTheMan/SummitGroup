@@ -5,10 +5,10 @@
  *
  * It closes the page (Daniel moved it to the end on 22 Nov 2026), straight after
  * the talent section's glow wash. It has no top rule, so the wash fades into it
- * with no line.
+ * with no line. It carries no booking button (Daniel removed it on 23 Nov 2026):
+ * the hero and "Start with a conversation" hold the call to action.
  */
 import { faq } from '../content/site.ts';
-import CtaButton from './CtaButton.astro';
 import Icon from './Icon.astro';
 ---
 
@@ -18,7 +18,6 @@ import Icon from './Icon.astro';
       <p class="k">{faq.eyebrow}</p>
       <h2 class="h2" id="faq-title">{faq.heading}</h2>
       <p class="muted">{faq.intro}</p>
-      <CtaButton class="faq-cta" />
     </div>
 
     <ul class="faq-list" data-reveal>
@@ -65,10 +64,6 @@ import Icon from './Icon.astro';
 
   .faq-side .muted {
     max-width: 22rem;
-  }
-
-  .faq-side :global(.faq-cta) {
-    margin-top: 0.5rem;
   }
 
   .faq-list {

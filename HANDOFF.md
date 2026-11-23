@@ -70,6 +70,18 @@ and fades, in place of a hard edge.
 - Increase Contrast: solid glass with an ink border.
 - Reduce Motion: no flex or swell. The light and colour changes stay.
 
+**FAQ:** the "Book a conversation" button beside the FAQ is gone (Daniel, 23 Nov). The hero
+and "Start with a conversation" hold the call to action, as does the phone menu.
+
+**Refresh jump fixed (23 Nov):** clicking a header link or "Book a conversation" used to write
+"#section" into the address. Safari (and Firefox) follow that hash on refresh, so a refresh
+jumped back to the last section clicked instead of staying put.
+- In-page links now scroll smoothly to their section without touching the address, and move
+  focus there (`initInPageLinks` in `ui.ts`).
+- A link that arrives with a hash (a shared /#faq), or a hash typed in the address bar, still
+  lands on its section; the hash is then cleared.
+- Refreshes keep the reader's place. Covered by three e2e tests.
+
 **Not done:**
 - True light-bending refraction. It needs SVG backdrop filters, which Safari (so every iPhone)
   does not support.

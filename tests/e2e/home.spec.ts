@@ -59,8 +59,43 @@ test.describe('SGI home page', () => {
     const cta = page.locator('.hero-cta');
     await settle(page);
     await cta.click();
-    await expect(page).toHaveURL(/#book$/);
     await expect(page.locator('#book')).toBeInViewport();
+    // The address keeps no #book, so a refresh stays where the reader is
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test('a refresh keeps the reader where they were, even after clicking a section link', async ({ page }) => {
+    await settle(page);
+    const link = page.locator('.hero-cta');
+    await link.click();
+    await expect(page.locator('#book')).toBeInViewport();
+    await expect(page).not.toHaveURL(/#/);
+    // Scroll somewhere else, then refresh: the page must not jump back to #book
+    await page.evaluate(() => window.scrollTo({ top: 1200, behavior: 'instant' }));
+    await page.waitForTimeout(300);
+    await page.reload();
+    await page.waitForTimeout(1200);
+    await expect(page.locator('#book')).not.toBeInViewport();
+    expect(Math.abs((await page.evaluate(() => window.scrollY)) - 1200)).toBeLessThan(80);
+  });
+
+  test('a link that arrives with a section hash lands there, then clears the hash', async ({ page }) => {
+    // A fresh load, as when someone opens a shared link
+    await page.goto('about:blank');
+    await page.goto('/#faq');
+    await expect(page.locator('#faq')).toBeInViewport();
+    await expect(page).not.toHaveURL(/#faq/);
+    // A hash typed into the address bar of the open page (a same-page hash change) lands and clears
+    // too. The reader scrolls first, as anyone would; until then the browser keeps the page
+    // pinned to the hash it opened on.
+    await page.waitForTimeout(1500);
+    await page.mouse.wheel(0, -200);
+    await page.waitForTimeout(300);
+    await page.evaluate(() => {
+      location.hash = 'how-we-work';
+    });
+    await expect(page.locator('#how-we-work')).toBeInViewport();
+    await expect(page).not.toHaveURL(/#how-we-work/);
   });
 
   test('shows the pre-launch notice instead of an invented booking link', async ({ page }) => {
@@ -409,6 +444,8 @@ test.describe('header navigation', () => {
     await page.goto('/');
     const order = await page.$$eval('main > section', (els) => els.map((el) => el.id || el.className.split(' ')[0]));
     expect(order.slice(-3)).toEqual(['book', 'op-sec', 'faq']);
+    // The FAQ carries no booking button: the hero and the conversation section hold it
+    await expect(page.locator('#faq .button, #faq a[href^="#book"]')).toHaveCount(0);
     test.skip(!isDesktop(page), 'inline navigation is desktop-only');
     const faq = page.locator('[data-nav-item="faq"]');
     await page.locator('#book').evaluate((el) => el.scrollIntoView());
@@ -562,6 +599,7 @@ test.describe('header navigation', () => {
     await toggle.click();
     await nav.getByRole('link', { name: 'How we work' }).click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    await expect(page).toHaveURL(/#how-we-work$/);
+    await expect(page.locator('#how-we-work')).toBeInViewport();
+    await expect(page).not.toHaveURL(/#/);
   });
 });
