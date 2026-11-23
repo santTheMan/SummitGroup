@@ -4,6 +4,12 @@
  * scrolls, then the client revenue gauge (after bklit's Gauge chart) sweeping
  * to its value as its figure counts up. The 450+ / 1 / 3 proof row was
  * removed on 22 Nov 2026 at Daniel's request (the figures stay in site.ts).
+ *
+ * The revenue block was reworked on 23 Nov 2026 so it draws the eye and follows
+ * on from the statement: no hairline above it (and no rule under the section),
+ * a larger gauge with the figure at display size inside it, a soft pool of the
+ * brand's blue light behind the gauge, and the label set calmer than the
+ * statement, so the order reads statement, figure, label, note.
  * Motion: src/scripts/motion.ts and src/scripts/gauge.ts.
  */
 import { about, clientRevenue } from '../content/site.ts';
@@ -35,7 +41,6 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
       </p>
 
       <div class="revenue" data-reveal>
-        <span class="revenue-rule" aria-hidden="true"></span>
         <Gauge
           class="revenue-gauge"
           value={clientRevenue.fill}
@@ -64,10 +69,6 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
 </section>
 
 <style>
-  .statement {
-    border-bottom: 1px solid var(--rule);
-  }
-
   .statement-text {
     max-width: 51rem;
     font-family: var(--font-display);
@@ -76,67 +77,95 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
     letter-spacing: -0.02em;
   }
 
-  /* Client revenue: the gauge beside its label, under its own hairline */
+  /* Client revenue: the gauge leads, its figure large, the label and note beside it */
   .revenue {
     position: relative;
+    isolation: isolate;
     display: grid;
-    grid-template-columns: 19rem minmax(0, 1fr);
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
     align-items: center;
-    gap: 2.5rem;
+    gap: clamp(2rem, 1rem + 3vw, 3.5rem);
     max-width: 51rem;
-    margin-top: 4.5rem;
-    padding-top: 2rem;
+    margin-top: clamp(3.5rem, 2rem + 4vw, 5.5rem);
   }
 
-  .revenue-rule {
+  /* A soft pool of brand light behind the gauge: it draws the eye without a box */
+  .revenue::before {
+    content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--ink);
-    opacity: 0.25;
+    z-index: -1;
+    left: 13rem;
+    top: 50%;
+    width: min(40rem, 120vw);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--glow-a) 90%, transparent),
+      color-mix(in srgb, var(--glow-a) 35%, transparent) 55%,
+      transparent
+    );
+    pointer-events: none;
   }
 
+  /* The figure at display size: as large as the gauge's centre allows */
   .revenue-value {
     font-family: var(--font-display);
-    font-size: 2rem;
-    letter-spacing: -0.04em;
+    font-size: clamp(2rem, 1.2rem + 2.4vw, 3rem);
+    letter-spacing: -0.045em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
 
   .revenue-caption {
+    margin-top: 0.25rem;
     font-size: var(--t-small);
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
   }
 
+  /* Calmer than the statement above it, so the figure leads */
   .revenue-label {
-    max-width: 22ch;
+    max-width: 18ch;
     font-family: var(--font-display);
-    font-size: var(--t-statement);
-    line-height: 1.25;
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+    line-height: 1.2;
     letter-spacing: -0.02em;
   }
 
+  /* 72% ink, not --muted: it can sit on the edge of the blue light */
   .revenue-note {
     max-width: 34ch;
-    margin-top: 0.875rem;
+    margin-top: 1rem;
     font-size: var(--t-small);
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
+  }
+
+  @media (max-width: 56.25rem) {
+    .revenue {
+      grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    }
+
+    .revenue::before {
+      left: 10rem;
+    }
   }
 
   @media (max-width: 45rem) {
     .revenue {
-      margin-top: 3rem;
       grid-template-columns: 1fr;
       justify-items: center;
-      gap: 1.25rem;
+      gap: 1.5rem;
+      margin-top: 3rem;
       text-align: center;
     }
 
+    .revenue::before {
+      left: 50%;
+      top: 9rem;
+    }
+
     .revenue-gauge {
-      max-width: 18rem;
+      max-width: 20rem;
     }
 
     .revenue-label,

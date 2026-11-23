@@ -82,6 +82,16 @@ jumped back to the last section clicked instead of staying put.
   lands on its section; the hash is then cleared.
 - Refreshes keep the reader's place. Covered by three e2e tests.
 
+**Client revenue block reworked (23 Nov).** Daniel said it didn't flow and wanted it to draw
+attention to the figure and the gauge.
+- The hairline above it, and the rule under the About section, are gone.
+- The gauge is larger (26rem). The figure inside it is at display size, as large as the
+  gauge's centre allows (48px).
+- A soft pool of the brand's blue light sits behind the gauge.
+- The label is set calmer than the statement, so the order reads statement, figure, label,
+  note.
+- Covered by an e2e test.
+
 **Not done:**
 - True light-bending refraction. It needs SVG backdrop filters, which Safari (so every iPhone)
   does not support.

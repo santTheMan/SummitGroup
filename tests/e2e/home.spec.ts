@@ -184,6 +184,30 @@ test.describe('SGI home page', () => {
     await expect(page.locator('.revenue')).toContainText('not SGI revenue');
   });
 
+  test('the revenue figure leads: a large gauge and figure, on a pool of light, with no rules', async ({ page }) => {
+    const revenue = page.locator('.revenue');
+    await revenue.scrollIntoViewIfNeeded();
+    const look = await page.evaluate(() => {
+      const px = (sel: string, prop: string) => parseFloat(getComputedStyle(document.querySelector(sel)!).getPropertyValue(prop));
+      return {
+        figure: px('.revenue-value', 'font-size'),
+        label: px('.revenue-label', 'font-size'),
+        statement: px('.statement-text', 'font-size'),
+        gaugeWidth: document.querySelector('.revenue-gauge')!.getBoundingClientRect().width,
+        pool: getComputedStyle(document.querySelector('.revenue')!, '::before').backgroundImage,
+        sectionRule: px('#about', 'border-bottom-width'),
+        hairlines: document.querySelectorAll('.revenue-rule').length,
+      };
+    });
+    // The figure is the largest thing in the block; the label sits calmer than the statement
+    expect(look.figure).toBeGreaterThan(look.label);
+    expect(look.label).toBeLessThanOrEqual(look.statement);
+    expect(look.gaugeWidth).toBeGreaterThanOrEqual(isDesktop(page) ? 400 : 280);
+    expect(look.pool).toContain('radial-gradient');
+    expect(look.sectionRule).toBe(0);
+    expect(look.hairlines).toBe(0);
+  });
+
   test('who we work with: three audiences as text beside the map, no illustrations or booking links', async ({ page }) => {
     const section = page.locator('#who-we-work-with');
     await expect(section.locator('.card')).toHaveCount(3);
