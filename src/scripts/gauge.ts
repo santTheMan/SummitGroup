@@ -34,6 +34,8 @@ function render(el: HTMLElement, state: GaugeState, v: number) {
     if (count.textContent !== text) count.textContent = text;
   }
   if (el.getAttribute('role') === 'meter') el.setAttribute('aria-valuenow', String(Math.round(v)));
+  // Marked while the count is short of its figure, so a suffix (the revenue's +) can wait
+  el.toggleAttribute('data-counting', v < (Number(el.dataset.value) || 100) - 0.01);
 }
 
 const formats = new WeakMap<HTMLElement, Intl.NumberFormat>();
@@ -71,9 +73,15 @@ function stateOf(el: HTMLElement): GaugeState {
   return state;
 }
 
-function sweep(state: GaugeState, to: number, delay = 0) {
+/* [data-duration] asks for a slower, eased build-up (the client revenue gauge,
+   Daniel, 24 Nov 2026: "build up slower"): it starts gently, climbs, and settles into
+   its figure. Without it, bklit's quick spring. */
+function sweep(el: HTMLElement, state: GaugeState, to: number, delay = 0) {
   state.sweep?.stop();
-  state.sweep = animate(state.value, to, { type: 'spring', visualDuration: 0.9, bounce: 0, delay });
+  const duration = Number(el.dataset.duration);
+  state.sweep = duration
+    ? animate(state.value, to, { duration, ease: [0.42, 0, 0.18, 1], delay })
+    : animate(state.value, to, { type: 'spring', visualDuration: 0.9, bounce: 0, delay });
 }
 
 /** Moves a gauge to `value` (0–100). */
@@ -87,7 +95,7 @@ export function setGauge(el: HTMLElement, value: number, valueText?: string) {
     render(el, state, value);
     return;
   }
-  sweep(state, value);
+  sweep(el, state, value);
 }
 
 /** Empties a gauge and sweeps it back up to its current value. */
@@ -96,7 +104,7 @@ export function replayGauge(el: HTMLElement) {
   state.sweep?.stop();
   state.value.jump(0);
   render(el, state, 0);
-  sweep(state, Number(el.dataset.value ?? 0), 0.15);
+  sweep(el, state, Number(el.dataset.value ?? 0), 0.15);
 }
 
 /** Empties every gauge and sweeps it to its value when it first comes into view. */
@@ -113,7 +121,7 @@ export function initGauges(root: ParentNode = document) {
       () => {
         // A panel control may already have moved this gauge; sweep to its latest value.
         if (state.sweep) return;
-        sweep(state, Number(el.dataset.value ?? target), Number(el.dataset.delay ?? 0.12));
+        sweep(el, state, Number(el.dataset.value ?? target), Number(el.dataset.delay ?? 0.12));
       },
       { amount: 0.3 },
     );

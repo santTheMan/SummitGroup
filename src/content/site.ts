@@ -126,8 +126,6 @@ export const clientRevenue = {
   label: 'Revenue generated for clients in the past 3 months',
   /* No "earn", "income" or "commission" in published copy (claims governance, content.test.ts) */
   note: 'Revenue our teams generated for clients, not SGI revenue. Estimated from the sales our talent made in that period.',
-  /** Shown as a tag above the label */
-  flag: 'Estimate',
 } as const;
 
 export const proof: readonly ProofPoint[] = [

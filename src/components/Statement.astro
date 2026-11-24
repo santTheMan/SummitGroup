@@ -50,19 +50,19 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
           meter={false}
           spacing={25}
           inactiveFillOpacity={0.4}
-          delay={0.2}
+          delay={0.3}
+          duration={2.6}
         >
           <span class="revenue-value"
             >{clientRevenue.prefix}<span
               data-gauge-count
               data-total={clientRevenue.amount}
               data-format={JSON.stringify(revenueFormat)}>{revenueText}</span
-            >{clientRevenue.suffix}</span
+            ><span class="revenue-plus">{clientRevenue.suffix}</span></span
           >
           <span class="revenue-caption">Client revenue</span>
         </Gauge>
         <div class="revenue-text">
-          <p class="revenue-flag">{clientRevenue.flag}</p>
           <p class="revenue-label" aria-hidden="true">{clientRevenue.label}</p>
           <p class="revenue-note">{clientRevenue.note}</p>
         </div>
@@ -80,16 +80,19 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
     letter-spacing: -0.02em;
   }
 
-  /* Client revenue: the gauge leads, its figure large, the label and note beside it */
+  /* Client revenue: the gauge leads, its figure large, the label and note beside it.
+     24 Nov (Daniel): more room under the statement, and on desktop the gauge is the
+     focus: 28rem across (it was 21rem), a larger figure and a fuller pool of light.
+     Tablets and phones keep their sizes (below). */
   .revenue {
     position: relative;
     isolation: isolate;
     display: grid;
-    grid-template-columns: minmax(0, 21rem) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
     align-items: center;
     gap: clamp(2rem, 1rem + 3vw, 3.5rem);
-    max-width: 51rem;
-    margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    max-width: 53rem;
+    margin-top: clamp(4.5rem, 2.5rem + 4vw, 7rem);
   }
 
   /* A soft pool of brand light behind the gauge: it draws the eye without a box */
@@ -97,47 +100,45 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
     content: '';
     position: absolute;
     z-index: -1;
-    left: 10.5rem;
+    left: 14rem;
     top: 50%;
-    width: min(34rem, 120vw);
+    width: min(48rem, 120vw);
     aspect-ratio: 1;
     translate: -50% -50%;
     background: radial-gradient(
       closest-side,
-      color-mix(in srgb, var(--glow-a) 90%, transparent),
-      color-mix(in srgb, var(--glow-a) 35%, transparent) 55%,
+      var(--glow-a),
+      color-mix(in srgb, var(--glow-a) 55%, transparent) 45%,
+      color-mix(in srgb, var(--glow-a) 18%, transparent) 75%,
       transparent
     );
     pointer-events: none;
   }
 
   /* The figure at display size: as large as the gauge's centre allows */
+  /* The + joins the figure once the count lands (gauge.ts marks [data-counting] while
+     it climbs). Without JavaScript or motion there is no count, so it simply shows. */
+  .revenue-plus {
+    transition: opacity 300ms ease;
+  }
+
+  :global([data-counting]) .revenue-plus {
+    opacity: 0;
+    transition: none;
+  }
+
   .revenue-value {
     font-family: var(--font-display);
-    font-size: clamp(1.875rem, 1.2rem + 2vw, 2.625rem);
+    font-size: clamp(1.875rem, 1rem + 2.8vw, 3.5rem);
     letter-spacing: -0.045em;
     line-height: 1;
     font-variant-numeric: tabular-nums;
   }
 
   .revenue-caption {
-    margin-top: 0.25rem;
-    font-size: var(--t-small);
+    margin-top: 0.375rem;
+    font-size: 0.875rem;
     color: color-mix(in srgb, var(--ink) 72%, transparent);
-  }
-
-  /* Review, 24 Nov: the example-figure warning as a tag, so it is noticed */
-  .revenue-flag {
-    display: inline-flex;
-    align-items: center;
-    margin-bottom: 0.875rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--glow-b) 70%, var(--paper));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, #b45a2a 28%, transparent);
-    color: #7a3412;
-    font-size: 0.8125rem;
-    font-weight: 500;
   }
 
   /* Calmer than the statement above it, so the figure leads */
@@ -164,6 +165,15 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
 
     .revenue::before {
       left: 9rem;
+      width: min(34rem, 120vw);
+    }
+
+    .revenue-value {
+      font-size: clamp(1.875rem, 1.2rem + 2vw, 2.625rem);
+    }
+
+    .revenue-caption {
+      font-size: var(--t-small);
     }
   }
 
@@ -172,7 +182,7 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
       grid-template-columns: 1fr;
       justify-items: center;
       gap: 1.5rem;
-      margin-top: 3rem;
+      margin-top: 4rem;
       text-align: center;
     }
 

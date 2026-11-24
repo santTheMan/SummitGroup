@@ -207,7 +207,9 @@ test.describe('SGI home page', () => {
     expect(look.label).toBeLessThanOrEqual(look.statement);
     // Review, 24 Nov: a little smaller (21rem), so it sits with its explanation
     expect(look.gaugeWidth).toBeGreaterThanOrEqual(isDesktop(page) ? 320 : 260);
-    await expect(revenue.locator('.revenue-flag')).toHaveText('Estimate');
+    // No tag above the label (Daniel removed "Estimate", 24 Nov); the note still says it is estimated
+    await expect(revenue.locator('.revenue-flag')).toHaveCount(0);
+    await expect(revenue.locator('.revenue-note')).toContainText('Estimated');
     expect(look.pool).toContain('radial-gradient');
     expect(look.sectionRule).toBe(0);
     expect(look.hairlines).toBe(0);

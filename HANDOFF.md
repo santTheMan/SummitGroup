@@ -27,6 +27,15 @@ slowed mid-range phone (LCP 0.5s, CLS 0, 60fps scrolling, 134 KB). Fixed:
 - Small phones: the tablet counters and the heatmap range note no longer break mid-phrase.
 - Business links in the phone menu land with their illustration just under the header.
 
+**Revenue block, later on 24 Nov (Daniel):** the "Estimate" tag is gone (the note still says the
+figure is estimated). There is more room under the About statement (about 100px on desktop),
+and on desktop the gauge leads again: 28rem across (the visual review had taken it to 21rem),
+a 56px figure and a fuller pool of blue light. Tablets and phones keep their sizes.
+
+**Revenue gauge builds up slower (Daniel, 24 Nov):** it now sweeps over 2.6s on an ease-in-out
+curve (`Gauge` `duration` prop, `data-duration` in `gauge.ts`), instead of the 0.9s spring the
+Summit Institute gauge keeps. The "+" waits until the count lands (`[data-counting]`).
+
 **Client revenue is now a real estimate (Daniel, 24 Nov):** SSI's profile reports R12.8m+ in
 commissions paid to its South African talent in the last 3 months; setters earn 7.5% of each
 sale, so client sales came to R12.8m / 0.075 = R170.7m. Daniel asked for dollars: at R17.5 to the

@@ -31,6 +31,11 @@ interface Props {
   meter?: boolean;
   /** Seconds to wait before the first sweep. */
   delay?: number;
+  /**
+   * Seconds the sweep takes, as an eased build-up. Left out, the gauge sweeps with
+   * bklit's quick spring (about 0.9s).
+   */
+  duration?: number;
   class?: string;
 }
 
@@ -46,6 +51,7 @@ const {
   inactiveFillOpacity,
   meter = true,
   delay,
+  duration,
   class: className,
 } = Astro.props;
 
@@ -104,6 +110,7 @@ const height = r(c + Math.sin(Math.PI / 4) * outer + 4);
   data-gauge
   data-value={value}
   data-delay={delay}
+  data-duration={duration}
   style={track || undefined}
   data-track={trackGradient ? 'gradient' : undefined}
   {...a11y}
