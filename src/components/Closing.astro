@@ -133,36 +133,48 @@ const title = words(closing.heading);
 
   /* Stage lights: blue and peach either side of the column, a wide white lift
      behind the words so the smaller text has the lightest ground. Placed with the
-     translate property so Motion's pointer drift (transform) adds to it. */
+     translate property so Motion's pointer drift (transform) adds to it.
+     QA, 24 Nov 2026: each light is a soft radial gradient, not a disc under
+     filter: blur(64px). Safari repainted the blur only inside the rectangle around
+     the rising headline, which showed as a pale box until the words settled. A
+     gradient draws the same in any rectangle, and costs far less to paint. Each is
+     16rem wider than the old disc, so it fades out over the same 128px the blur did. */
   .blob {
     position: absolute;
-    border-radius: 50%;
-    filter: blur(64px);
     translate: -50% -50%;
+    background: radial-gradient(
+      closest-side,
+      var(--c) 0%,
+      var(--c) 36%,
+      color-mix(in srgb, var(--c) 62%, transparent) 58%,
+      color-mix(in srgb, var(--c) 24%, transparent) 78%,
+      color-mix(in srgb, var(--c) 6%, transparent) 92%,
+      transparent 100%
+    );
   }
 
   .blob-a {
-    width: min(42rem, 80vw);
+    --c: var(--glow-a);
+    width: calc(min(42rem, 80vw) + 16rem);
     aspect-ratio: 1;
     left: 15%;
     top: 52%;
-    background: var(--glow-a);
   }
 
   .blob-b {
-    width: min(38rem, 72vw);
+    --c: var(--glow-b);
+    width: calc(min(38rem, 72vw) + 16rem);
     aspect-ratio: 1;
     left: 85%;
     top: 56%;
-    background: var(--glow-b);
   }
 
   .blob-c {
-    width: min(46rem, 96vw);
+    --c: rgb(255 255 255 / 0.55);
+    width: calc(min(46rem, 96vw) + 16rem);
     aspect-ratio: 1.6;
     left: 50%;
     top: 46%;
-    background: rgb(255 255 255 / 0.55);
   }
 
   /* ---- The column ---- */

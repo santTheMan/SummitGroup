@@ -162,14 +162,22 @@ scopeMotion(
        a reader scrolling in saw the lead and chips under an empty gap (and a sliver of
        a word in its mask) before the words popped up. It now starts just before the
        heading reaches the screen, a little quicker, and the words wait further down,
-       wholly hidden. */
+       wholly hidden. The rise is one transform string, so Motion hands it to the
+       browser's compositor (WAAPI) instead of restyling each frame: nothing behind
+       the heading is repainted while it moves (Safari showed a pale box there). */
     const finale = $('[data-finale-title]');
     if (finale && below(finale)) {
       const finWords = $$('.fin-word', finale);
-      animate(finWords, { y: '125%', rotate: 3 }, { duration: 0 });
+      const hidden = 'translateY(125%) rotate(3deg)';
+      animate(finWords, { transform: hidden }, { duration: 0 });
       inView(
         finale,
-        () => void animate(finWords, { y: ['125%', '0%'], rotate: [3, 0] }, { duration: 0.7, delay: stagger(0.05), ease: out }),
+        () =>
+          void animate(
+            finWords,
+            { transform: [hidden, 'translateY(0%) rotate(0deg)'] },
+            { duration: 0.7, delay: stagger(0.05), ease: out },
+          ),
         { margin: '0px 0px 20% 0px' },
       );
     }

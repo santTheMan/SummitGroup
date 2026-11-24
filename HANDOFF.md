@@ -11,6 +11,12 @@ slowed mid-range phone (LCP 0.5s, CLS 0, 60fps scrolling, 134 KB). Fixed:
 - **"Start with a conversation" on arrival:** the headline waited until it was 15% inside the
   screen, so readers saw the lead under an empty gap and a sliver of a word. It now rises just
   before it arrives (`motion.ts`).
+- **Pale box behind that headline (Daniel saw it, most likely in Safari):** for about a second
+  after arriving, a lighter box sat round the heading. The section's glows were discs under
+  `filter: blur(64px)`, and the rise restyled the words every frame, so Safari repainted the
+  blur only inside the heading's rectangle. The glows are now radial gradients (16rem wider, so
+  they fade over the same distance), and the rise is one transform string, run on the
+  compositor. Not reproducible in Chrome here; check on an iPhone and in Safari.
 - **Phone held sideways:** the menu ran off the bottom; it now scrolls inside itself.
 - **Menus close when the page scrolls away** from them (`closeOnPageScroll` in `ui.ts`).
 - **Heatmap** scrolled sideways from 721 to about 990px; tablets and small laptops now show the
