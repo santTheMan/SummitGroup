@@ -1,5 +1,11 @@
 # Handoff: SGI website, Phase 1
 
+## 24 Nov 2026: phone menu
+
+- The "Book a conversation" button at the foot of the phone menu is gone (Daniel). The menu
+  holds only the three businesses and the section links. The hero and "Start with a
+  conversation" carry the call to action. The small-screen menu test checks it stays out.
+
 ## 23 Nov 2026: Liquid Glass, to Apple's guidelines
 
 Daniel sent a reel about Apple's Liquid Glass and asked for it on the header and all the
@@ -71,7 +77,8 @@ and fades, in place of a hard edge.
 - Reduce Motion: no flex or swell. The light and colour changes stay.
 
 **FAQ:** the "Book a conversation" button beside the FAQ is gone (Daniel, 23 Nov). The hero
-and "Start with a conversation" hold the call to action, as does the phone menu.
+and "Start with a conversation" hold the call to action. (The phone menu's button went on
+24 Nov.)
 
 **Refresh jump fixed (23 Nov):** clicking a header link or "Book a conversation" used to write
 "#section" into the address. Safari (and Firefox) follow that hash on refresh, so a refresh
@@ -220,8 +227,8 @@ attention to the figure and the gauge.
   map library. To add or change countries, edit `audiences.markets` (ISO numeric id, plus
   `at` for where the label points).
 - **Header:** the Book a conversation button is gone from the header pill. The hero and the
-  closing section still carry the call to action, and the small-screen menu still ends with
-  it. The selected item is now a liquid-glass lens (after Apple's Liquid Glass tab bars). It
+  closing section still carry the call to action. (The small-screen menu kept it until
+  24 Nov.) The selected item is now a liquid-glass lens (after Apple's Liquid Glass tab bars). It
   sits under the section being read, springs to the link under the pointer or the focused link
   (and to "Our businesses" while its fold-out is open), and swells while pressed.
 

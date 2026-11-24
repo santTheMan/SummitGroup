@@ -615,6 +615,8 @@ test.describe('header navigation', () => {
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: 'How we work' })).toBeVisible();
+    // No booking button in the phone menu (Daniel, 24 Nov 2026)
+    await expect(nav.getByRole('link', { name: /book a conversation/i })).toHaveCount(0);
 
     await page.keyboard.press('Escape');
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
