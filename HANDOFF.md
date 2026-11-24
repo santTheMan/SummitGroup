@@ -1,5 +1,38 @@
 # Handoff: SGI website, Phase 1
 
+## 24 Nov 2026: stress test before Sam's preview
+
+Daniel asked for a stress test before sending Sam the preview link
+(https://summit-group-preview.vercel.app, a Vercel project deployed from a prebuilt `dist/`,
+not from Git). Checked: 13 widths from 320 to 2560px, phones held sideways, keyboard order and
+focus, rapid clicks, axe in every state (menus open, FAQ open, chips picked), reduced motion,
+reduced transparency, forced colours, more contrast, no JavaScript, 200% text, and speed on a
+slowed mid-range phone (LCP 0.5s, CLS 0, 60fps scrolling, 134 KB). Fixed:
+- **"Start with a conversation" on arrival:** the headline waited until it was 15% inside the
+  screen, so readers saw the lead under an empty gap and a sliver of a word. It now rises just
+  before it arrives (`motion.ts`).
+- **Phone held sideways:** the menu ran off the bottom; it now scrolls inside itself.
+- **Menus close when the page scrolls away** from them (`closeOnPageScroll` in `ui.ts`).
+- **Heatmap** scrolled sideways from 721 to about 990px; tablets and small laptops now show the
+  last 40 weeks (phones 20). It is no longer an empty keyboard stop.
+- **Tap targets:** the phone logo link (22px) and footer links (34px) are 44px tall.
+- **FAQ label** now matches the other sections (blue `.label`).
+- **No JavaScript:** the phone menu button, which could do nothing, is hidden.
+- Small phones: the tablet counters and the heatmap range note no longer break mid-phrase.
+- Business links in the phone menu land with their illustration just under the header.
+
+**Client revenue is now a real estimate (Daniel, 24 Nov):** SSI's profile reports R12.8m+ in
+commissions paid to its South African talent in the last 3 months; setters earn 7.5% of each
+sale, so client sales came to R12.8m / 0.075 = R170.7m. Daniel asked for dollars: at R17.5 to the
+dollar (the rate on 22 to 23 Nov) that is about $9.75m, shown as **$9.7M+** with an "Estimate"
+tag. The note avoids "earn", "income" and "commission" (claims governance test). Still awaiting
+sign-off (`signOffs.clientRevenueFigure`).
+
+**Open:** the SSI profile says 350+ placements since June 2025; the site says 450+ (from the
+16 Nov brand strategy review). Confirm which is current. The closing "Book a conversation" still
+points at its own section until the booking link exists. Safari was not tested by machine (no
+WebKit here); check the preview on an iPhone.
+
 ## 24 Nov 2026: visual review applied
 
 Daniel shared another AI's 16-point visual review of the homepage (1512px desktop, 384px

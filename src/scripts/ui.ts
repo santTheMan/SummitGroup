@@ -188,6 +188,30 @@ function initBusinessesMenu() {
     if (isOpen() && !menu.contains(e.target as Node)) set(false);
   });
   $$('a', panel).forEach((a) => a.addEventListener('click', () => set(false)));
+  closeOnPageScroll(trigger, () => {
+    if (panel.contains(document.activeElement)) trigger.focus({ preventScroll: true });
+    set(false);
+  });
+}
+
+/* A menu left open while the page scrolls away from it closes, as Apple's menus do
+   (QA, 24 Nov 2026): it would otherwise float over content it no longer belongs to.
+   The scroll position is noted the moment the menu opens (its trigger's
+   aria-expanded turns true); a small allowance ignores the nudge of a tap or a
+   trackpad settling. */
+function closeOnPageScroll(trigger: HTMLElement, close: () => void) {
+  const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
+  let from = window.scrollY;
+  new MutationObserver(() => {
+    if (isOpen()) from = window.scrollY;
+  }).observe(trigger, { attributes: true, attributeFilter: ['aria-expanded'] });
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (isOpen() && Math.abs(window.scrollY - from) > 64) close();
+    },
+    { passive: true },
+  );
 }
 
 /* Small-screen sheet */
@@ -213,6 +237,10 @@ function initSheet() {
   });
   document.addEventListener('click', (e) => {
     if (isOpen() && !sheet.contains(e.target as Node) && !burger.contains(e.target as Node)) set(false);
+  });
+  closeOnPageScroll(burger, () => {
+    if (sheet.contains(document.activeElement)) burger.focus({ preventScroll: true });
+    set(false);
   });
 }
 

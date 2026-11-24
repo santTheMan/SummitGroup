@@ -18,7 +18,8 @@ import Gauge from './Gauge.astro';
 
 const statement = words(about.statement);
 
-const revenueFormat = { style: 'currency', currency: clientRevenue.currency, maximumFractionDigits: 0 } as const;
+/* Compact (9.7M), with the $ and the + written around the count, so it reads $9.7M+ */
+const revenueFormat = { notation: 'compact', maximumFractionDigits: 1 } as const;
 const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientRevenue.amount);
 ---
 
@@ -45,17 +46,18 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
           class="revenue-gauge"
           value={clientRevenue.fill}
           label={clientRevenue.label}
-          valueText={revenueText}
+          valueText={clientRevenue.spoken}
           meter={false}
           spacing={25}
           inactiveFillOpacity={0.4}
           delay={0.2}
         >
-          <span
-            class="revenue-value"
-            data-gauge-count
-            data-total={clientRevenue.amount}
-            data-format={JSON.stringify(revenueFormat)}>{revenueText}</span
+          <span class="revenue-value"
+            >{clientRevenue.prefix}<span
+              data-gauge-count
+              data-total={clientRevenue.amount}
+              data-format={JSON.stringify(revenueFormat)}>{revenueText}</span
+            >{clientRevenue.suffix}</span
           >
           <span class="revenue-caption">Client revenue</span>
         </Gauge>

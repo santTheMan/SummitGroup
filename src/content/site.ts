@@ -104,19 +104,30 @@ export const about = {
 } as const;
 
 /**
- * Client revenue gauge under the proof points (Daniel, 22 Nov 2026), after
- * bklit's Gauge chart. The amount and the 66% fill are bklit's example values
- * until the real figure is confirmed: see signOffs.clientRevenueFigure.
+ * Client revenue gauge under the statement (Daniel, 22 Nov 2026), after bklit's
+ * Gauge chart. The figure is worked out backwards from commissions (Daniel, 24 Nov
+ * 2026): SSI's profile reports R12.8m+ in commissions paid to its South African
+ * talent in the last 3 months, and setters earn 7.5% of each sale's price, so the
+ * sales they made for clients come to R12.8m / 0.075 = R170.7m. In dollars (Daniel
+ * asked for dollars, 24 Nov 2026), at R17.5 to the US dollar (the rate on 22 to 23
+ * Nov 2026; nearer R16.6 earlier in November, which would give more): about $9.75m.
+ * Shown as $9.7M+, rounded down, since R12.8m is itself a floor. Still to be signed
+ * off: signOffs.clientRevenueFigure. The 66% fill is decorative.
  */
 export const clientRevenue = {
-  amount: 428_000,
-  currency: 'USD',
+  amount: 9_700_000,
+  /** Written around the counting figure: $9.7M+ */
+  prefix: '$',
+  suffix: '+',
+  /** What a screen reader hears */
+  spoken: '$9.7 million plus',
   /** Gauge fill, 0 to 100. */
   fill: 66,
   label: 'Revenue generated for clients in the past 3 months',
-  note: 'Revenue our teams generated for clients, not SGI revenue.',
-  /** Shown as a tag above the label until the real figure is confirmed. */
-  flag: 'Example figure until confirmed',
+  /* No "earn", "income" or "commission" in published copy (claims governance, content.test.ts) */
+  note: 'Revenue our teams generated for clients, not SGI revenue. Estimated from the sales our talent made in that period.',
+  /** Shown as a tag above the label */
+  flag: 'Estimate',
 } as const;
 
 export const proof: readonly ProofPoint[] = [
@@ -195,9 +206,12 @@ export const howWeWork = {
     note: 'Illustration: an indicative spread of the 450+ placements. Daily figures are not actual records.',
     legendLess: 'Fewer',
     legendMore: 'More',
-    /** Phones show only the most recent weeks, so the squares stay readable. */
+    /** Phones and tablets show only the most recent weeks, so the squares stay readable
+        and the chart never scrolls sideways. */
     phoneWeeks: 20,
     phoneRange: 'Last 20 weeks',
+    tabletWeeks: 40,
+    tabletRange: 'Last 40 weeks',
     tooltipOne: 'placement',
     tooltipMany: 'placements',
   },

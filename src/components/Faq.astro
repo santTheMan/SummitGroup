@@ -15,7 +15,7 @@ import Icon from './Icon.astro';
 <section class="sec faq" id="faq" aria-labelledby="faq-title">
   <div class="wrap faq-grid">
     <div class="faq-side" data-reveal>
-      <p class="k">{faq.eyebrow}</p>
+      <p class="label">{faq.eyebrow}</p>
       <h2 class="h2" id="faq-title">{faq.heading}</h2>
       <p class="muted">{faq.intro}</p>
     </div>
@@ -58,7 +58,8 @@ import Icon from './Icon.astro';
     gap: 1rem;
   }
 
-  .faq-side .k {
+  .faq-side .label {
+    padding-top: 0;
     margin-bottom: -0.25rem;
   }
 

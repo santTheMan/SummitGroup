@@ -20,19 +20,23 @@ const cal = placementCalendar(copy.from, copy.to, total);
 /* Phones: only the last few weeks, re-placed from column 2 (see the phone rules below) */
 const recentFrom = Math.max(0, cal.weeks - copy.phoneWeeks);
 const pc = (col: number) => col - recentFrom + 2;
+/* Tablets and small laptops (721 to 1024px): the last 40 weeks, re-placed the same way */
+const tabletFrom = Math.max(0, cal.weeks - copy.tabletWeeks);
+const tc = (col: number) => col - tabletFrom + 2;
 const dayLabels = ['Mon', '', 'Wed', '', 'Fri', '', ''];
 const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 ---
 
 <div class="hm-wrap" data-heatmap data-one={copy.tooltipOne} data-many={copy.tooltipMany}>
-  <div class="hm-scroll" tabindex="0" role="img" aria-label={label} data-hm-scroll>
-    <div class="hm" style={`--cols:${cal.weeks}; --pcols:${cal.weeks - recentFrom}`} data-hm>
+  <div class="hm-scroll" role="img" aria-label={label} data-hm-scroll>
+    <div class="hm" style={`--cols:${cal.weeks}; --pcols:${cal.weeks - recentFrom}; --tcols:${cal.weeks - tabletFrom}`} data-hm>
       {
         cal.months.map((m) => (
           <span
             class="hm-month"
             data-old={m.col < recentFrom ? '' : undefined}
-            style={`grid-column:${m.col + 2} / span 3; --pc:${pc(m.col)}`}
+            data-old-t={m.col < tabletFrom ? '' : undefined}
+            style={`grid-column:${m.col + 2} / span 3; --pc:${pc(m.col)}; --tc:${tc(m.col)}`}
           >
             {m.label}
           </span>
@@ -48,7 +52,8 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
             data-n={d.count}
             data-t={fmt.format(new Date(`${d.date}T00:00:00Z`))}
             data-old={d.col < recentFrom ? '' : undefined}
-            style={`grid-area:${d.row + 2} / ${d.col + 2}; --pc:${pc(d.col)}`}
+            data-old-t={d.col < tabletFrom ? '' : undefined}
+            style={`grid-area:${d.row + 2} / ${d.col + 2}; --pc:${pc(d.col)}; --tc:${tc(d.col)}`}
           />
         ))
       }
@@ -56,7 +61,8 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
   </div>
   <p class="hm-tip" data-hm-tip aria-hidden="true"></p>
   <div class="hm-legend" aria-hidden="true">
-    <span class="hm-range">{copy.phoneRange}</span>
+    <span class="hm-range hm-range--phone">{copy.phoneRange}</span>
+    <span class="hm-range hm-range--tablet">{copy.tabletRange}</span>
     <span>{copy.legendLess}</span>
     <i></i>
     <span>{copy.legendMore}</span>
@@ -73,9 +79,11 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
     --l4: #173f86;
   }
 
+  /* QA, 24 Nov: phones and tablets show recent weeks, so the chart fits at every
+     width and never scrolls. Clipped rather than a scroll box: a scroll box a pixel
+     too small became an empty stop for keyboard users. */
   .hm-scroll {
-    overflow-x: auto;
-    scrollbar-width: thin;
+    overflow-x: clip;
     border-radius: 8px;
   }
 
@@ -171,6 +179,32 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
   .hm-range {
     display: none;
     margin-right: auto;
+    white-space: nowrap;
+  }
+
+  /* QA, 24 Nov: between phone and desktop the full year and a half was too wide and
+     scrolled sideways, so tablets and small laptops show the last 40 weeks */
+  @media (min-width: 45.0625rem) and (max-width: 64rem) {
+    .hm {
+      grid-template-columns: 1.25rem repeat(var(--tcols), minmax(0, 1fr));
+      min-width: 0;
+    }
+
+    .hm > [data-old-t] {
+      display: none;
+    }
+
+    .hm > .hm-month {
+      grid-column: var(--tc) / span 3 !important;
+    }
+
+    .hm > i {
+      grid-column: var(--tc) !important;
+    }
+
+    .hm-range--tablet {
+      display: inline;
+    }
   }
 
   /* Review, 24 Nov: on phones the heatmap shows the last 20 weeks at a readable size,
@@ -194,7 +228,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
       border-radius: 3px;
     }
 
-    .hm-range {
+    .hm-range--phone {
       display: inline;
     }
 

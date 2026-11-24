@@ -522,11 +522,17 @@ const phoneSeats = 5;
 
   .team-count {
     display: flex;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 1.5rem;
     margin-top: 1.5rem;
     font-size: 0.875rem;
     color: var(--muted);
     font-variant-numeric: tabular-nums;
+  }
+
+  .team-count span {
+    white-space: nowrap;
   }
 
   .team-count b {

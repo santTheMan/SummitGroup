@@ -448,6 +448,20 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       display: grid;
     }
 
+    /* Without JavaScript the menu button can't open anything: hide it (every
+       section is on this one page, and the footer repeats the links) */
+    :global(.no-js) .burger {
+      display: none;
+    }
+
+    /* The logo link is a full 44px tap target, like the menu button */
+    .nav-brand {
+      align-items: center;
+      min-height: 2.75rem;
+    }
+
+    /* QA, 24 Nov: on a phone held sideways the sheet is taller than the screen, so it
+       scrolls inside itself (and never scrolls the page behind it) */
     .sheet {
       position: absolute;
       left: 0;
@@ -455,6 +469,9 @@ const icons = { institute: 'institute', sales: 'sales', pathways: 'pathways' } a
       top: calc(100% + 0.5rem);
       display: flex;
       flex-direction: column;
+      max-height: calc(100dvh - var(--nav-h) - 2rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
       padding: 0.5rem;
       border-radius: 28px;
       background: var(--glass-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.5));

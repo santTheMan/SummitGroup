@@ -59,7 +59,7 @@ export function getReleaseIssues(env: ReleaseEnv): ReleaseIssue[] {
     placementsFigure: 'The wording and scope of "450+ placements since June 2025" are not confirmed.',
     legalDetails: 'The registered company name and privacy/legal requirements are not confirmed.',
     clientRevenueFigure:
-      'The client revenue gauge shows bklit’s example figure ($428,000, 66% fill). Confirm the real amount and period.',
+      'The client revenue gauge shows $9.7M+: SSI’s R12.8m+ commissions in the last 3 months at 7.5% of each sale (R170.7m), at R17.5 to the dollar. Confirm the figure, rate and wording.',
   };
   for (const [key, approved] of Object.entries(signOffs) as [keyof typeof signOffs, boolean][]) {
     if (!approved) issues.push({ id: `sign-off:${key}`, message: labels[key] });

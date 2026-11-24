@@ -157,7 +157,8 @@ test.describe('SGI home page', () => {
 
   test('section labels are plain text, with no pulsing dot', async ({ page }) => {
     const labels = page.locator('p.label');
-    await expect(labels).toHaveCount(4);
+    // About, Our businesses, How we work, Who we work with, and FAQ (24 Nov: same label as the rest)
+    await expect(labels).toHaveCount(5);
     const marks = await labels.evaluateAll((els) =>
       els.map((el) => {
         const dot = getComputedStyle(el, '::before');
@@ -177,9 +178,11 @@ test.describe('SGI home page', () => {
   });
 
   test('the client revenue gauge sweeps up and counts to its figure', async ({ page }) => {
-    const gauge = page.getByRole('img', { name: /Revenue generated for clients in the past 3 months: \$428,000/ });
+    // R12.8m+ commissions at 7.5% of each sale = R170.7m, at R17.5/$ (24 Nov 2026): $9.7M+
+    const gauge = page.getByRole('img', { name: /Revenue generated for clients in the past 3 months: \$9\.7 million plus/ });
     await gauge.scrollIntoViewIfNeeded();
-    await expect(gauge.locator('[data-gauge-count]')).toHaveText('$428,000', { timeout: 6000 });
+    await expect(gauge.locator('[data-gauge-count]')).toHaveText('9.7M', { timeout: 6000 });
+    await expect(gauge.locator('.revenue-value')).toHaveText('$9.7M+');
     await expect(gauge.locator('path[data-on]')).toHaveCount(26);
     await expect(page.locator('.revenue')).toContainText('not SGI revenue');
   });
@@ -204,7 +207,7 @@ test.describe('SGI home page', () => {
     expect(look.label).toBeLessThanOrEqual(look.statement);
     // Review, 24 Nov: a little smaller (21rem), so it sits with its explanation
     expect(look.gaugeWidth).toBeGreaterThanOrEqual(isDesktop(page) ? 320 : 260);
-    await expect(revenue.locator('.revenue-flag')).toHaveText(/example figure/i);
+    await expect(revenue.locator('.revenue-flag')).toHaveText('Estimate');
     expect(look.pool).toContain('radial-gradient');
     expect(look.sectionRule).toBe(0);
     expect(look.hairlines).toBe(0);
@@ -444,7 +447,7 @@ test.describe('reduced motion', () => {
     await expect(page.locator('html')).not.toHaveAttribute('data-motion', 'on');
     await expect(page.locator('.hero-word').first()).toHaveCSS('transform', 'none');
     await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
-    await expect(page.locator('.revenue [data-gauge-count]')).toHaveText('$428,000');
+    await expect(page.locator('.revenue .revenue-value')).toHaveText('$9.7M+');
     await expect(page.locator('[data-team-story] [data-seat][data-s="2"]')).toHaveCount(12);
     // No floating: the illustrations hold still.
     await page.locator('#businesses').scrollIntoViewIfNeeded();

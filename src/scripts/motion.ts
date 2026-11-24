@@ -157,15 +157,20 @@ scopeMotion(
     /* Start with a conversation: the finale headline rises out of its line masks once,
        as the hero's promise did, so the page closes in the voice it opened with. Only
        when it starts below the fold, so a #book link lands on it at rest. Nothing waits
-       for it: the picker and button work while it settles. */
+       for it: the picker and button work while it settles.
+       QA, 24 Nov 2026: it used to wait until the heading was 15% inside the screen, so
+       a reader scrolling in saw the lead and chips under an empty gap (and a sliver of
+       a word in its mask) before the words popped up. It now starts just before the
+       heading reaches the screen, a little quicker, and the words wait further down,
+       wholly hidden. */
     const finale = $('[data-finale-title]');
     if (finale && below(finale)) {
       const finWords = $$('.fin-word', finale);
-      animate(finWords, { y: '110%', rotate: 3 }, { duration: 0 });
+      animate(finWords, { y: '125%', rotate: 3 }, { duration: 0 });
       inView(
         finale,
-        () => void animate(finWords, { y: ['110%', '0%'], rotate: [3, 0] }, { duration: 0.85, delay: stagger(0.06), ease: out }),
-        { margin: '0px 0px -15% 0px' },
+        () => void animate(finWords, { y: ['125%', '0%'], rotate: [3, 0] }, { duration: 0.7, delay: stagger(0.05), ease: out }),
+        { margin: '0px 0px 20% 0px' },
       );
     }
 
