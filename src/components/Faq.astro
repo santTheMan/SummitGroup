@@ -85,15 +85,20 @@ import Icon from './Icon.astro';
     align-items: center;
     gap: 1.25rem;
     width: 100%;
-    padding: 1.125rem 0;
+    padding: 1.25rem 0;
     text-align: left;
-    font-size: 0.9375rem;
+    font-size: 1rem;
     transition: color 150ms ease;
   }
 
   @media (hover: hover) and (pointer: fine) {
     .faq-list button:hover {
       color: var(--accent-text);
+    }
+
+    .faq-list button:hover .plus {
+      color: var(--action-hover);
+      box-shadow: var(--frost-edge-tint), var(--frost-shadow-tint);
     }
   }
 
@@ -105,13 +110,17 @@ import Icon from './Icon.astro';
     display: grid;
     place-items: center;
     flex: none;
-    width: 2rem;
-    height: 2rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: 50%;
     background: var(--frost-sheen), var(--frost-body);
     -webkit-backdrop-filter: var(--frost-blur);
     backdrop-filter: var(--frost-blur);
-    box-shadow: var(--frost-edge), var(--frost-shadow);
+    box-shadow:
+      var(--frost-edge),
+      0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent),
+      var(--frost-shadow);
+    color: var(--accent-text);
     transition:
       transform 250ms var(--ease-out),
       scale var(--glass-flex),

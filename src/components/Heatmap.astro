@@ -17,14 +17,27 @@ interface Props {
 const { total, label } = Astro.props;
 const copy = howWeWork.placements;
 const cal = placementCalendar(copy.from, copy.to, total);
+/* Phones: only the last few weeks, re-placed from column 2 (see the phone rules below) */
+const recentFrom = Math.max(0, cal.weeks - copy.phoneWeeks);
+const pc = (col: number) => col - recentFrom + 2;
 const dayLabels = ['Mon', '', 'Wed', '', 'Fri', '', ''];
 const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 ---
 
 <div class="hm-wrap" data-heatmap data-one={copy.tooltipOne} data-many={copy.tooltipMany}>
   <div class="hm-scroll" tabindex="0" role="img" aria-label={label} data-hm-scroll>
-    <div class="hm" style={`--cols:${cal.weeks}`} data-hm>
-      {cal.months.map((m) => <span class="hm-month" style={`grid-column:${m.col + 2} / span 3`}>{m.label}</span>)}
+    <div class="hm" style={`--cols:${cal.weeks}; --pcols:${cal.weeks - recentFrom}`} data-hm>
+      {
+        cal.months.map((m) => (
+          <span
+            class="hm-month"
+            data-old={m.col < recentFrom ? '' : undefined}
+            style={`grid-column:${m.col + 2} / span 3; --pc:${pc(m.col)}`}
+          >
+            {m.label}
+          </span>
+        ))
+      }
       {dayLabels.map((d, i) => d && <span class="hm-day" style={`grid-row:${i + 2}`}>{d.charAt(0)}</span>)}
       {
         cal.days.map((d) => (
@@ -34,7 +47,8 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
             data-r={d.row}
             data-n={d.count}
             data-t={fmt.format(new Date(`${d.date}T00:00:00Z`))}
-            style={`grid-area:${d.row + 2} / ${d.col + 2}`}
+            data-old={d.col < recentFrom ? '' : undefined}
+            style={`grid-area:${d.row + 2} / ${d.col + 2}; --pc:${pc(d.col)}`}
           />
         ))
       }
@@ -42,6 +56,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
   </div>
   <p class="hm-tip" data-hm-tip aria-hidden="true"></p>
   <div class="hm-legend" aria-hidden="true">
+    <span class="hm-range">{copy.phoneRange}</span>
     <span>{copy.legendLess}</span>
     <i></i>
     <span>{copy.legendMore}</span>
@@ -76,7 +91,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
   .hm-month {
     grid-row: 1;
     padding-bottom: 0.25rem;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     color: var(--muted);
     white-space: nowrap;
   }
@@ -84,7 +99,7 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
   .hm-day {
     grid-column: 1;
     align-self: center;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     line-height: 1;
     color: var(--muted);
   }
@@ -149,8 +164,43 @@ const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric',
     justify-content: flex-end;
     gap: 0.5rem;
     margin-top: 0.875rem;
-    font-size: 0.72rem;
+    font-size: 0.8125rem;
     color: var(--muted);
+  }
+
+  .hm-range {
+    display: none;
+    margin-right: auto;
+  }
+
+  /* Review, 24 Nov: on phones the heatmap shows the last 20 weeks at a readable size,
+     rather than a year and a half of tiny squares in a sideways scroll */
+  @media (max-width: 45rem) {
+    .hm {
+      grid-template-columns: 1.25rem repeat(var(--pcols), minmax(0, 1fr));
+      min-width: 0;
+    }
+
+    .hm > [data-old] {
+      display: none;
+    }
+
+    .hm > .hm-month {
+      grid-column: var(--pc) / span 3 !important;
+    }
+
+    .hm > i {
+      grid-column: var(--pc) !important;
+      border-radius: 3px;
+    }
+
+    .hm-range {
+      display: inline;
+    }
+
+    .hm-legend i {
+      width: 4.5rem;
+    }
   }
 
   .hm-legend i {

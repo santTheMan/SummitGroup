@@ -1,5 +1,32 @@
 # Handoff: SGI website, Phase 1
 
+## 24 Nov 2026: visual review applied
+
+Daniel shared another AI's 16-point visual review of the homepage (1512px desktop, 384px
+phone). He saw it locally side by side with the old version, then approved all of it.
+- **Hero:** the headline is a narrower, balanced block (`max-width: 20ch`,
+  `text-wrap: balance`), smaller on phones (5 lines, not 6). The sentence under it is larger
+  and darker (78% ink).
+- **Tablet:** on phones it tilts from its top edge with a gentler tilt, so it shows in the
+  first screen. Placed people carry no tile box, so the brief leads, and the brief title is
+  larger. Phones show 5 people and a "+7 more" tile.
+- **Header:** links 15px, and anchors land 2rem below the bar (`scroll-padding-top`).
+- **About:** the gauge is 21rem (was 26rem) with a 42px figure. "Example figure until
+  confirmed" is a tag above the label (`clientRevenue.flag`).
+- **Businesses:** less empty space; on phones the copy sits right under its scene.
+- **How we work:** steps are numbered 01 to 04, joined by a faint line on desktop, with 15px
+  text at 74% ink. Heatmap labels are larger; phones show the last 20 weeks
+  (`placements.phoneWeeks`) at a readable size, with no sideways scroll.
+- **Map:** a larger South Africa pin with a blue halo, stronger links, bigger and darker tags.
+- **Chips, toggle, FAQ:** a picked chip has blue text and a firm blue edge, still clear glass.
+  The chosen toggle side is blue on solid white. The FAQ plus is larger and outlined.
+- **Footer:** darker links and copyright line; taller tap rows on phones.
+- **Rhythm and motion:** `--sec` is smaller. Reveals are quicker (0.55s, 16px). The About
+  statement starts at 38% ink, not 14%, so it reads before it inks in.
+- The booking placeholder note remains: it needs the real booking link.
+- Tests: the revenue test now expects the smaller gauge and the tag. The glass test counted
+  three solid blue buttons; since the phone menu's went, it expects two.
+
 ## 24 Nov 2026: phone menu
 
 - The "Book a conversation" button at the foot of the phone menu is gone (Daniel). The menu

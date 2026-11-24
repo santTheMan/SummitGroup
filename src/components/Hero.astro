@@ -90,11 +90,14 @@ const headlineWords = hero.headline.split(' ');
     text-align: center;
   }
 
+  /* Review, 24 Nov: a narrower, balanced block (three even lines on desktop) and a
+     smaller floor on phones, so it reads in five lines rather than six */
   .h1 {
-    max-width: 26ch;
-    font-size: var(--t-h1);
+    max-width: 20ch;
+    font-size: clamp(2.125rem, 1.3rem + 3.4vw, 4.25rem);
     line-height: 1.02;
     letter-spacing: -0.045em;
+    text-wrap: balance;
   }
 
   .mask {
@@ -109,11 +112,14 @@ const headlineWords = hero.headline.split(' ');
     display: inline-block;
   }
 
+  /* A touch larger and darker than body copy, so it holds its own under the headline */
   .hero-text {
-    max-width: 35rem;
-    margin-top: 1.375rem;
-    font-size: 1.0625rem;
-    color: var(--muted);
+    max-width: 36rem;
+    margin-top: 1.5rem;
+    font-size: clamp(1.0625rem, 0.98rem + 0.35vw, 1.25rem);
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
+    text-wrap: pretty;
   }
 
   .hero-ctas {
@@ -121,7 +127,7 @@ const headlineWords = hero.headline.split(' ');
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.625rem;
-    margin-top: 1.75rem;
+    margin-top: 2.25rem;
   }
 
   .device-wrap {
@@ -153,9 +159,15 @@ const headlineWords = hero.headline.split(' ');
   }
 
   @media (max-width: 45rem) {
+    /* The tablet peeks into the first screen: a short gap, and it tilts from its top
+       edge, so the tilt doesn't push it down the page (motion.ts uses a gentler tilt) */
     .device-wrap {
-      margin-top: 2.75rem;
+      margin-top: 2rem;
       padding: 0 0.75rem;
+    }
+
+    .device {
+      transform-origin: 50% 0%;
     }
 
     .bezel {

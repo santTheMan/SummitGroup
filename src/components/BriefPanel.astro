@@ -36,6 +36,8 @@ const initials = (name: string) =>
     .join('')
     .toUpperCase();
 const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i % 5 }));
+/* Phones show the first few people and a "+7 more" tile, so the tablet stays short */
+const phoneSeats = 5;
 ---
 
 <div class="tab" data-panel data-team-story data-managed>
@@ -97,6 +99,10 @@ const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i 
             </span>
           ))
         }
+        <span class="seat-more">
+          <b>+{p.teamSize - phoneSeats}</b>
+          <small>more</small>
+        </span>
       </div>
       <p class="team-count" aria-hidden="true">
         <span><b data-count="people">{p.teamSize}</b>/{p.teamSize} {p.teamLabel}</span>
@@ -185,15 +191,15 @@ const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i 
   .tab-title {
     margin-top: 0.5rem;
     font-family: var(--font-display);
-    font-size: clamp(1.625rem, 1.1rem + 1.6vw, 2.5rem);
-    line-height: 1.05;
+    font-size: clamp(1.875rem, 1.1rem + 2.1vw, 3rem);
+    line-height: 1.04;
     letter-spacing: -0.035em;
     text-wrap: balance;
   }
 
   .tab-meta {
-    margin-top: 0.625rem;
-    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
     color: var(--muted);
   }
 
@@ -359,11 +365,11 @@ const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i 
       border-color 220ms ease;
   }
 
+  /* Review, 24 Nov: placed people carry no box of their own, so twelve tiles don't
+     compete with the brief. The team frame (below) holds them together. */
   .seat[data-s='1'],
   .seat[data-s='2'] {
-    border-style: solid;
-    border-color: color-mix(in srgb, var(--sgi-sky) 40%, var(--rule));
-    background: color-mix(in srgb, var(--sgi-sky) 12%, var(--paper));
+    border-color: transparent;
   }
 
   /* Avatar tones run through the brand palette, so the team reads as different people */
@@ -550,6 +556,11 @@ const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i 
     transform: none;
   }
 
+  /* "+7 more": phones only */
+  .seat-more {
+    display: none;
+  }
+
   /* Tablets: the team sits a little smaller beside the brief */
   @media (max-width: 64rem) {
     .tab-body {
@@ -615,20 +626,53 @@ const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i 
       border-radius: 13px;
     }
 
+    /* Five people and a "+7 more" tile: two rows instead of four */
+    .seat:nth-child(n + 6) {
+      display: none;
+    }
+
+    .seat-more {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.125rem;
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--sgi-sky) 14%, var(--paper));
+      color: var(--ink);
+    }
+
+    .seat-more b {
+      font-family: var(--font-display);
+      font-size: 1.375rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .seat-more small {
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
     .seat-av {
-      width: 2rem;
-      height: 2rem;
+      width: 2.375rem;
+      height: 2.375rem;
       margin-bottom: 0.25rem;
     }
 
     .seat-initials {
-      font-size: 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    .seat-name > * {
+      font-size: 0.9375rem;
     }
 
     /* Narrow tiles: the role may take two lines ("Account manager"), the city goes */
     .seat-role {
       white-space: normal;
       text-wrap: balance;
+      font-size: 0.75rem;
     }
 
     .seat-city {
@@ -637,6 +681,11 @@ const seats = p.team.map((m, i) => ({ ...m, initials: initials(m.name), tone: i 
 
     .team-count {
       margin-top: 1.125rem;
+      font-size: 0.9375rem;
+    }
+
+    .team-count b {
+      font-size: 1.25rem;
     }
   }
 

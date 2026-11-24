@@ -76,7 +76,8 @@
   --wrap: 75rem;
   --gutter: 1.5rem;
   --nav-h: 4rem;
-  --sec: clamp(5.25rem, 3.5rem + 5vw, 7.5rem);
+  /* Review, 24 Nov: a little less space between sections (was 5.25rem to 7.5rem) */
+  --sec: clamp(4.5rem, 3rem + 4vw, 6.25rem);
 
   /* Motion (Emil's curves; durations stay short for UI) */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);

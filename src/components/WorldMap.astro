@@ -149,7 +149,7 @@ const links = shapes
 
 <style>
   .map {
-    --land: color-mix(in srgb, var(--ink) 15%, var(--page));
+    --land: color-mix(in srgb, var(--ink) 19%, var(--page));
     --home: var(--sgi-navy);
     --client: var(--sgi-electric);
     margin: 0;
@@ -203,11 +203,11 @@ const links = shapes
   .map-link {
     fill: none;
     stroke: var(--client);
-    stroke-width: 1.25;
+    stroke-width: 1.6;
     stroke-linecap: round;
     stroke-dasharray: 1;
     stroke-dashoffset: 0;
-    opacity: 0.45;
+    opacity: 0.7;
     transition:
       stroke-dashoffset 1100ms cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0ms),
       opacity 200ms ease;
@@ -254,32 +254,43 @@ const links = shapes
       0 0 0 4px color-mix(in srgb, var(--client) 35%, transparent);
   }
 
+  /* Review, 24 Nov: South Africa is the hub, so its pin is larger with a blue halo */
   .map-pin--home i {
+    width: 0.875rem;
+    height: 0.875rem;
     background: var(--home);
     box-shadow:
       0 0 0 3px var(--page),
-      0 0 0 4px color-mix(in srgb, var(--home) 30%, transparent);
+      0 0 0 5px color-mix(in srgb, var(--client) 55%, transparent),
+      0 0 18px 6px color-mix(in srgb, var(--client) 28%, transparent);
   }
 
   .map-tag {
     display: grid;
     padding: 0.25rem 0.5rem;
     border-radius: 8px;
-    background: color-mix(in srgb, var(--page) 82%, transparent);
+    background: color-mix(in srgb, var(--page) 92%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent);
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
-    line-height: 1.2;
+    line-height: 1.25;
     white-space: nowrap;
   }
 
+  /* Review, 24 Nov: larger, darker tags */
   .map-tag b {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 500;
+    color: var(--ink);
   }
 
   .map-tag small {
-    font-size: 0.66rem;
-    color: var(--muted);
+    font-size: 0.75rem;
+    color: color-mix(in srgb, var(--ink) 72%, transparent);
+  }
+
+  .map-pin--home .map-tag b {
+    font-weight: 600;
   }
 
   /* Before the first view (motion.ts): marked countries wait as plain land, links undrawn, labels hidden */
@@ -330,7 +341,7 @@ const links = shapes
     }
 
     .map-tag b {
-      font-size: 0.6875rem;
+      font-size: 0.8125rem;
     }
   }
 

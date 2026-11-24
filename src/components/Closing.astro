@@ -297,9 +297,15 @@ const title = words(closing.heading);
     color: var(--accent-text);
   }
 
+  /* Review, 24 Nov: picked reads at a glance (blue text, a firm blue edge and a tick)
+     but stays clear glass, so it never competes with the solid booking button */
   .chip[aria-pressed='true'] {
     background: var(--frost-sheen), var(--frost-tint);
-    box-shadow: var(--frost-edge-tint), var(--frost-shadow-tint);
+    box-shadow:
+      var(--frost-edge-tint),
+      inset 0 0 0 1.5px color-mix(in srgb, var(--sgi-electric) 70%, transparent),
+      var(--frost-shadow-tint);
+    color: var(--action-hover);
   }
 
   .chip[aria-pressed='true'] :global(.chip-plus) {

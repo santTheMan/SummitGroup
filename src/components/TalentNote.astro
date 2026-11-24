@@ -199,10 +199,10 @@ const answers = talentNote.options.map((o) => {
     border-radius: 999px;
     background:
       var(--frost-sheen),
-      linear-gradient(180deg, rgb(255 255 255 / 0.78), rgb(255 255 255 / 0.56));
+      linear-gradient(180deg, rgb(255 255 255 / 0.96), rgb(255 255 255 / 0.84));
     box-shadow:
       var(--frost-edge),
-      0 0 0 0.5px rgb(7 27 52 / 0.1),
+      0 0 0 1px color-mix(in srgb, var(--sgi-electric) 30%, transparent),
       0 1px 2px rgb(7 27 52 / 0.1),
       0 6px 14px -6px rgb(7 27 52 / 0.3);
     transition:
@@ -246,15 +246,16 @@ const answers = talentNote.options.map((o) => {
     font-weight: 500;
   }
 
+  /* Review, 24 Nov: the unchosen side recedes; the chosen side is blue on white */
   .toggle-base button {
-    color: color-mix(in srgb, var(--ink) 72%, transparent);
+    color: color-mix(in srgb, var(--ink) 66%, transparent);
     border-radius: 999px;
     -webkit-tap-highlight-color: transparent;
   }
 
   .toggle-active {
     pointer-events: none;
-    color: var(--ink);
+    color: var(--action-hover);
     clip-path: inset(0 50% 0 0 round 999px);
     transition: clip-path 260ms var(--ease-out);
   }

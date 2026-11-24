@@ -85,9 +85,10 @@ const lockupWidth = Math.round((lockup.width / lockup.height) * lockupHeight);
     font-weight: 500;
   }
 
+  /* Review, 24 Nov: darker links and copyright line */
   .foot-col a {
     width: max-content;
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 78%, transparent);
     transition: color 150ms ease;
   }
 
@@ -104,8 +105,8 @@ const lockupWidth = Math.round((lockup.width / lockup.height) * lockupHeight);
     margin-top: 4rem;
     padding: 1.125rem 0;
     border-block: 1px solid var(--rule);
-    font-size: 0.75rem;
-    color: var(--muted);
+    font-size: var(--t-small);
+    color: color-mix(in srgb, var(--ink) 74%, transparent);
   }
 
   .bigmark {
@@ -145,6 +146,15 @@ const lockupWidth = Math.round((lockup.width / lockup.height) * lockupHeight);
   @media (max-width: 45rem) {
     .foot-grid {
       grid-template-columns: 1fr 1fr;
+    }
+
+    /* Comfortable tap rows on phones */
+    .foot-col {
+      gap: 0.125rem;
+    }
+
+    .foot-col a {
+      padding-block: 0.4375rem;
     }
   }
 </style>

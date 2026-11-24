@@ -36,8 +36,11 @@ const count = placements ? (splitNumber(placements.value)?.value ?? 0) : 0;
       {
         howWeWork.steps.map((step, i) => (
           <li class="step">
-            <span class="step-ic">
-              <Icon name={icons[i] ?? 'check'} />
+            <span class="step-top">
+              <span class="step-ic">
+                <Icon name={icons[i] ?? 'check'} />
+              </span>
+              <span class="step-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
             </span>
             <h3 class="h3 step-title">{step.title}</h3>
             <p>{step.body}</p>
@@ -80,12 +83,37 @@ const count = placements ? (splitNumber(placements.value)?.value ?? 0) : 0;
     border-top: 1px solid var(--rule);
   }
 
+  /* Review, 24 Nov: larger, darker descriptions; each step numbered, with a faint
+     line running on to the next */
   .step {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 1.375rem 1.25rem 1.375rem 0;
-    font-size: var(--t-small);
+    gap: 0.25rem;
+    padding: 1.5rem 1.25rem 1.5rem 0;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .step-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .step-n {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .step:not(:last-child) .step-top::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    margin-right: -1.25rem;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--sgi-electric) 40%, transparent), transparent);
   }
 
   .step + .step {
@@ -94,12 +122,12 @@ const count = placements ? (splitNumber(placements.value)?.value ?? 0) : 0;
   }
 
   .step p {
-    color: var(--muted);
+    color: color-mix(in srgb, var(--ink) 74%, transparent);
   }
 
   .step-title {
-    margin-top: 0.875rem;
-    font-size: 0.9375rem;
+    margin-top: 1rem;
+    font-size: 1.0625rem;
   }
 
   .step-ic {
@@ -150,11 +178,16 @@ const count = placements ? (splitNumber(placements.value)?.value ?? 0) : 0;
 
   .calc-note {
     margin-top: 0.875rem;
+    font-size: var(--t-small);
   }
 
   @media (max-width: 56.25rem) {
     .steps {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .step .step-top::after {
+      display: none;
     }
 
     .step:nth-child(3) {

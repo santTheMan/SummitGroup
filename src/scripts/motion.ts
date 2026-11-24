@@ -36,7 +36,8 @@ scopeMotion(
     /* The panel lies back, and stands up as it scrolls into view */
     const deviceWrap = $('.device-wrap');
     if (deviceWrap) {
-      scroll(animate('.device', { rotateX: [26, 0], scale: [0.9, 1] }, { ease: 'linear' }), {
+      const phone = matchMedia('(max-width: 45rem)').matches;
+      scroll(animate('.device', { rotateX: [phone ? 12 : 26, 0], scale: [phone ? 0.96 : 0.9, 1] }, { ease: 'linear' }), {
         target: deviceWrap,
         offset: ['start 0.96', 'start 0.22'],
       });
@@ -137,19 +138,19 @@ scopeMotion(
     if (statement && words.length) {
       const sequence: AnimationSequence = words.map((word, i) => [
         word,
-        { opacity: [0.14, 1] },
+        { opacity: [0.38, 1] },
         { at: i * 0.05, duration: 0.3, ease: 'linear' },
       ]);
-      scroll(animate(sequence), { target: statement, offset: ['start 0.82', 'end 0.48'] });
+      scroll(animate(sequence), { target: statement, offset: ['start 0.85', 'end 0.62'] });
     }
 
 
     /* Section heads and cards that start below the fold rise in once */
     $$('[data-reveal]').forEach((el) => {
       if (!below(el)) return;
-      animate(el, { opacity: 0, y: 28 }, { duration: 0 });
-      inView(el, () => void animate(el, { opacity: 1, y: 0 }, { duration: 0.9, ease: out }), {
-        margin: '0px 0px -12% 0px',
+      animate(el, { opacity: 0, y: 16 }, { duration: 0 });
+      inView(el, () => void animate(el, { opacity: 1, y: 0 }, { duration: 0.55, ease: out }), {
+        margin: '0px 0px -4% 0px',
       });
     });
 

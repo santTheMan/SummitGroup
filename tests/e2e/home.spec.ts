@@ -202,7 +202,9 @@ test.describe('SGI home page', () => {
     // The figure is the largest thing in the block; the label sits calmer than the statement
     expect(look.figure).toBeGreaterThan(look.label);
     expect(look.label).toBeLessThanOrEqual(look.statement);
-    expect(look.gaugeWidth).toBeGreaterThanOrEqual(isDesktop(page) ? 400 : 280);
+    // Review, 24 Nov: a little smaller (21rem), so it sits with its explanation
+    expect(look.gaugeWidth).toBeGreaterThanOrEqual(isDesktop(page) ? 320 : 260);
+    await expect(revenue.locator('.revenue-flag')).toHaveText(/example figure/i);
     expect(look.pool).toContain('radial-gradient');
     expect(look.sectionRule).toBe(0);
     expect(look.hairlines).toBe(0);
@@ -512,7 +514,8 @@ test.describe('header navigation', () => {
     for (const b of g.buttons) expect(b).toMatch(/^blur\(\d+px\).*\|none$/);
     for (const c of g.chips) expect(c).toMatch(/^blur\(\d+px\)/);
     // ...except "Book a conversation", which stays solid electric blue
-    expect(g.primary.length).toBeGreaterThan(2);
+    // The hero's and the closing's (the phone menu's went on 24 Nov)
+    expect(g.primary.length).toBeGreaterThanOrEqual(2);
     for (const p of g.primary) expect(p).toBe('none|rgb(34, 100, 210)');
     // Capsules, as Apple's controls are
     expect(g.capsules).toBe(true);

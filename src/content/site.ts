@@ -114,7 +114,9 @@ export const clientRevenue = {
   /** Gauge fill, 0 to 100. */
   fill: 66,
   label: 'Revenue generated for clients in the past 3 months',
-  note: 'Revenue our teams generated for clients, not SGI revenue. Example figure until confirmed.',
+  note: 'Revenue our teams generated for clients, not SGI revenue.',
+  /** Shown as a tag above the label until the real figure is confirmed. */
+  flag: 'Example figure until confirmed',
 } as const;
 
 export const proof: readonly ProofPoint[] = [
@@ -193,6 +195,9 @@ export const howWeWork = {
     note: 'Illustration: an indicative spread of the 450+ placements. Daily figures are not actual records.',
     legendLess: 'Fewer',
     legendMore: 'More',
+    /** Phones show only the most recent weeks, so the squares stay readable. */
+    phoneWeeks: 20,
+    phoneRange: 'Last 20 weeks',
     tooltipOne: 'placement',
     tooltipMany: 'placements',
   },
