@@ -515,6 +515,25 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(camera).not.toHaveAttribute('transform', /.*/);
   });
 
+  test('on phones the example brief is a compact illustration that fits on one screen', async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) > 720, 'phones only');
+    const device = page.locator('.device');
+    const box = (await device.boundingBox())!;
+    const screen = page.viewportSize()!;
+    // Daniel, 25 Nov: smaller on phones (it was 366 × 849 on a 390 × 844 screen)
+    expect(box.width).toBeLessThanOrEqual(320);
+    expect(box.height).toBeLessThan(screen.height * 0.75);
+    // Recruit, Develop and Manage share one row, and the ticks sit inside their circles
+    const tops = await page.locator('.tab-steps li').evaluateAll((ls) => ls.map((l) => Math.round(l.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(1);
+    const inside = await page.locator('.st-n').first().evaluate((n) => {
+      const c = n.getBoundingClientRect();
+      const t = n.querySelector('.st-tick')!.getBoundingClientRect();
+      return t.top >= c.top && t.bottom <= c.bottom;
+    });
+    expect(inside).toBe(true);
+  });
+
   test('on touch screens, a tap on each crowded European market zooms to that market, with no name tag', async ({ page }) => {
     test.skip(isDesktop(page), 'taps are for touch screens');
     const map = page.locator('[data-map]');

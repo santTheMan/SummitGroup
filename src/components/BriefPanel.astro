@@ -250,7 +250,10 @@ const phoneSeats = 5;
       transform 220ms var(--ease-out);
   }
 
+  /* The tick is Icon's svg, outside this component's scoped `.st-n > *`: it needs its own
+     grid area, or it drops into a second row at the circle's bottom edge */
   .st-n :global(.st-tick) {
+    grid-area: 1 / 1;
     opacity: 0;
     transform: scale(0.6);
   }
@@ -692,6 +695,140 @@ const phoneSeats = 5;
 
     .team-count b {
       font-size: 1.25rem;
+    }
+  }
+
+  /* Phones, smaller (Daniel, 25 Nov): the example brief was taller than the screen.
+     A narrower tablet (Hero.astro) with tighter type and spacing, so it reads as an
+     illustration beside the copy; nothing smaller than 11px */
+  @media (max-width: 45rem) {
+    .tab-bar {
+      padding: 0.5625rem 0.875rem;
+      font-size: 0.6875rem;
+    }
+
+    .tab-brand {
+      font-size: 0.75rem;
+    }
+
+    .tab-contact {
+      padding: 3px 8px;
+    }
+
+    .tab-body {
+      gap: 1.125rem;
+      padding: 1rem 1rem 1.125rem;
+    }
+
+    .tab-k {
+      font-size: 0.6875rem;
+    }
+
+    .tab-title {
+      margin-top: 0.3125rem;
+      font-size: 1.375rem;
+    }
+
+    .tab-meta {
+      margin-top: 0.4375rem;
+      font-size: 0.8125rem;
+    }
+
+    .team-grid {
+      gap: 0.375rem;
+      max-width: none;
+    }
+
+    .team-grid::after {
+      inset: -0.375rem;
+      border-radius: 15px;
+    }
+
+    .seat,
+    .seat-more {
+      padding: 0.4375rem 0.1875rem;
+      border-radius: 11px;
+    }
+
+    .seat-av {
+      width: 1.875rem;
+      height: 1.875rem;
+      margin-bottom: 0.1875rem;
+    }
+
+    .seat-initials {
+      font-size: 0.6875rem;
+    }
+
+    /* The tick shrinks with the avatar, so it no longer covers the initials */
+    .seat-tick {
+      right: -5px;
+      bottom: -4px;
+      width: 0.8125rem;
+      height: 0.8125rem;
+      box-shadow: 0 0 0 1.5px var(--paper);
+    }
+
+    .seat-tick :global(svg) {
+      width: 8px;
+      height: 8px;
+    }
+
+    .seat-name > * {
+      font-size: 0.8125rem;
+    }
+
+    .seat-role,
+    .seat-more small {
+      font-size: 0.6875rem;
+    }
+
+    .seat-more b {
+      font-size: 1.125rem;
+    }
+
+    .team-count {
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    .team-count b {
+      font-size: 1.0625rem;
+    }
+
+    .team-one {
+      margin-top: 0.375rem;
+      font-size: 0.8125rem;
+    }
+
+    /* Recruit, Develop, Manage in one row, as a stepper; the one-line descriptions
+       are for larger screens */
+    .tab-steps {
+      flex-direction: row;
+      gap: 0.25rem;
+    }
+
+    .tab-steps li {
+      flex: 1 1 0;
+      flex-direction: column;
+      gap: 0.3125rem;
+      padding: 0.5rem 0.25rem;
+      margin-inline: 0;
+      text-align: center;
+    }
+
+    .st-n {
+      width: 1.5rem;
+      height: 1.5rem;
+      font-size: 0.6875rem;
+    }
+
+    .st-txt b {
+      font-size: 0.875rem;
+    }
+
+    .st-txt small {
+      display: none;
     }
   }
 

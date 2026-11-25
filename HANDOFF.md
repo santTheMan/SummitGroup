@@ -40,6 +40,12 @@ of Daniel's list):
    anyway, and we will shape the brief with you." and the FAQ answers. Sam is recording a Loom
    with full copy feedback.
 
+Also 25 Nov (Daniel): the hero's example brief is smaller on phones (320px wide and about 560px
+tall, from 366 × 849 on a 390px screen): tighter type and spacing (nothing under 11px), smaller
+avatar ticks, and Recruit / Develop / Manage in one row without their descriptions. The step
+ticks also sat at the bottom edge of their circles on every screen (Icon's svg was outside the
+scoped grid rule); they are centred now.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.
