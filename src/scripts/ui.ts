@@ -1,5 +1,6 @@
 import { animate, inView, scroll } from 'motion';
 import { initGauges, replayGauge } from './gauge.ts';
+import { initRefraction } from './refract.ts';
 
 /**
  * Page behaviour that works with or without motion: the header, the
@@ -826,5 +827,6 @@ initFaq();
 initHeatmap();
 initMap();
 initConversation();
+initRefraction();
 initTalent();
 initGauges();

@@ -70,6 +70,17 @@ and a brand glow: Institute deep and peach, Sales electric and sky, Pathways sky
 the header's glass tokens; quiet text inside the card is darker (lowest measured 8.3:1); Reduce
 Transparency makes the card solid.
 
+Also 25 Nov (Daniel, after a reel of a WebGL "liquid-glass" component): the glass now refracts
+at its rim, as real glass does (src/scripts/refract.ts). Each resting glass surface (nav bar,
+frosted buttons, need chips, talent toggle, FAQ plus buttons, business cards) gets an SVG
+displacement filter of its own shape in `backdrop-filter`: the backdrop bends inward along the
+curved rim, red, green and blue by slightly different amounts (a faint prism fringe), and the
+frost is lightened so the middle reads clear. Chromium only (Chrome, Edge, Android): Safari,
+including every iPhone, and Firefox keep the frosted glass. Off with Reduce Transparency or
+Increase Contrast. The fold-out menu and phone sheet keep their frost (they animate it, and a
+filter cannot be animated). The effect shows most where detail passes under the glass (headings
+and the map under the nav bar); over the site's soft washes it is subtle.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.

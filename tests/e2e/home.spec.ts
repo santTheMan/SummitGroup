@@ -659,6 +659,36 @@ test.describe('header navigation', () => {
     await expect(faq).toHaveAttribute('data-selected', '');
   });
 
+  test('glass refracts at its rim in Chromium: one filter per size, the frost lightened', async ({ page }) => {
+    // Daniel, 25 Nov: real glass bends light at its edge (refract.ts, after the reel he sent)
+    await page.goto('/');
+    // The card on show: the desktop stage's, or the one inline on smaller screens
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll<HTMLElement>('.scene .card')].some((c) => c.offsetWidth && c.style.getPropertyValue('--refract')),
+    );
+    const r = await page.evaluate(() => {
+      const filters = [...document.querySelectorAll('svg filter[id^="lg-"]')];
+      const f = filters[0];
+      return {
+        on: document.documentElement.hasAttribute('data-refract'),
+        filters: filters.length,
+        steps: f ? [...f.children].map((c) => c.tagName) : [],
+        pill: getComputedStyle(document.querySelector('.pill')!, '::before').backdropFilter,
+        card: getComputedStyle([...document.querySelectorAll<HTMLElement>('.scene .card')].find((c) => c.offsetWidth)!).backdropFilter,
+        menu: getComputedStyle(document.querySelector('[data-biz-panel]')!).backdropFilter,
+      };
+    });
+    expect(r.on).toBe(true);
+    expect(r.filters).toBeGreaterThan(2);
+    // The rim map, then red, green and blue each displaced by its own amount, recombined
+    expect(r.steps.filter((t) => t === 'feDisplacementMap')).toHaveLength(3);
+    expect(r.steps[0]).toBe('feImage');
+    expect(r.pill).toMatch(/^url\("#lg-\d+"\) blur\(7px\)/);
+    expect(r.card).toMatch(/^url\("#lg-\d+"\) blur\(12px\)/);
+    // Menus that materialize keep their frost: refraction is not animatable
+    expect(r.menu).not.toContain('url(');
+  });
+
   test('glass: a Liquid Glass header, frosted glass buttons, and no glass on glass', async ({ page }) => {
     await page.goto('/');
     const g = await page.evaluate(() => {
@@ -688,10 +718,11 @@ test.describe('header navigation', () => {
     // Never glass on glass: what sits on the bar is a fill at rest
     expect(g.lens).toBe('none');
     expect(g.burger).toBe('none');
-    // Buttons and chips are transparent frosted glass at rest: the page behind them blurs through
+    // Buttons and chips are transparent frosted glass at rest: the page behind them blurs through.
+    // In Chromium the rim also refracts (refract.ts): an SVG filter comes before the blur.
     expect(g.buttons.length).toBeGreaterThan(0);
-    for (const b of g.buttons) expect(b).toMatch(/^blur\(\d+px\).*\|none$/);
-    for (const c of g.chips) expect(c).toMatch(/^blur\(\d+px\)/);
+    for (const b of g.buttons) expect(b).toMatch(/^(url\("#lg-\d+"\) )?blur\(\d+px\).*\|none$/);
+    for (const c of g.chips) expect(c).toMatch(/^(url\("#lg-\d+"\) )?blur\(\d+px\)/);
     // ...except "Partner with us", which stays solid electric blue
     // The hero's and the closing's (the phone menu's went on 24 Nov)
     expect(g.primary.length).toBeGreaterThanOrEqual(2);

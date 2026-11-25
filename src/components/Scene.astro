@@ -226,10 +226,16 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
       var(--glass-sheen),
       linear-gradient(180deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.44));
     -webkit-backdrop-filter: var(--glass-blur-large);
-    backdrop-filter: var(--glass-blur-large);
+    backdrop-filter: var(--refract,) var(--card-blur, var(--glass-blur-large));
     box-shadow:
       var(--glass-thick),
       var(--glass-shadow-large);
+  }
+
+  /* With refraction (refract.ts), the card's middle clears: half the frost, still
+     enough for its text */
+  :global([data-refract]) .card {
+    --card-blur: blur(12px) saturate(1.9) brightness(1.05);
   }
 
   .card::after {

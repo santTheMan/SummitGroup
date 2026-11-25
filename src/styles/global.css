@@ -351,7 +351,8 @@ main {
   background: var(--frost-sheen), var(--frost-body);
   color: var(--ink);
   -webkit-backdrop-filter: var(--frost-blur);
-  backdrop-filter: var(--frost-blur);
+  /* --refract: the rim's refraction, where the browser can draw it (refract.ts) */
+  backdrop-filter: var(--refract,) var(--frost-blur);
   box-shadow: var(--frost-edge), var(--frost-shadow);
 }
 

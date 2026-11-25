@@ -162,3 +162,11 @@
     rgb(255 255 255 / 0.6)
   );
 }
+
+/* Refraction on (src/scripts/refract.ts, Chromium only): real glass is clear in the
+   middle and bends light at its rim, so the frost lightens and the rim does the work.
+   Elsewhere the frost stays as it is. */
+html[data-refract] {
+  --frost-blur: blur(5px) saturate(1.8) brightness(1.03);
+  --glass-blur-clear: blur(7px) saturate(1.8) brightness(1.06);
+}
