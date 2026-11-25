@@ -18,10 +18,21 @@ of Daniel's list):
 4. **"Speed to candidate":** a client's phrase Sam adopted. On the hero tablet ("Speed to
    candidate: days, not weeks") and in Summit Pathways' summary.
 5. **Map:** Sam's client markets are the USA, United Kingdom, Switzerland, Malta, Germany and
-   Tokyo (Japan). Australia is gone. After bklit's Choropleth tooltip, client countries carry no
-   permanent label: pointing at one (tapping on a phone) names it, with "Tokyo" for Japan, and
-   the country nearest the pointer answers, so the crowded European four each work. A legend
-   under the map lists every market. South Africa keeps its label.
+   Tokyo (Japan). Australia is gone. The map is now bklit's Choropleth chart, the "Click to Zoom"
+   example Daniel sent (filled countries, a 10° graticule, a marker per market, click to zoom
+   with a tilted camera), rebuilt from bklit's source without React. Each market country is
+   filled with its national flag (src/lib/flags.ts: official proportions and colours, drawn as
+   SVG), kept to the flag's own proportions and cropped to the country; the US mainland and
+   Alaska each get a whole flag. Other countries are the empty tone. Markers are 5px pins where
+   the links land, so they don't cover the flags. Pointing at any
+   country fades the rest and opens bklit's tooltip beside the cursor (name, then "Clients" /
+   "Our talent", with "Tokyo" for Japan). Clicking a country flies the camera to it (a marker:
+   4×), tilting 24° and turning 18° to look from its side; clicking it again, the empty map or
+   Escape flies back. Malta is a marker only (too small for the 110m outlines), wearing its
+   flag as a 12px badge. The legend shows each market's flag beside its name. Kept at
+   Daniel's request: the map fades into the page at every edge, and thin arcs link South Africa
+   to each client market. On phones a tap names and focuses the country, and a market within
+   18px of the tap wins. The legend under the map lists every market.
 6. **Tone:** SGI must read corporate and premium. Light pass: "Not sure yet? Get in touch
    anyway, and we will shape the brief with you." and the FAQ answers. Sam is recording a Loom
    with full copy feedback.

@@ -348,79 +348,297 @@ function initHeatmap() {
   scroller.addEventListener('scroll', clear, { passive: true });
 }
 
-/* Where we work map: pointing at a country (its dots, link or label) keeps it
-   bright and quietens the other marked countries */
-/* Where we work map, after bklit's Choropleth tooltip (25 Nov 2026): pointing at a
-   marked country (or tapping it on a phone) names it in a tooltip, with its city where
-   there is one, and quietens the other markets. */
+/*
+ * Where we work map: bklit's Choropleth "Click to Zoom" example.
+ *  - Hover (mouse): pointing at a country or marker fades the others and the
+ *    other markets' links (CSS, on [data-hover]) and opens the tooltip panel
+ *    16px beside the cursor (to its left near the right edge), kept inside the
+ *    map. The panel follows on bklit's tooltip spring (stiffness 100, damping
+ *    20), springs in from 85% scale, and stays 120ms after the pointer leaves a
+ *    country, so crossing a border moves it to the next one.
+ *  - Click to zoom: a country flies the camera to its largest landmass, a
+ *    marker to its point (4×); the plane tilts 24° and turns 18° to look from
+ *    the target's side of the map. Clicking it again, the empty map or Escape
+ *    flies back. 700ms on bklit's ease-in-out quint; the centre moves in a
+ *    line and the scale geometrically. While focused only the focused market
+ *    answers hover; any other country is still a click away.
+ *  - Touch: a tap names and focuses the country (a market within 18px wins, so
+ *    Switzerland and Malta are easy to tap); a tap off the map puts it away.
+ */
 function initMap() {
   const map = $('[data-map]');
-  if (!map) return;
-  const stage = $('.map-stage', map);
-  const svg = $<SVGSVGElement>('svg', map);
-  const tip = $('[data-map-tip]', map);
-  const marks = $$<Element>('[data-map-id]', map);
-  // Each marked country's dots, in the map's own units
-  const countries = $$<SVGGElement>('.map-hit', map).map((g) => ({
-    g,
-    pts: (g.dataset.pts ?? '').split(' ').map((p) => p.split(',').map(Number) as [number, number]),
-  }));
-  /* The marked country with a dot nearest the pointer, within about one grid step */
-  const nearest = (x: number, y: number) => {
-    if (!svg) return null;
-    const m = svg.getScreenCTM();
-    if (!m) return null;
-    const p = new DOMPoint(x, y).matrixTransform(m.inverse());
-    let best: SVGGElement | null = null;
-    let bestD = 12 * 12;
-    for (const c of countries) {
-      for (const [px, py] of c.pts) {
-        const d = (px - p.x) ** 2 + (py - p.y) ** 2;
-        if (d < bestD) {
-          bestD = d;
-          best = c.g;
-        }
+  const stage = map && $('.map-stage', map);
+  const svg = map && $<SVGSVGElement>('svg', map);
+  const plane = map && $('[data-map-plane]', map);
+  const camera = map && $<SVGGElement>('[data-map-camera]', map);
+  const tip = map && $('[data-map-tip]', map);
+  const panel = tip && $('.map-tip-panel', tip);
+  if (!map || !stage || !svg || !plane || !camera || !tip || !panel) return;
+  const title = $('.map-tip-title', tip)!;
+  const label = $('.map-tip-label', tip)!;
+  const value = $('.map-tip-value', tip)!;
+  const markers = $$<SVGGElement>('.map-marker', map);
+  const dots = $$<SVGGElement>('.map-marker-dot', map);
+  const links = $$<SVGPathElement>('.map-link', map);
+  const flagged = $$<SVGGElement>('.map-flag', map);
+  const W = svg.viewBox.baseVal.width;
+  const H = svg.viewBox.baseVal.height;
+
+  /* Markers stay 9px: counter-scale by the camera zoom and by the map's own scale */
+  let zoom = 1;
+  let unit = svg.clientWidth / W || 1;
+  const sizeMarkers = () => {
+    const s = (1 / (zoom * unit)).toFixed(4);
+    dots.forEach((d) => d.setAttribute('transform', `scale(${s})`));
+  };
+  new ResizeObserver(() => {
+    unit = svg.clientWidth / W || 1;
+    sizeMarkers();
+  }).observe(svg);
+  sizeMarkers();
+
+  /* The camera: a centre and a scale on the map group, and the plane's angles */
+  type View = { cx: number; cy: number; k: number; yaw: number; tilt: number };
+  let view: View = { cx: W / 2, cy: H / 2, k: 1, yaw: 0, tilt: 0 };
+  let flight: { stop: () => void } | null = null;
+  const apply = (v: View) => {
+    view = v;
+    zoom = v.k;
+    const tx = W / 2 - v.k * v.cx;
+    const ty = H / 2 - v.k * v.cy;
+    if (v.k === 1 && Math.abs(tx) < 0.01 && Math.abs(ty) < 0.01) camera.removeAttribute('transform');
+    else camera.setAttribute('transform', `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${v.k.toFixed(4)})`);
+    svg.style.setProperty('--k', String(v.k));
+    plane.style.transform = v.yaw || v.tilt ? `rotateX(${v.tilt.toFixed(3)}deg) rotateY(${v.yaw.toFixed(3)}deg)` : '';
+    sizeMarkers();
+  };
+  const fly = (to: View) => {
+    flight?.stop();
+    if (reduced.matches) return apply(to);
+    const from = { ...view };
+    const lf = Math.log(from.k);
+    const lt = Math.log(to.k);
+    const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+    flight = animate(0, 1, {
+      duration: 0.7,
+      ease: [0.83, 0, 0.17, 1],
+      onUpdate: (t) =>
+        apply({
+          cx: mix(from.cx, to.cx, t),
+          cy: mix(from.cy, to.cy, t),
+          k: Math.exp(mix(lf, lt, t)),
+          yaw: mix(from.yaw, to.yaw, t),
+          tilt: mix(from.tilt, to.tilt, t),
+        }),
+    });
+  };
+  let focused: Element | null = null;
+  const reset = () => {
+    focused?.removeAttribute('data-focused');
+    focused = null;
+    map.removeAttribute('data-focus');
+    fly({ cx: W / 2, cy: H / 2, k: 1, yaw: 0, tilt: 0 });
+  };
+  const focusOn = (el: Element) => {
+    // The same market again (its country or its marker) flies back out
+    if (focused && sameMarket(el, focused)) return reset();
+    let cx: number;
+    let cy: number;
+    let k: number;
+    const box = el.getAttribute('data-box');
+    if (box) {
+      const [x0 = 0, y0 = 0, x1 = W, y1 = H] = box.split(',').map(Number);
+      cx = (x0 + x1) / 2;
+      cy = (y0 + y1) / 2;
+      k = Math.min(6, Math.max(1, 0.7 * Math.min(W / (x1 - x0 || 1), H / (y1 - y0 || 1))));
+    } else {
+      const [px = W / 2, py = H / 2] = (el.getAttribute('data-at') ?? '').split(',').map(Number);
+      cx = px;
+      cy = py;
+      k = 4;
+    }
+    focused?.removeAttribute('data-focused');
+    focused = el;
+    el.setAttribute('data-focused', '');
+    map.setAttribute('data-focus', '');
+    // focus view "auto": look from the side of the map the target is on
+    fly({ cx, cy, k, yaw: cx < W / 2 ? 18 : -18, tilt: 24 });
+  };
+  const sameMarket = (a: Element, b: Element) =>
+    a === b || (a.getAttribute('data-map-id') !== null && a.getAttribute('data-map-id') === b.getAttribute('data-map-id'));
+  const hoverable = (el: Element) => !focused || sameMarket(el, focused);
+
+  /* The tooltip's position, on a critically damped spring (bklit's tooltipBoxSpring) */
+  let x = 0;
+  let y = 0;
+  let vx = 0;
+  let vy = 0;
+  let tx = 0;
+  let ty = 0;
+  let frame = 0;
+  let last = 0;
+  const draw = () => {
+    tip.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+  };
+  const jump = (nx: number, ny: number) => {
+    cancelAnimationFrame(frame);
+    frame = 0;
+    x = tx = nx;
+    y = ty = ny;
+    vx = vy = 0;
+    draw();
+  };
+  const step = (now: number) => {
+    const dt = Math.min(0.064, (now - last) / 1000);
+    last = now;
+    const n = Math.max(1, Math.ceil(dt / 0.004));
+    const h = dt / n;
+    for (let i = 0; i < n; i++) {
+      vx += (-100 * (x - tx) - 20 * vx) * h;
+      vy += (-100 * (y - ty) - 20 * vy) * h;
+      x += vx * h;
+      y += vy * h;
+    }
+    if (Math.abs(x - tx) + Math.abs(y - ty) < 0.2 && Math.abs(vx) + Math.abs(vy) < 0.2) return jump(tx, ty);
+    draw();
+    frame = requestAnimationFrame(step);
+  };
+  const glide = (nx: number, ny: number) => {
+    tx = nx;
+    ty = ny;
+    if (!frame) {
+      last = performance.now();
+      frame = requestAnimationFrame(step);
+    }
+  };
+
+  const pointer = { x: 0, y: 0 };
+  let visible = false;
+  let current: Element | null = null;
+  let hideTimer = 0;
+  const offset = 16;
+  const place = () => {
+    const w = panel.offsetWidth;
+    const h = panel.offsetHeight;
+    const flip = pointer.x + offset + w > stage.clientWidth;
+    const left = flip ? pointer.x - offset - w : pointer.x + offset;
+    const top = Math.max(offset, Math.min(pointer.y - h / 2, stage.clientHeight - h - offset));
+    tip.toggleAttribute('data-flip', flip);
+    if (reduced.matches || !visible) jump(left, top);
+    else glide(left, top);
+  };
+  const track = (e: PointerEvent | MouseEvent) => {
+    const r = stage.getBoundingClientRect();
+    pointer.x = e.clientX - r.left;
+    pointer.y = e.clientY - r.top;
+  };
+  const enter = (el: Element) => {
+    clearTimeout(hideTimer);
+    if (el !== current) {
+      current?.removeAttribute('data-on');
+      el.setAttribute('data-on', '');
+      current = el;
+      const kind = el.getAttribute('data-kind');
+      const id = el.getAttribute('data-map-id');
+      // The market's own link (and marker) stays bright; South Africa, the hub, keeps every link
+      links.forEach((l) => l.toggleAttribute('data-on', kind === 'home' || l.getAttribute('data-map-id') === id));
+      markers.forEach((mk) => mk !== el && mk.toggleAttribute('data-on', id !== null && mk.getAttribute('data-map-id') === id));
+      flagged.forEach((f) => f.toggleAttribute('data-on', id !== null && f.getAttribute('data-map-id') === id));
+      title.textContent = el.getAttribute('data-name');
+      label.textContent = el.getAttribute('data-role');
+      value.textContent = el.getAttribute('data-city');
+      if (kind) tip.setAttribute('data-kind', kind);
+      else tip.removeAttribute('data-kind');
+    }
+    map.setAttribute('data-hover', '');
+    const opening = !visible;
+    place();
+    if (opening) {
+      visible = true;
+      tip.setAttribute('data-on', '');
+      if (!reduced.matches) animate(panel, { scale: [0.85, 1] }, { type: 'spring', stiffness: 300, damping: 25 });
+    }
+  };
+  const leave = (delay = 120) => {
+    current?.removeAttribute('data-on');
+    current = null;
+    links.forEach((l) => l.removeAttribute('data-on'));
+    markers.forEach((mk) => mk.removeAttribute('data-on'));
+    flagged.forEach((f) => f.removeAttribute('data-on'));
+    map.removeAttribute('data-hover');
+    clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => {
+      visible = false;
+      tip.removeAttribute('data-on');
+    }, delay);
+  };
+  const target = (node: EventTarget | null) =>
+    node instanceof Element && map.contains(node) ? node.closest('[data-name]') : null;
+
+  /* Touch: the tapped country, or a market marker within 18px of the tap */
+  const nearestMarker = (cx: number, cy: number) => {
+    let best: Element | null = null;
+    let bestD = 18 * 18;
+    for (const mk of markers) {
+      const r = mk.querySelector('.map-marker-core')!.getBoundingClientRect();
+      const d = (r.left + r.width / 2 - cx) ** 2 + (r.top + r.height / 2 - cy) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = mk;
       }
     }
     return best;
   };
-  let focus: string | null = null;
-  const set = (id: string | null) => {
-    if (id === focus) return;
-    focus = id;
-    map.toggleAttribute('data-focus', Boolean(id));
-    marks.forEach((m) => m.toggleAttribute('data-active', m.getAttribute('data-map-id') === id));
+  const touchTarget = (e: PointerEvent | MouseEvent) => {
+    const hit = target(e.target);
+    return (hit?.hasAttribute('data-kind') ? hit : nearestMarker(e.clientX, e.clientY)) ?? hit;
   };
-  const hide = () => {
-    set(null);
-    tip?.removeAttribute('data-on');
-  };
-  const show = (x: number, y: number) => {
-    const src = nearest(x, y);
-    const id = src?.getAttribute('data-map-id');
-    if (!src || !id) return hide();
-    set(id);
-    if (!tip || !stage) return;
-    const city = src.getAttribute('data-city');
-    const role = src.getAttribute('data-role') ?? '';
-    tip.querySelector('b')!.textContent = src.getAttribute('data-name');
-    tip.querySelector('small')!.textContent = city ? `${city} · ${role}` : role;
-    const r = stage.getBoundingClientRect();
-    tip.style.setProperty('--x', `${Math.round(x - r.left)}px`);
-    tip.style.setProperty('--y', `${Math.round(y - r.top)}px`);
-    tip.setAttribute('data-on', '');
-  };
-  map.addEventListener('pointermove', (e) => {
-    if (e.pointerType === 'mouse') show(e.clientX, e.clientY);
+
+  // Mouse: exact, as bklit's paths are
+  stage.addEventListener('pointerover', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    track(e);
+    const el = target(e.target);
+    if (el && hoverable(el)) enter(el);
   });
-  map.addEventListener('pointerleave', (e) => {
-    if (e.pointerType === 'mouse') hide();
+  stage.addEventListener('pointerout', (e) => {
+    if (e.pointerType !== 'mouse' || !current) return;
+    const next = target(e.relatedTarget);
+    if (next && hoverable(next)) return; // straight onto the next country: pointerover takes it
+    leave();
   });
-  // Touch and pen: a tap names the country; a tap anywhere else puts the tooltip away
+
+  // A press that moves more than 5px is a drag, not a click
+  let press: { x: number; y: number; moved: boolean; touch: boolean } | null = null;
+  stage.addEventListener('pointerdown', (e) => {
+    press = { x: e.clientX, y: e.clientY, moved: false, touch: e.pointerType !== 'mouse' };
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) press.moved = true;
+    if (e.pointerType !== 'mouse') return;
+    track(e);
+    if (visible) place();
+  });
+  svg.addEventListener('click', (e) => {
+    if (press?.moved) return;
+    const el = press?.touch ? touchTarget(e) : target(e.target);
+    if (el) {
+      if (press?.touch) {
+        track(e);
+        enter(el);
+      }
+      focusOn(el);
+    } else if (focused) {
+      reset();
+      if (press?.touch) leave(0);
+    }
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && focused) reset();
+  });
+  // A tap off the map puts the tooltip away
   document.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'mouse') return;
-    if (map.contains(e.target as Node)) show(e.clientX, e.clientY);
-    else hide();
+    if (e.pointerType !== 'mouse' && visible && !map.contains(e.target as Node)) leave(0);
   });
 }
 

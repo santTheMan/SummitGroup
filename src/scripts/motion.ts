@@ -182,8 +182,9 @@ scopeMotion(
       );
     }
 
-    /* Where we work map: once in view, South Africa then each client market colours in, the links
-       draw and the labels rise (CSS transitions, staggered by --d) */
+    /* Where we work map: once in view, the countries fade in over 800ms, as bklit's
+       ChoroplethChart enters, then the links from South Africa draw (CSS transitions in
+       WorldMap.astro, staggered by --d) */
     const map = $('[data-map]');
     if (map && below(map)) {
       map.setAttribute('data-pending', '');

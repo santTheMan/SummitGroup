@@ -1,10 +1,27 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 const PROMISE = 'We recruit, develop and manage South African talent that takes your business higher.';
 const CTA = 'Partner with us';
 
 const isDesktop = (page: Page) => (page.viewportSize()?.width ?? 0) >= 1024;
+
+/** A screen point on a map country's own shape (not a coastline gap, not its marker). */
+const onCountry = (map: Locator, id: string) =>
+  map.evaluate((el, id) => {
+    // A flagged country is a <use> of its outline, in the camera's coordinates
+    const country = el.querySelector<SVGGraphicsElement>(`.map-country[data-map-id="${id}"]`)!;
+    const camera = el.querySelector<SVGGElement>('[data-map-camera]')!;
+    const box = country.getBBox();
+    for (let i = 1; i < 24; i++) {
+      for (let j = 1; j < 24; j++) {
+        const q = new DOMPoint(box.x + (box.width * i) / 24, box.y + (box.height * j) / 24);
+        const p = q.matrixTransform(camera.getScreenCTM()!);
+        if (document.elementFromPoint(p.x, p.y) === country) return { x: p.x, y: p.y };
+      }
+    }
+    throw new Error(`no point on country ${id}`);
+  }, id);
 
 /** Waits for the hero entrance to finish, so nothing is mid-flight when a test clicks or audits. */
 async function settle(page: Page) {
@@ -232,21 +249,37 @@ test.describe('SGI home page', () => {
     await expect(section).not.toContainText(/shared|Johannesburg|working hours/i);
   });
 
-  test('the dot map marks South Africa and Sam\u2019s six client markets', async ({ page }) => {
+  test('the choropleth fills South Africa and Sam\u2019s six client markets', async ({ page }) => {
     const map = page.locator('[data-map]');
     await expect(
       map.getByRole('img', { name: /South Africa.*United States.*United Kingdom.*Germany.*Switzerland.*Malta.*Japan/ }),
     ).toBeVisible();
-    // Only South Africa keeps a label on the map; the legend names every market
-    await expect(map.locator('.map-pin')).toHaveCount(1);
-    await expect(map.locator('.map-pin')).toContainText('South Africa');
+    // bklit's Choropleth (Click to Zoom example): every country is a filled outline over a
+    // 10° graticule, with no labels on the map; the legend names every market
+    expect(await map.locator('.map-country').count()).toBeGreaterThan(150);
+    await expect(map.locator('path.map-graticule')).toHaveCount(1);
     await expect(map.locator('.map-legend')).toContainText('United States, United Kingdom, Germany, Switzerland, Malta, Japan');
     await expect(map).not.toContainText('Australia');
-    // Every marked country has dots of its own, and South Africa links to each client market
-    for (const id of ['710', '840', '826', '276', '756', '470', '392']) {
-      expect(await map.locator(`path.map-dots[data-map-id="${id}"]`).getAttribute('d')).toMatch(/h0/);
+    await expect(map.locator('.map-country--home')).toHaveAttribute('data-map-id', '710');
+    for (const id of ['840', '826', '276', '756', '392']) {
+      await expect(map.locator(`.map-country--client[data-map-id="${id}"]`)).toHaveCount(1);
     }
+    // Daniel, 25 Nov: only the markets carry flags, each cropped to its own country
+    await expect(map.locator('.map-flag')).toHaveCount(6);
+    for (const id of ['710', '840', '826', '276', '756', '392']) {
+      await expect(map.locator(`.map-flag[data-map-id="${id}"] use[href="#flag-art-${id}"]`).first()).toBeAttached();
+    }
+    // The US mainland and Alaska each get a whole flag
+    await expect(map.locator('.map-flag[data-map-id="840"] use[href="#flag-art-840"]')).toHaveCount(2);
+    // A marker on every market; Malta, too small for the outlines, wears its flag on its marker
+    await expect(map.locator('.map-marker')).toHaveCount(7);
+    await expect(map.locator('.map-country[data-map-id="470"]')).toHaveCount(0);
+    await expect(map.locator('.map-marker[data-map-id="470"] use[href="#flag-art-470"]')).toBeAttached();
+    // The legend shows each market's flag
+    await expect(map.locator('.map-legend .map-chip')).toHaveCount(7);
+    // A link from South Africa to each client market, and the map fades into the page
     await expect(map.locator('path.map-link')).toHaveCount(6);
+    expect(await map.locator('.map-clip').evaluate((el) => getComputedStyle(el).maskImage)).toMatch(/linear-gradient/);
   });
 
   test('the placements heatmap adds up to the approved 450', async ({ page }) => {
@@ -428,25 +461,52 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     expect(look.fullWidth).toBe(true);
   });
 
-  test('pointing at a country names it in a tooltip and quietens the other markets', async ({ page }) => {
+  test('pointing at a country names it in a tooltip and fades the others', async ({ page }) => {
     test.skip(!isDesktop(page), 'hover is for mouse screens');
     const map = page.locator('[data-map]');
     await map.scrollIntoViewIfNeeded();
-    // Point at Japan's label point (its last stored point), in screen pixels
-    const at = await map.evaluate((el) => {
-      const svg = el.querySelector('svg')!;
-      const pts = el.querySelector<SVGGElement>('.map-hit[data-map-id="392"]')!.dataset.pts!.split(' ');
-      const [x, y] = pts[pts.length - 1]!.split(',').map(Number);
-      const p = new DOMPoint(x, y).matrixTransform(svg.getScreenCTM()!);
-      return { x: p.x, y: p.y };
-    });
-    await page.mouse.move(at.x, at.y);
-    await expect(map).toHaveAttribute('data-focus', '');
-    await expect(map.locator('[data-map-tip]')).toHaveText(/Japan\s*Tokyo · Clients/);
-    await expect(map.locator('path.map-dots[data-map-id="392"]')).toHaveCSS('opacity', '1');
-    await expect(map.locator('path.map-dots[data-map-id="840"]')).toHaveCSS('opacity', '0.35');
+    const at = await onCountry(map, '392');
+    await page.mouse.move(at.x - 40, at.y, { steps: 2 });
+    await page.mouse.move(at.x, at.y, { steps: 4 });
+    await expect(map).toHaveAttribute('data-hover', '');
+    await expect(map.locator('[data-map-tip]')).toHaveAttribute('data-on', '');
+    await expect(map.locator('[data-map-tip]')).toHaveText(/Japan\s*Clients\s*Tokyo/);
+    // bklit's fadedOpacity: the others fade to 0.4
+    await expect(map.locator('.map-flag[data-map-id="392"]')).toHaveCSS('opacity', '1');
+    await expect(map.locator('.map-flag[data-map-id="840"]')).toHaveCSS('opacity', '0.4');
+    await expect(map.locator('path.map-country:not([data-map-id])').first()).toHaveCSS('opacity', '0.4');
+    // Japan's link stays bright, the others quieten
+    await expect(map.locator('path.map-link[data-map-id="392"]')).toHaveCSS('opacity', '0.9');
+    await expect(map.locator('path.map-link[data-map-id="840"]')).toHaveCSS('opacity', '0.25');
     await page.mouse.move(5, 5);
+    await expect(map).not.toHaveAttribute('data-hover', /.*/);
+    await expect(map.locator('[data-map-tip]')).not.toHaveAttribute('data-on', /.*/);
+  });
+
+  test('clicking a country flies the camera to it and tilts the map; Escape flies back', async ({ page }) => {
+    test.skip(!isDesktop(page), 'pointer clicks on a mouse screen');
+    const map = page.locator('[data-map]');
+    await map.scrollIntoViewIfNeeded();
+    const camera = map.locator('[data-map-camera]');
+    const plane = map.locator('[data-map-plane]');
+    const at = await onCountry(map, '392');
+    await page.mouse.click(at.x, at.y);
+    await expect(map).toHaveAttribute('data-focus', '');
+    // Japan is east of centre: the camera zooms in and the plane looks from the east
+    await expect(camera).toHaveAttribute('transform', /scale\(6\.0000\)/);
+    await expect(plane).toHaveAttribute('style', /rotateX\(24deg\) rotateY\(-18deg\)/);
+    await expect(map.locator('path.map-graticule')).toHaveCSS('opacity', '0');
+    await page.keyboard.press('Escape');
     await expect(map).not.toHaveAttribute('data-focus', /.*/);
+    await expect(camera).not.toHaveAttribute('transform', /.*/);
+    await expect(plane).not.toHaveAttribute('style', /rotate/);
+    // A marker flies to its point (4×)
+    const malta = map.locator('.map-marker[data-map-id="470"] .map-marker-core');
+    const box = (await malta.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(camera).toHaveAttribute('transform', /scale\(4\.0000\)/);
+    await page.keyboard.press('Escape');
+    await expect(camera).not.toHaveAttribute('transform', /.*/);
   });
 
   test('FAQ rows open and close', async ({ page }) => {

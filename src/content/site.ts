@@ -258,16 +258,16 @@ export const audiences = {
   eyebrow: 'Who we work with',
   heading: 'For South African companies, international clients and partners.',
   /**
-   * "Where we work" map (Daniel, 22 Nov 2026), a dot map after bklit's
-   * Choropleth chart and its dot grid. Client markets are Summit Sales'
-   * confirmed markets (UK, US, Australia). Ids are ISO 3166-1 numeric, as in
-   * world-atlas; `at` is where the label points ([longitude, latitude]).
+   * "Where we work" map: bklit's Choropleth chart, the "Analytics" example
+   * Daniel sent on 25 Nov 2026 (WorldMap.astro). South Africa and the client
+   * markets are filled, every other country is the empty tone. Ids are ISO
+   * 3166-1 numeric, as in world-atlas; `at` ([longitude, latitude]) places a
+   * market too small to draw (Malta) and helps a tap find a small one.
    */
   /* Sam's list of client markets (25 Nov 2026): USA, United Kingdom, Switzerland, Malta,
      Germany and Tokyo. It replaces the earlier UK / US / Australia set (Australia is not
-     on it). Client countries carry no permanent label: as in bklit's Choropleth, a
-     tooltip names each on hover or tap, and the legend under the map lists them all.
-     `city` adds a city to the tooltip. */
+     on it). As in bklit's Choropleth, a tooltip names each country on hover or tap
+     (`role` is its row, `city` the row's value), and the legend lists every market. */
   markets: {
     caption:
       'Our talent is in South Africa. Our international clients are in the United States, the United Kingdom, Germany, Switzerland, Malta and Japan.',
