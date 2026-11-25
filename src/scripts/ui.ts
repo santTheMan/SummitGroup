@@ -350,7 +350,8 @@ function initHeatmap() {
 
 /*
  * Where we work map: bklit's Choropleth "Click to Zoom" example.
- *  - Hover (mouse): pointing at a country or marker fades the others and the
+ *  - Hover (mouse), SGI's markets only (other countries are plain land, with no
+ *    name tag or fade): pointing at a market fades the others and the
  *    other markets' links (CSS, on [data-hover]) and opens the tooltip panel
  *    16px beside the cursor (to its left near the right edge), kept inside the
  *    map. The panel follows on bklit's tooltip spring (stiffness 100, damping
@@ -583,8 +584,9 @@ function initMap() {
       tip.removeAttribute('data-on');
     }, delay);
   };
+  // Only SGI's markets answer the pointer (Daniel, 25 Nov); other countries are plain land
   const target = (node: EventTarget | null) =>
-    node instanceof Element && map.contains(node) ? node.closest('[data-name]') : null;
+    node instanceof Element && map.contains(node) ? node.closest('[data-kind]') : null;
 
   /* Touch: the tapped country, or a market marker within 18px of the tap */
   const nearestMarker = (cx: number, cy: number, within = 18) => {

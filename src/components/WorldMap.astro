@@ -78,21 +78,6 @@ type Market = { id: string; name: string; role: string; city?: string; at: reado
 const markets: Market[] = [{ ...m.home, kind: 'home' }, ...m.clients.map((c) => ({ ...c, kind: 'client' as const }))];
 const byId = new Map(markets.map((c) => [c.id, c]));
 
-/* world-atlas shortens some names; the tooltip spells them out */
-const fullNames: Record<string, string> = {
-  '732': 'Western Sahara',
-  '180': 'Democratic Republic of the Congo',
-  '214': 'Dominican Republic',
-  '238': 'Falkland Islands',
-  '260': 'French Southern and Antarctic Lands',
-  '140': 'Central African Republic',
-  '226': 'Equatorial Guinea',
-  '748': 'Eswatini',
-  '090': 'Solomon Islands',
-  '070': 'Bosnia and Herzegovina',
-  '728': 'South Sudan',
-};
-
 const point = (at: readonly [number, number]) => projection([at[0], at[1]]) as [number, number];
 const f1 = (n: number) => n.toFixed(1);
 
@@ -160,8 +145,6 @@ const shapes = countries
       market,
       flag: flag && { ...flag, all: boxOf(f), boxes: flagBoxes(f) },
       box: [x0, y0, x1, y1].map(f1).join(','),
-      // Areas without an ISO code (disputed) draw as land but stay quiet
-      name: market?.name ?? (id ? (fullNames[id] ?? f.properties.name) : undefined),
     };
   })
   .filter((s) => s.d);
@@ -232,23 +215,16 @@ const legendFlag = (id: string) => flags[id]!;
                       href={`#geo-${s.id}`}
                       class:list={['map-country', 'map-country--flag', `map-country--${s.market!.kind}`]}
                       data-map-id={s.id}
-                      data-name={s.name}
+                      data-name={s.market!.name}
                       data-kind={s.market!.kind}
                       data-role={s.market!.role}
                       data-city={s.market!.city}
                       data-box={s.box}
                     />
                   ) : (
-                    <path
-                      class:list={['map-country', s.market && `map-country--${s.market.kind}`]}
-                      d={s.d}
-                      data-map-id={s.id || undefined}
-                      data-name={s.name}
-                      data-kind={s.market?.kind}
-                      data-role={s.market?.role}
-                      data-city={s.market?.city}
-                      data-box={s.market ? s.box : undefined}
-                    />
+                    /* Every other country (Daniel, 25 Nov): plain land, with no name tag, no
+                       fade and no click */
+                    <path class="map-country" d={s.d} data-map-id={s.id || undefined} />
                   ),
                 )
               }
@@ -659,15 +635,6 @@ const legendFlag = (id: string) => flags[id]!;
   .map-tip-value {
     font-weight: 500;
     font-variant-numeric: tabular-nums;
-  }
-
-  /* A country with no SGI market shows its name only */
-  .map-tip:not([data-kind]) .map-tip-row {
-    display: none;
-  }
-
-  .map-tip:not([data-kind]) .map-tip-title {
-    border-bottom: 0;
   }
 
   /* The legend names every market, for anyone who can't hover (phones) */

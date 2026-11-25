@@ -465,6 +465,12 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     test.skip(!isDesktop(page), 'hover is for mouse screens');
     const map = page.locator('[data-map]');
     await map.scrollIntoViewIfNeeded();
+    // Daniel, 25 Nov: another country (Brazil) shows no name and fades nothing
+    const brazil = await onCountry(map, '076');
+    await page.mouse.move(brazil.x, brazil.y, { steps: 3 });
+    await page.waitForTimeout(300);
+    await expect(map).not.toHaveAttribute('data-hover', /.*/);
+    await expect(map.locator('[data-map-tip]')).not.toHaveAttribute('data-on', /.*/);
     const at = await onCountry(map, '392');
     await page.mouse.move(at.x - 40, at.y, { steps: 2 });
     await page.mouse.move(at.x, at.y, { steps: 4 });

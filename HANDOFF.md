@@ -30,7 +30,8 @@ of Daniel's list):
    "Our talent", with "Tokyo" for Japan). Clicking a country flies the camera to it (a marker:
    4×), tilting 24° and turning 18° to look from its side; clicking it again, the empty map or
    Escape flies back. Only the markets can be clicked (Daniel, 25 Nov): any other country does
-   nothing, or flies back out if zoomed in, and only markets show the hand cursor. No name tag
+   nothing, or flies back out if zoomed in, and only markets show the hand cursor. Other countries
+   are plain land: no name tag and no fade when pointed at (their names are no longer on the page). No name tag
    once a country is clicked or tapped (Daniel, 25 Nov): the
    tag shows only while pointing at the whole map. Where markets' tap areas overlap (Germany and
    Switzerland on a phone), the one nearest the finger wins. Malta is a marker only (too small for the 110m outlines), wearing its
