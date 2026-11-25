@@ -361,9 +361,11 @@ function initHeatmap() {
  *    the target's side of the map. Clicking it again, the empty map or Escape
  *    flies back. 700ms on bklit's ease-in-out quint; the centre moves in a
  *    line and the scale geometrically. While focused only the focused market
- *    answers hover; any other country is still a click away.
- *  - Touch: a tap names and focuses the country (a market within 18px wins, so
- *    Switzerland and Malta are easy to tap); a tap off the map puts it away.
+ *    answers hover; any other country is still a click away. Daniel, 25 Nov:
+ *    no name tag once a country is clicked; the tooltip puts itself away on the
+ *    click and stays away until the map is back to the whole world.
+ *  - Touch: a tap focuses the country (a market within 18px wins, so
+ *    Switzerland and Malta are easy to tap), without a name tag.
  */
 function initMap() {
   const map = $('[data-map]');
@@ -461,6 +463,7 @@ function initMap() {
     focused = el;
     el.setAttribute('data-focused', '');
     map.setAttribute('data-focus', '');
+    hideTip();
     // focus view "auto": look from the side of the map the target is on
     fly({ cx, cy, k, yaw: cx < W / 2 ? 18 : -18, tilt: 24 });
   };
@@ -551,6 +554,8 @@ function initMap() {
       else tip.removeAttribute('data-kind');
     }
     map.setAttribute('data-hover', '');
+    // Zoomed in on a country: no name tag (the flag says it)
+    if (focused) return hideTip();
     const opening = !visible;
     place();
     if (opening) {
@@ -558,6 +563,11 @@ function initMap() {
       tip.setAttribute('data-on', '');
       if (!reduced.matches) animate(panel, { scale: [0.85, 1] }, { type: 'spring', stiffness: 300, damping: 25 });
     }
+  };
+  const hideTip = () => {
+    clearTimeout(hideTimer);
+    visible = false;
+    tip.removeAttribute('data-on');
   };
   const leave = (delay = 120) => {
     current?.removeAttribute('data-on');
@@ -576,9 +586,9 @@ function initMap() {
     node instanceof Element && map.contains(node) ? node.closest('[data-name]') : null;
 
   /* Touch: the tapped country, or a market marker within 18px of the tap */
-  const nearestMarker = (cx: number, cy: number) => {
+  const nearestMarker = (cx: number, cy: number, within = 18) => {
     let best: Element | null = null;
-    let bestD = 18 * 18;
+    let bestD = within * within;
     for (const mk of markers) {
       const r = mk.querySelector('.map-marker-hit')!.getBoundingClientRect();
       const d = (r.left + r.width / 2 - cx) ** 2 + (r.top + r.height / 2 - cy) ** 2;
@@ -589,8 +599,15 @@ function initMap() {
     }
     return best;
   };
+  /* Where markers' hit areas overlap (Germany and Switzerland on a phone), the
+     marker nearest the pointer wins, not whichever is drawn on top */
+  const resolve = (e: PointerEvent | MouseEvent) => {
+    const el = target(e.target);
+    if (!el?.classList.contains('map-marker')) return el;
+    return nearestMarker(e.clientX, e.clientY, Infinity) ?? el;
+  };
   const touchTarget = (e: PointerEvent | MouseEvent) => {
-    const hit = target(e.target);
+    const hit = resolve(e);
     return (hit?.hasAttribute('data-kind') ? hit : nearestMarker(e.clientX, e.clientY)) ?? hit;
   };
 
@@ -598,7 +615,7 @@ function initMap() {
   stage.addEventListener('pointerover', (e) => {
     if (e.pointerType !== 'mouse') return;
     track(e);
-    const el = target(e.target);
+    const el = resolve(e);
     if (el && hoverable(el)) enter(el);
   });
   stage.addEventListener('pointerout', (e) => {
@@ -617,11 +634,16 @@ function initMap() {
     if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 5) press.moved = true;
     if (e.pointerType !== 'mouse') return;
     track(e);
+    // Inside overlapping hit areas, the nearest market takes over as the pointer moves
+    if (current?.classList.contains('map-marker')) {
+      const el = resolve(e);
+      if (el && el !== current && hoverable(el)) enter(el);
+    }
     if (visible) place();
   });
   svg.addEventListener('click', (e) => {
     if (press?.moved) return;
-    const el = press?.touch ? touchTarget(e) : target(e.target);
+    const el = press?.touch ? touchTarget(e) : resolve(e);
     if (el) {
       if (press?.touch) {
         track(e);

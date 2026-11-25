@@ -490,8 +490,14 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     const camera = map.locator('[data-map-camera]');
     const plane = map.locator('[data-map-plane]');
     const at = await onCountry(map, '392');
+    await page.mouse.move(at.x, at.y);
+    await expect(map.locator('[data-map-tip]')).toHaveAttribute('data-on', '');
     await page.mouse.click(at.x, at.y);
     await expect(map).toHaveAttribute('data-focus', '');
+    // Daniel, 25 Nov: no name tag once a country is clicked, even with the pointer on it
+    await expect(map.locator('[data-map-tip]')).not.toHaveAttribute('data-on', /.*/);
+    await page.mouse.move(at.x + 1, at.y + 1);
+    await expect(map.locator('[data-map-tip]')).not.toHaveAttribute('data-on', /.*/);
     // Japan is east of centre: the camera zooms in and the plane looks from the east
     await expect(camera).toHaveAttribute('transform', /scale\(6\.0000\)/);
     await expect(plane).toHaveAttribute('style', /rotateX\(24deg\) rotateY\(-18deg\)/);
@@ -507,6 +513,21 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(camera).toHaveAttribute('transform', /scale\(4\.0000\)/);
     await page.keyboard.press('Escape');
     await expect(camera).not.toHaveAttribute('transform', /.*/);
+  });
+
+  test('on touch screens, a tap on each crowded European market zooms to that market, with no name tag', async ({ page }) => {
+    test.skip(isDesktop(page), 'taps are for touch screens');
+    const map = page.locator('[data-map]');
+    await map.scrollIntoViewIfNeeded();
+    // Their tap areas overlap on a phone: the market nearest the tap must win
+    for (const id of ['826', '276', '756', '470']) {
+      const box = (await map.locator(`.map-marker[data-map-id="${id}"] .map-marker-hit`).boundingBox())!;
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await expect(map.locator('[data-focused]')).toHaveAttribute('data-map-id', id);
+      await expect(map.locator('[data-map-tip]')).not.toHaveAttribute('data-on', /.*/);
+      await page.keyboard.press('Escape');
+      await expect(map).not.toHaveAttribute('data-focus', /.*/);
+    }
   });
 
   test('FAQ rows open and close', async ({ page }) => {
