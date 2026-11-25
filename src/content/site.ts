@@ -404,20 +404,25 @@ export const illustrations = {
       { name: 'Chloe F.', role: 'Sales rep', city: 'Cape Town' },
     ],
   },
+  /* Daniel, 25 Nov: the three scenes were redrawn as one set (Scene.astro): the same
+     card for each business, a label, a title, one visual in its colour, a few rows.
+     No buttons, chips or figures beyond these illustrative ones. */
   scenes: {
     institute: {
-      title: 'Summit Institute',
-      label: 'Your programme',
-      gaugeLabel: 'Module 4 of 6',
-      next: { label: 'Next', text: 'Practice call' },
-      assessment: { label: 'Assessment', text: 'Passed' },
-      button: 'Open module',
-      chips: ['Trained', 'Tested'],
+      label: 'Programme',
+      title: 'Sales foundations',
+      done: 4,
+      total: 6,
+      progress: 'modules complete',
+      modules: [
+        { n: 4, name: 'Objection handling', state: 'Done' },
+        { n: 5, name: 'Practice call', state: 'In progress' },
+        { n: 6, name: 'Assessment', state: 'Next' },
+      ],
     },
     sales: {
-      title: 'Team report',
-      period: 'This week',
-      total: 'Team of 12',
+      label: 'This week',
+      title: 'Team of 12',
       stats: [
         { label: 'Coaching sessions', value: '8' },
         { label: 'Calls reviewed', value: '46' },
@@ -427,10 +432,10 @@ export const illustrations = {
       chart: [3, 5, 4, 6, 7, 8],
     },
     pathways: {
-      title: 'Role brief',
-      role: 'Sales development representative',
-      button: 'Shortlist',
+      label: 'Role brief',
+      title: 'Sales development representative',
       steps: ['Brief agreed with SGI', 'Candidates sourced', 'Screened and interviewed', 'Placed and supported'],
+      done: 3,
       progress: 'of 4 complete',
     },
   },

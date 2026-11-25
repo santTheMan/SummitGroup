@@ -58,6 +58,14 @@ Also 25 Nov (Daniel): the talent heading is now **"Grow with us."** ("Grow" in t
 replacing Sam's "Want to work with us?". It fits both a role and training and stays clearly for
 individuals, beside the closing's "Want to partner with us?" for companies. Sam to see it.
 
+Also 25 Nov (Daniel): the "One relationship. Three specialists." illustrations were redrawn as
+one set (Scene.astro). They had been three unrelated mini-dashboards with tiny type, fake buttons
+("Open module", "Shortlist"), chips adrift from their card, a ghost stack behind Sales and a
+shadow puddle under each, all bobbing on a slow loop. Now every business has the same card: its
+name and a label, a title, one visual in its colour (Institute: modules complete; Sales: three
+figures and six weeks of coaching; Pathways: the brief's four steps), type no smaller than 12px,
+nothing pressable, and no looping motion: each builds once as its scene comes in.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.

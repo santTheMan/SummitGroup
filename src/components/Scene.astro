@@ -1,13 +1,20 @@
 ---
 /**
  * One illustrated scene per business, shown in the sticky stage on wide
- * screens and inline above each business on small ones. Decorative: the
- * business copy beside it carries the content, so scenes are aria-hidden.
- * Every scene floats: the main card levitates over a breathing ground shadow
- * and the smaller pieces drift on their own timings (.floating in global.css).
+ * screens and above each business on small ones. Decorative: the business
+ * copy beside it carries the content, so scenes are aria-hidden.
+ *
+ * Redrawn 25 Nov 2026 (Daniel: "they look bad"). The three were unrelated
+ * mini-dashboards with tiny type, fake buttons, chips adrift from their card, a
+ * ghost stack behind one and a shadow puddle under each, all bobbing on a slow
+ * loop. Now they are one set: the same card for every business (its name and a
+ * label, a title, one visual in the business's colour, a few rows), type no
+ * smaller than 12px, nothing that looks pressable, and no perpetual motion
+ * (Apple's guidance: no slow looping oscillation). Each builds once as its scene
+ * comes in: the modules fill, the bars rise, the steps tick, on a strong ease-out
+ * with short, uneven staggers; with reduced motion they simply appear.
  */
-import { illustrations } from '../content/site.ts';
-import Gauge from './Gauge.astro';
+import { businesses, illustrations } from '../content/site.ts';
 import Icon from './Icon.astro';
 
 interface Props {
@@ -16,559 +23,482 @@ interface Props {
 
 const { which } = Astro.props;
 const s = illustrations.scenes;
+const name = businesses.find((b) => b.id === which)?.name ?? '';
 const maxBar = Math.max(...s.sales.chart);
+// Uneven staggers read as one gesture rather than a metronome
+const stagger = [0, 55, 100, 140, 175, 205];
+const label = { institute: s.institute.label, sales: s.sales.label, pathways: s.pathways.label }[which];
+const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.pathways.title }[which];
 ---
 
-{
-  which === 'institute' && (
-    <div class="scene">
-      <span class="chip chip-a floating" style="--f-amp:7px; --f-dur:5.2s; --f-delay:-1s">
-        <Icon name="check" size={14} />
-        {s.institute.chips[0]}
-      </span>
-      <span class="chip chip-b floating" style="--f-amp:9px; --f-dur:5.9s; --f-delay:-3.4s">
-        <Icon name="check" size={14} />
-        {s.institute.chips[1]}
-      </span>
-      <div class="float-unit">
-      <div class="course-card floating" style="--f-amp:9px; --f-dur:6.6s; --f-rot:-0.3deg">
-        <div class="setup-head">
-          <span>
-            <small>{s.institute.label}</small>
-            <b>{s.institute.title}</b>
+<div class:list={['scene', `scene--${which}`]}>
+  <div class="card">
+    <p class="card-head">
+      <span class="card-name"><i></i>{name}</span>
+      <span class="card-label">{label}</span>
+    </p>
+    <p class="card-title">{title}</p>
+
+    {
+      which === 'institute' && (
+        <div class="card-body">
+          <p class="progress">
+            <b>{s.institute.done}</b> of {s.institute.total} <span>{s.institute.progress}</span>
+          </p>
+          <span class="segs">
+            {Array.from({ length: s.institute.total }, (_, i) => (
+              <i data-done={i < s.institute.done ? '' : undefined} style={`--d:${stagger[i]}ms`} />
+            ))}
           </span>
-          <span class="setup-btn floating" style="--f-amp:3px; --f-dur:4.6s; --f-delay:-1.8s">
-            {s.institute.button}
-            <Icon name="arrow" size={14} />
-          </span>
-        </div>
-        <div class="course-body">
-          <div class="course-gauge">
-            <Gauge
-              value={67}
-              notches={28}
-              label={s.institute.gaugeLabel}
-              valueText={s.institute.gaugeLabel}
-              gradient={['#70bfff', '#2264d2']}
-            >
-              <b class="pg-num">4<small>/6</small></b>
-            </Gauge>
-            <p class="pg-label">{s.institute.gaugeLabel}</p>
-          </div>
-          <ul class="course-rows">
-            <li>
-              <span class="setup-ic"><Icon name="chat" size={16} /></span>
-              <span class="course-txt">
-                <small>{s.institute.next.label}</small>
-                <b>{s.institute.next.text}</b>
-              </span>
-            </li>
-            <li data-done>
-              <span class="setup-ic"><Icon name="badge" size={16} /></span>
-              <span class="course-txt">
-                <small>{s.institute.assessment.label}</small>
-                <b>{s.institute.assessment.text}</b>
-              </span>
-              <span class="tick tick--on"><Icon name="check" size={13} /></span>
-            </li>
+          <ul class="rows">
+            {s.institute.modules.map((m, i) => (
+              <li data-state={['done', 'now', 'next'][i]} style={`--d:${stagger[i + 2]}ms`}>
+                <span class="row-n">{m.n}</span>
+                <span class="row-name">{m.name}</span>
+                <span class="row-state">
+                  {i === 0 && <Icon name="check" size={14} />}
+                  {m.state}
+                </span>
+              </li>
+            ))}
           </ul>
         </div>
-      </div>
-      <span class="float-shadow" style="--f-dur:6.6s" />
-      </div>
-    </div>
-  )
-}
+      )
+    }
 
-{
-  which === 'sales' && (
-    <div class="scene">
-      <div class="rep-card rep-back floating" style="--f-amp:5px; --f-dur:7.6s; --f-delay:-2.6s; --f-rot:0.4deg" />
-      <div class="float-unit">
-      <div class="rep-card floating" style="--f-amp:9px; --f-dur:6.2s; --f-rot:-0.3deg">
-        <div class="rep-head">
-          <b>{s.sales.title}</b>
-          <span class="pill">{s.sales.period}</span>
+    {
+      which === 'sales' && (
+        <div class="card-body">
+          <dl class="stats">
+            {s.sales.stats.map((stat) => (
+              <div>
+                <dt>{stat.label}</dt>
+                <dd>{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <span class="bars">
+            {s.sales.chart.map((v, i) => (
+              <i
+                style={`--h:${((v / maxBar) * 100).toFixed(1)}%; --d:${stagger[i]}ms`}
+                data-last={i === s.sales.chart.length - 1 ? '' : undefined}
+              />
+            ))}
+          </span>
+          <p class="chart-k">{s.sales.chartLabel}</p>
         </div>
-        <p class="rep-total">{s.sales.total}</p>
-        <div class="rep-row">
-          {s.sales.stats.map((stat, i) => (
-            <div>
-              <span>
-                <i style={`background: var(--c-${['institute', 'sales', 'pathways'][i]})`} />
-                {stat.label}
-              </span>
-              <b>{stat.value}</b>
-            </div>
-          ))}
-        </div>
-        <p class="rep-k">{s.sales.chartLabel}</p>
-        <div class="bars">
-          {s.sales.chart.map((v, i) => (
-            <span style={`--h:${(v / maxBar) * 100}%; --d:${i * 50}ms`} data-last={i === s.sales.chart.length - 1 ? '' : undefined} />
-          ))}
-        </div>
-      </div>
-      <span class="float-shadow" style="--f-dur:6.2s" />
-      </div>
-    </div>
-  )
-}
+      )
+    }
 
-{
-  which === 'pathways' && (
-    <div class="scene">
-      <div class="float-unit">
-      <div class="setup-card floating" style="--f-amp:9px; --f-dur:6.4s; --f-delay:-1.2s; --f-rot:0.3deg">
-        <div class="setup-head">
-          <span>
-            <small>{s.pathways.title}</small>
-            <b>{s.pathways.role}</b>
-          </span>
-          <span class="setup-btn floating" style="--f-amp:3px; --f-dur:4.4s; --f-delay:-0.6s">
-            {s.pathways.button}
-            <Icon name="arrow" size={14} />
-          </span>
+    {
+      which === 'pathways' && (
+        <div class="card-body">
+          <ol class="steps">
+            {s.pathways.steps.map((step, i) => (
+              <li data-state={i < s.pathways.done ? 'done' : 'now'} style={`--d:${(stagger[i] ?? 0) * 2}ms`}>
+                <span class="step-dot">{i < s.pathways.done && <Icon name="check" size={12} />}</span>
+                {step}
+              </li>
+            ))}
+          </ol>
+          <p class="meter-row">
+            <span class="meter" style={`--p:${s.pathways.done / s.pathways.steps.length}`}>
+              <i />
+            </span>
+            {s.pathways.done} {s.pathways.progress}
+          </p>
         </div>
-        <ul class="setup-list">
-          {s.pathways.steps.map((step, i) => (
-            <li data-last={i === s.pathways.steps.length - 1 ? '' : undefined} style={`--d:${200 + i * 260}ms`}>
-              <span class="setup-ic">
-                <Icon name={(['pathways', 'people', 'badge', 'contact'] as const)[i] ?? 'check'} size={16} />
-              </span>
-              {step}
-              <span class="tick">
-                <Icon name="check" size={13} />
-              </span>
-            </li>
-          ))}
-        </ul>
-        <div class="setup-foot">
-          <span class="meter">
-            <i />
-          </span>
-          {s.pathways.steps.length - 1} {s.pathways.progress}
-        </div>
-      </div>
-      <span class="float-shadow" style="--f-dur:6.4s; --f-delay:-1.2s" />
-      </div>
-    </div>
-  )
-}
+      )
+    }
+  </div>
+</div>
 
 <style>
   .scene {
+    --accent: var(--c-institute);
+    --accent-soft: color-mix(in srgb, var(--accent) 12%, var(--paper));
+    --rule-soft: color-mix(in srgb, var(--ink) 9%, transparent);
+    --enter: cubic-bezier(0.23, 1, 0.32, 1);
+
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
-    padding: 1.75rem;
+    padding: 1.5rem;
   }
 
-  /* Institute: a programme card in the same family as the Sales and Pathways cards */
-  .course-card {
+  .scene--sales {
+    --accent: var(--c-sales);
+  }
+
+  /* Sky is too pale for marks on white: its ink shade carries them */
+  .scene--pathways {
+    --accent: var(--c-pathways-ink);
+  }
+
+  /* Small screens: the card sits in the flow above its copy */
+  :global(.feat-inline) > .scene {
     position: relative;
-    width: min(25rem, 100%);
-    padding: 1rem;
-    border-radius: 14px;
+    inset: auto;
+    display: block;
+    padding: 0;
+  }
+
+  /* One card for all three: paper, a hairline, a soft layered shadow (no puddle) */
+  .card {
+    width: min(27rem, 100%);
+    padding: 1.5rem 1.5rem 1.375rem;
+    border-radius: 20px;
     background: var(--paper);
-    border: 1px solid var(--rule);
-    box-shadow: 0 24px 50px -30px rgb(7 27 52 / 0.35);
+    border: 1px solid var(--rule-soft);
+    box-shadow:
+      0 1px 2px rgb(7 27 52 / 0.04),
+      0 4px 10px -4px rgb(7 27 52 / 0.06),
+      0 28px 56px -28px rgb(7 27 52 / 0.24);
   }
 
-  .course-body {
-    display: grid;
-    grid-template-columns: 8.5rem minmax(0, 1fr);
+  .card-head {
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 1rem;
-  }
-
-  .course-gauge {
-    text-align: center;
-  }
-
-  .pg-num {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 1.5rem;
-    letter-spacing: -0.03em;
-  }
-
-  .pg-num small {
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-
-  .pg-label {
-    margin-top: -0.25rem;
-    font-size: 0.68rem;
-    color: var(--muted);
-  }
-
-  .course-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .course-rows li {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0.625rem;
-    border-radius: 10px;
-    border: 1px solid var(--rule);
-  }
-
-  .course-rows li[data-done] {
-    border-color: color-mix(in srgb, var(--sgi-electric) 30%, transparent);
-    background: color-mix(in srgb, var(--sgi-electric) 4%, var(--paper));
-  }
-
-  .course-txt {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .course-txt small {
-    font-size: 0.68rem;
-    color: var(--muted);
-  }
-
-  .course-txt b {
     font-size: 0.8125rem;
-    font-weight: 500;
+    line-height: 1.25rem;
   }
 
-  .tick.tick--on {
-    background: var(--sgi-electric);
-    border-color: var(--sgi-electric);
-    color: #fff;
-  }
-
-  /* Phones: a narrower gauge column and no row icons, so the rows keep their text on one line */
-  @media (max-width: 30rem) {
-    .course-body {
-      grid-template-columns: 6rem minmax(0, 1fr);
-      gap: 0.625rem;
-    }
-
-    .course-rows li {
-      gap: 0.5rem;
-      padding: 0.5rem 0.625rem;
-    }
-
-    .course-rows .setup-ic {
-      display: none;
-    }
-
-    .chip-a {
-      top: 5%;
-    }
-
-    .chip-b {
-      bottom: 3%;
-    }
-  }
-
-  .chip {
-    position: absolute;
-    z-index: 2;
+  .card-name {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--paper) 88%, transparent);
-    border: 1px solid var(--rule);
-    box-shadow: 0 14px 28px -18px rgb(7 27 52 / 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    font-size: 0.72rem;
+    gap: 0.5rem;
     font-weight: 500;
     color: var(--ink);
   }
 
-  .chip :global(svg) {
-    color: var(--accent-text);
+  .card-name i {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 2px;
+    background: var(--accent);
   }
 
-  .chip-a {
-    left: 4%;
-    top: 16%;
-  }
-
-  .chip-b {
-    right: 4%;
-    bottom: 20%;
-  }
-
-  /* Sales: report cards */
-  .rep-card {
-    position: relative;
-    z-index: 1;
-    width: min(26rem, 100%);
-    padding: 1.125rem;
-    border-radius: 14px;
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    box-shadow: 0 30px 60px -36px rgb(7 27 52 / 0.4);
-  }
-
-  .rep-back {
-    position: absolute;
-    z-index: 0;
-    width: min(26rem, 80%);
-    height: 17.5rem;
-    opacity: 0.6;
-    box-shadow: none;
-    transform: translate(46px, -34px) rotate(3deg);
-    transition: transform 700ms var(--ease-out);
-  }
-
-  :global(:not([data-on])) > .scene .rep-back {
-    transform: none;
-  }
-
-  .rep-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.875rem;
-  }
-
-  .rep-head b {
-    font-weight: 500;
-  }
-
-  .pill {
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: var(--page);
+  .card-label {
     color: var(--muted);
-    font-size: 0.6875rem;
   }
 
-  .rep-total {
-    margin: 2px 0 0.875rem;
+  .card-title {
+    margin-top: 1.25rem;
     font-family: var(--font-display);
-    font-size: 1.75rem;
-    letter-spacing: -0.03em;
+    font-size: 1.625rem;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--ink);
   }
 
-  .rep-row {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+  .card-body {
+    margin-top: 1.25rem;
   }
 
-  .rep-row div {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 0.5rem;
-    border-radius: 8px;
-    border: 1px solid var(--rule);
-    font-size: 0.6875rem;
+  /* Institute: modules done, as a segmented bar, then the modules around "now" */
+  .progress {
+    font-size: 0.875rem;
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
   }
 
-  .rep-row span {
+  .progress b {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .progress span {
+    margin-left: 0.25rem;
+  }
+
+  .segs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-top: 0.625rem;
+  }
+
+  .segs i {
+    height: 0.5rem;
+    border-radius: 3px;
+    background: var(--rule-soft);
+    overflow: hidden;
+  }
+
+  /* A done segment fills from the left (its colour is a pseudo-element, so the
+     track stays put while it grows) */
+  .segs i[data-done] {
+    position: relative;
+  }
+
+  .segs i[data-done]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: left;
+    transition: transform 420ms var(--enter) calc(var(--d) + 120ms);
+  }
+
+  .rows {
+    margin-top: 1.125rem;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .rows li {
+    display: grid;
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 2.75rem;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 0.9375rem;
+    transition:
+      opacity 360ms var(--enter) calc(var(--d) + 200ms),
+      translate 360ms var(--enter) calc(var(--d) + 200ms);
+  }
+
+  .rows li:last-child {
+    border-bottom: 0;
+  }
+
+  .row-n {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row-name {
+    color: var(--ink);
+  }
+
+  .row-state {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--muted);
   }
 
-  .rep-row i {
-    width: 7px;
-    height: 7px;
-    flex: none;
-    border-radius: 2px;
+  .rows li[data-state='done'] .row-state {
+    color: var(--accent);
   }
 
-  .rep-row b {
-    font-family: var(--font-display);
-    font-size: 1rem;
+  .rows li[data-state='done'] .row-name {
+    color: var(--muted);
+  }
+
+  .rows li[data-state='now'] .row-state {
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
     font-weight: 500;
+  }
+
+  /* Sales: three figures, then six weeks of coaching sessions */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  /* The figure above its label (dt stays first in the markup); packed to the top,
+     so the three figures share a line even when a label wraps */
+  .stats div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.125rem;
+  }
+
+  .stats dt {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--muted);
+  }
+
+  .stats dd {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    letter-spacing: -0.02em;
     color: var(--ink);
     font-variant-numeric: tabular-nums;
   }
 
-  .rep-k {
-    font-size: 0.6875rem;
-    color: var(--muted);
-    margin-bottom: 0.5rem;
-  }
-
   .bars {
-    display: flex;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: end;
     gap: 0.5rem;
     height: 5.5rem;
-    padding-bottom: 1px;
-    border-bottom: 1px solid var(--rule);
+    margin-top: 1.25rem;
   }
 
-  .bars span {
-    flex: 1;
+  .bars i {
     height: var(--h);
-    border-radius: 4px 4px 1px 1px;
-    background: color-mix(in srgb, var(--sgi-electric) 22%, var(--paper));
+    border-radius: 6px 6px 2px 2px;
+    background: color-mix(in srgb, var(--accent) 22%, var(--paper));
     transform-origin: bottom;
-    transition: transform 500ms var(--ease-out) var(--d);
+    transition: transform 520ms var(--enter) calc(var(--d) + 120ms);
   }
 
-  .bars span[data-last] {
-    background: var(--sgi-electric);
+  .bars i[data-last] {
+    background: var(--accent);
   }
 
-  :global(:not([data-on])) > .scene .bars span {
-    transform: scaleY(0.2);
-    transition-delay: 0ms;
-  }
-
-  /* Pathways: role brief checklist */
-  .setup-card {
-    position: relative;
-    width: min(25rem, 100%);
-    padding: 1rem;
-    border-radius: 14px;
-    background: var(--paper);
-    border: 1px solid var(--rule);
-    box-shadow: 0 24px 50px -30px rgb(7 27 52 / 0.35);
-  }
-
-  .setup-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.625rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .setup-head > span:first-child {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .setup-head b {
-    font-weight: 500;
-    font-size: 0.875rem;
-  }
-
-  .setup-head small {
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-
-  .setup-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    flex: none;
-    height: 2rem;
-    padding: 0 0.75rem;
-    border-radius: 999px;
-    background: var(--action);
-    color: var(--action-ink);
+  .chart-k {
+    margin-top: 0.625rem;
     font-size: 0.75rem;
+    color: var(--muted);
   }
 
-  .setup-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
+  /* Pathways: the brief's four steps on one line of progress */
+  .steps {
+    position: relative;
+    display: grid;
+    gap: 0.875rem;
   }
 
-  .setup-list li {
+  .steps li {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.625rem;
-    border-radius: 10px;
-    border: 1px solid var(--rule);
-    font-size: 0.8125rem;
-    transition:
-      border-color 300ms ease var(--d),
-      background-color 300ms ease var(--d);
+    gap: 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--ink);
   }
 
-  .setup-list li[data-last] {
-    border-style: dashed;
+  /* The thread between steps: in the accent between done steps */
+  .steps li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: calc(0.625rem - 1px);
+    top: 1.25rem;
+    height: calc(0.875rem + 0.25rem);
+    width: 2px;
+    border-radius: 1px;
+    background: var(--rule-soft);
   }
 
-  .setup-ic {
+  .steps li[data-state='done']:not(:nth-last-child(2))::after {
+    background: var(--accent);
+  }
+
+  .step-dot {
     display: grid;
     place-items: center;
     flex: none;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: 8px;
-    background: var(--page);
-    color: var(--c-pathways-ink);
-  }
-
-  .tick {
-    display: grid;
-    place-items: center;
-    width: 1.375rem;
-    height: 1.375rem;
-    margin-left: auto;
+    width: 1.25rem;
+    height: 1.25rem;
     border-radius: 50%;
-    border: 1.5px solid var(--rule);
-    color: transparent;
+    border: 2px solid var(--accent);
+    color: var(--paper);
     transition:
-      background-color 250ms ease var(--d),
-      border-color 250ms ease var(--d),
-      color 250ms ease var(--d),
-      transform 300ms var(--ease-out) var(--d);
+      transform 360ms var(--enter) calc(var(--d) + 150ms),
+      opacity 360ms var(--enter) calc(var(--d) + 150ms);
   }
 
-  :global([data-on]) > .scene .setup-list li:not([data-last]),
-  :global(.feat-inline) .setup-list li:not([data-last]) {
-    border-color: color-mix(in srgb, var(--sgi-electric) 30%, transparent);
-    background: color-mix(in srgb, var(--sgi-electric) 4%, var(--paper));
+  .steps li[data-state='done'] .step-dot {
+    background: var(--accent);
   }
 
-  :global([data-on]) > .scene .setup-list li:not([data-last]) .tick,
-  :global(.feat-inline) .setup-list li:not([data-last]) .tick {
-    background: var(--sgi-electric);
-    border-color: var(--sgi-electric);
-    color: #fff;
+  /* "Now": an open ring with a soft halo */
+  .steps li[data-state='now'] .step-dot {
+    box-shadow: 0 0 0 4px var(--accent-soft);
   }
 
-  .setup-foot {
+  .steps li[data-state='now'] {
+    font-weight: 500;
+  }
+
+  .meter-row {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    margin-top: 0.75rem;
-    font-size: 0.72rem;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule-soft);
+    font-size: 0.8125rem;
     color: var(--muted);
+    font-variant-numeric: tabular-nums;
   }
 
   .meter {
     flex: 1;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--page);
+    height: 0.375rem;
+    border-radius: 3px;
+    background: var(--rule-soft);
     overflow: hidden;
   }
 
   .meter i {
     display: block;
-    width: 75%;
     height: 100%;
-    border-radius: 2px;
-    background: var(--sgi-electric);
+    width: calc(var(--p) * 100%);
+    border-radius: 3px;
+    background: var(--accent);
     transform-origin: left;
-    transition: transform 900ms var(--ease-out) 200ms;
+    transition: transform 700ms var(--enter) 380ms;
   }
 
+  /* Before a scene comes in (its stage layer is off): the build's starting point.
+     The inline scenes on small screens are always on, so they rest finished. */
+  :global(:not([data-on])) > .scene .segs i[data-done]::after,
   :global(:not([data-on])) > .scene .meter i {
     transform: scaleX(0);
-    transition-delay: 0ms;
+  }
+
+  :global(:not([data-on])) > .scene .bars i {
+    transform: scaleY(0.12);
+  }
+
+  :global(:not([data-on])) > .scene .rows li {
+    opacity: 0;
+    translate: 0 6px;
+  }
+
+  :global(:not([data-on])) > .scene .step-dot {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+
+  /* Leaving: reset in one step once the layer has faded out (500ms), so the next
+     visit builds again and nothing drops while it is still visible */
+  :global(:not([data-on])) > .scene *,
+  :global(:not([data-on])) > .scene .segs i[data-done]::after {
+    transition-duration: 0ms;
+    transition-delay: 520ms;
+  }
+
+  @media (max-width: 30rem) {
+    .card {
+      padding: 1.25rem 1.125rem 1.125rem;
+    }
+
+    .card-title {
+      margin-top: 1rem;
+      font-size: 1.375rem;
+    }
+
+    .card-body {
+      margin-top: 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene *,
+    .segs i[data-done]::after {
+      transition: none !important;
+    }
   }
 </style>

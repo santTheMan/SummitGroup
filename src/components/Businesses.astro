@@ -23,7 +23,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
     <div class="feat-grid">
       <div class="stage-col" aria-hidden="true">
-        <div class="stage" data-stage data-scene="0" data-floats data-float-paused>
+        <div class="stage" data-stage data-scene="0">
           {
             businesses.map((b, i) => (
               <div class="stage-layer" data-layer={i} data-on={i === 0 ? '' : undefined}>
@@ -47,7 +47,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
               data-on={i === 0 ? '' : undefined}
               style={`--c: var(--c-${b.id}); --ci: var(--c-${b.id}-ink)`}
             >
-              <div class="feat-inline" aria-hidden="true" data-on data-floats data-float-paused>
+              <div class="feat-inline" aria-hidden="true" data-on>
                 <Scene which={b.id} />
               </div>
               <p class="feat-n">{pad(i + 1)}</p>
@@ -208,11 +208,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
       color: var(--ci);
     }
 
+    /* The card sets its own height (25 Nov redraw) */
     .feat-inline {
-      position: relative;
       display: block;
-      height: 22rem;
-      margin-bottom: 0.25rem;
+      max-width: 27rem;
+      margin-bottom: 1.25rem;
     }
   }
 

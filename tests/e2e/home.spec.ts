@@ -307,18 +307,31 @@ test.describe('SGI home page', () => {
     await expect(stage).toHaveAttribute('data-scene', '0');
   });
 
-  test('the illustrations float while on screen and rest off screen', async ({ page }) => {
-    const playing = (sel: string) =>
-      page.$eval(sel, (el) => el.getAnimations().some((a) => a.playState === 'running'));
-    // The business scenes: the sticky stage on desktop, the inline scenes on smaller screens
+  test('the business illustrations are one set of still, readable cards', async ({ page }) => {
+    // Daniel, 25 Nov: redrawn as one set. The same card for each business, type no
+    // smaller than 12px, nothing that looks pressable, and no looping motion.
     const desktop = isDesktop(page);
-    const floats = page.locator(desktop ? '[data-stage]' : '.feat-inline[data-floats]').first();
-    const floating = desktop ? '[data-stage] .rep-card.floating' : '.feat-inline[data-floats] .floating';
-    await expect(floats).toHaveAttribute('data-float-paused', '');
-    expect(await playing(floating)).toBe(false);
-    await (desktop ? page.locator('#business-sales') : floats).scrollIntoViewIfNeeded();
-    await expect(floats).not.toHaveAttribute('data-float-paused', /.*/);
-    expect(await playing(floating)).toBe(true);
+    const scope = desktop ? '[data-stage]' : '.feat-inline';
+    await page.locator(desktop ? '#business-sales' : '#business-sales .feat-inline').scrollIntoViewIfNeeded();
+    const cards = page.locator(`${scope} .card`);
+    await expect(cards).toHaveCount(3);
+    for (const name of ['Summit Institute', 'Summit Sales', 'Summit Pathways']) {
+      await expect(page.locator(`${scope} .card-name`, { hasText: name })).toHaveCount(1);
+    }
+    const look = await page.evaluate((sel) => {
+      const root = [...document.querySelectorAll(sel)];
+      const texts = root.flatMap((r) => [...r.querySelectorAll('.card *')]).filter(
+        (e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent!.trim()),
+      );
+      return {
+        minFont: Math.min(...texts.map((e) => parseFloat(getComputedStyle(e).fontSize))),
+        loops: root.flatMap((r) => r.getAnimations({ subtree: true })).filter((a) => a.effect?.getTiming().iterations === Infinity).length,
+        pressable: root.flatMap((r) => [...r.querySelectorAll('button, a, .setup-btn, .chip')]).length,
+      };
+    }, scope);
+    expect(look.minFont).toBeGreaterThanOrEqual(12);
+    expect(look.loops).toBe(0);
+    expect(look.pressable).toBe(0);
   });
 
   test('marks previews noindex by default', async ({ page }) => {
