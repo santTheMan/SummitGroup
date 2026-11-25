@@ -356,8 +356,9 @@ function initHeatmap() {
  *    map. The panel follows on bklit's tooltip spring (stiffness 100, damping
  *    20), springs in from 85% scale, and stays 120ms after the pointer leaves a
  *    country, so crossing a border moves it to the next one.
- *  - Click to zoom: a country flies the camera to its largest landmass, a
- *    marker to its point (4×); the plane tilts 24° and turns 18° to look from
+ *  - Click to zoom (SGI's markets only; any other country is like the empty
+ *    map): a market flies the camera to its largest landmass, a marker to its
+ *    point (4×); the plane tilts 24° and turns 18° to look from
  *    the target's side of the map. Clicking it again, the empty map or Escape
  *    flies back. 700ms on bklit's ease-in-out quint; the centre moves in a
  *    line and the scale geometrically. While focused only the focused market
@@ -644,7 +645,8 @@ function initMap() {
   svg.addEventListener('click', (e) => {
     if (press?.moved) return;
     const el = press?.touch ? touchTarget(e) : resolve(e);
-    if (el) {
+    // Daniel, 25 Nov: only SGI's markets zoom; any other country is like the empty map
+    if (el?.hasAttribute('data-kind')) {
       if (press?.touch) {
         track(e);
         enter(el);
@@ -653,6 +655,8 @@ function initMap() {
     } else if (focused) {
       reset();
       if (press?.touch) leave(0);
+    } else if (press?.touch) {
+      leave(0);
     }
   });
   window.addEventListener('keydown', (e) => {

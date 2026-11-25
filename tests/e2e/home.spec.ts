@@ -483,6 +483,39 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(map.locator('[data-map-tip]')).not.toHaveAttribute('data-on', /.*/);
   });
 
+  test('only SGI\u2019s markets zoom: another country does nothing, or flies back out', async ({ page }) => {
+    const map = page.locator('[data-map]');
+    await map.scrollIntoViewIfNeeded();
+    const camera = map.locator('[data-map-camera]');
+    const press = (p: { x: number; y: number }) =>
+      isDesktop(page) ? page.mouse.click(p.x, p.y) : page.touchscreen.tap(p.x, p.y);
+    // Brazil is not a market: it doesn't look clickable, and a click does nothing
+    await expect(map.locator('path.map-country[data-map-id="076"]')).toHaveCSS('cursor', 'auto');
+    await press(await onCountry(map, '076'));
+    await expect(map).not.toHaveAttribute('data-focus', /.*/);
+    await expect(camera).not.toHaveAttribute('transform', /.*/);
+    // South Africa is: it zooms in
+    await expect(map.locator('.map-country[data-map-id="710"]')).toHaveCSS('cursor', 'pointer');
+    const sa = (await map.locator('.map-marker[data-map-id="710"] .map-marker-hit').boundingBox())!;
+    await press({ x: sa.x + sa.width / 2, y: sa.y + sa.height / 2 });
+    await expect(map).toHaveAttribute('data-focus', '');
+    // Zoomed in, a click on a neighbouring country (not a market) flies back out
+    const neighbour = await map.evaluate((el) => {
+      const r = el.querySelector('.map-stage')!.getBoundingClientRect();
+      for (let i = 2; i < 30; i++) {
+        for (let j = 2; j < 30; j++) {
+          const x = r.left + (r.width * i) / 30;
+          const y = r.top + (r.height * j) / 30;
+          if (document.elementFromPoint(x, y)?.matches('path.map-country:not([data-kind])')) return { x, y };
+        }
+      }
+      throw new Error('no other country in view');
+    });
+    await press(neighbour);
+    await expect(map).not.toHaveAttribute('data-focus', /.*/);
+    await expect(camera).not.toHaveAttribute('transform', /.*/);
+  });
+
   test('clicking a country flies the camera to it and tilts the map; Escape flies back', async ({ page }) => {
     test.skip(!isDesktop(page), 'pointer clicks on a mouse screen');
     const map = page.locator('[data-map]');

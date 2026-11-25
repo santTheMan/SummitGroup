@@ -24,8 +24,9 @@
  *  - ChoroplethGraticule: 10° lines, hidden while the camera is focused.
  *  - ChoroplethFeatureComponent: one filled path per country at opacity 0.85
  *    with a 0.5px border in the page colour; pointing at a country fades the
- *    rest to 0.4. `data-box` is the bounds of its largest landmass, which the
- *    camera frames on a click (France frames France, not French Guiana).
+ *    rest to 0.4. Only SGI's markets can be clicked (Daniel, 25 Nov): each
+ *    carries `data-box`, the bounds of its largest landmass, which the camera
+ *    frames on a click (the US frames the mainland, not Alaska).
  *  - ChoroplethMarker: a point per market that keeps its size as the map zooms
  *    (ui.ts counter-scales it). Daniel removed the visible dots (25 Nov), so on
  *    a flagged country it is only an 18px hit area where the links land; Malta's
@@ -246,7 +247,7 @@ const legendFlag = (id: string) => flags[id]!;
                       data-kind={s.market?.kind}
                       data-role={s.market?.role}
                       data-city={s.market?.city}
-                      data-box={s.name ? s.box : undefined}
+                      data-box={s.market ? s.box : undefined}
                     />
                   ),
                 )
@@ -435,7 +436,8 @@ const legendFlag = (id: string) => flags[id]!;
     transition: opacity 180ms ease-out;
   }
 
-  .map-country[data-name] {
+  /* Only the markets can be clicked (Daniel, 25 Nov) */
+  .map-country[data-kind] {
     cursor: pointer;
   }
 

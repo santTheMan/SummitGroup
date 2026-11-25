@@ -29,7 +29,9 @@ of Daniel's list):
    country fades the rest and opens bklit's tooltip beside the cursor (name, then "Clients" /
    "Our talent", with "Tokyo" for Japan). Clicking a country flies the camera to it (a marker:
    4×), tilting 24° and turning 18° to look from its side; clicking it again, the empty map or
-   Escape flies back. No name tag once a country is clicked or tapped (Daniel, 25 Nov): the
+   Escape flies back. Only the markets can be clicked (Daniel, 25 Nov): any other country does
+   nothing, or flies back out if zoomed in, and only markets show the hand cursor. No name tag
+   once a country is clicked or tapped (Daniel, 25 Nov): the
    tag shows only while pointing at the whole map. Where markets' tap areas overlap (Germany and
    Switzerland on a phone), the one nearest the finger wins. Malta is a marker only (too small for the 110m outlines), wearing its
    flag as a 12px badge. The legend shows each market's flag beside its name. Kept at
