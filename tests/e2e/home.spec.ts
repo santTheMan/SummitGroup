@@ -394,12 +394,16 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     const card = page.locator('[data-talent]');
     await expect(card.locator('#talent-title')).toHaveText('Want to work with us?');
     await expect(card.locator('#talent-title .accent')).toHaveText('work');
+    // Daniel, 25 Nov: titles only, "all remote" said once
     await expect(card.locator('.role-title')).toHaveText([
       'Sales development representative',
       'Account executive',
       'Sales manager',
-      'Recruiter, client relationship manager',
+      'Recruiter',
+      'Client relationship manager',
     ]);
+    await expect(card.locator('.roles-k')).toHaveText('Roles we hire for, all remote');
+    await expect(card.locator('.role-level, .role-detail, .role-where')).toHaveCount(0);
     const before = await card.locator('.answers').boundingBox();
     await card.getByRole('button', { name: 'Training' }).click();
     await expect(card.locator('.roles')).toBeHidden();

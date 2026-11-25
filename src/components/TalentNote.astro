@@ -6,8 +6,9 @@
  * Reworked after Daniel's meeting with Sam (24 Nov 2026): Sam wanted "want to work
  * with us" rather than "looking for a role", then the options of what SGI hires for,
  * from a setter to a strategic hire (his model was careers.netrevenue.io). "A role"
- * now comes first and lists the roles SGI hires for (level, role, one line, remote),
- * and "Training" is the second way in. The heading takes a fixed accent ("work").
+ * now comes first and lists the roles SGI hires for, and "Training" is the second
+ * way in. The heading takes a fixed accent ("work"). On 25 Nov Daniel found the
+ * roles too busy: they are now titles only, one line each, "all remote" said once.
  *
  * On 22 Nov 2026 Daniel removed the Summit-Ready journey card beside it so the
  * section could carry its own authority. It is now a question and an answer in
@@ -86,14 +87,13 @@ const answers = talentNote.options.map((o) => {
               </p>
               {o.id === 'role' && (
                 <div class="roles">
-                  <p class="roles-k">{talentNote.rolesLabel}</p>
+                  <p class="roles-k">
+                    {talentNote.rolesLabel}, <span class="roles-where">{talentNote.rolesWhere}</span>
+                  </p>
                   <ul>
                     {talentNote.roles.map((r) => (
                       <li class="role">
-                        <span class="role-level">{r.level}</span>
-                        <span class="role-title">{r.title}</span>
-                        <span class="role-detail">{r.detail}</span>
-                        <span class="role-where">{talentNote.rolesWhere}</span>
+                        <span class="role-title">{r}</span>
                       </li>
                     ))}
                   </ul>
@@ -327,9 +327,7 @@ const answers = talentNote.options.map((o) => {
     color: var(--ink);
   }
 
-  /* Roles SGI hires for, after NetRevenue's open positions but quieter: a level, the
-     role, one line, and where it is done. Hairlines between, no cards. The level is
-     --action-hover (4.5:1 on the glow); the line is 74% ink. */
+  /* Roles SGI hires for: titles only, one line each, hairlines between, no cards */
   .roles {
     margin-top: 1.5rem;
   }
@@ -346,52 +344,12 @@ const answers = talentNote.options.map((o) => {
   }
 
   .role {
-    display: grid;
-    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
-    grid-template-areas:
-      'level title where'
-      'level detail where';
-    column-gap: 1.25rem;
-    align-items: baseline;
-    padding: 0.875rem 0;
+    padding: 0.625rem 0;
     border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   }
 
-  .role-level {
-    grid-area: level;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--action-hover);
-  }
-
   .role-title {
-    grid-area: title;
     font-weight: 500;
-  }
-
-  .role-detail {
-    grid-area: detail;
-    font-size: 0.875rem;
-    color: color-mix(in srgb, var(--ink) 74%, transparent);
-  }
-
-  .role-where {
-    grid-area: where;
-    font-size: 0.8125rem;
-    color: color-mix(in srgb, var(--ink) 74%, transparent);
-  }
-
-  @media (max-width: 45rem) {
-    .role {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-areas:
-        'level where'
-        'title title'
-        'detail detail';
-      row-gap: 0.125rem;
-    }
   }
 
   /* --action-hover, not --accent-text: small blue text needs 4.5:1 on the sky glow */

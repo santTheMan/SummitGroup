@@ -49,6 +49,11 @@ avatar ticks, and Recruit / Develop / Manage in one row without their descriptio
 ticks also sat at the bottom edge of their circles on every screen (Icon's svg was outside the
 scoped grid rule); they are centred now.
 
+Also 25 Nov (Daniel): "Want to work with us?" had too much going on for Summit Pathways. The
+roles are now titles only, one line each (Sales development representative, Account executive,
+Sales manager, Recruiter, Client relationship manager), with "all remote" said once in the label;
+the level tags, one-line descriptions and repeated "Remote" are gone.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.

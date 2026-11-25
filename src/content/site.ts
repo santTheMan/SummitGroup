@@ -203,14 +203,12 @@ export const talentNote = {
       link: 'Meet Summit Institute',
     },
   ],
+  /* Daniel, 25 Nov: too much going on, so the roles are titles only (no level tags or
+     one-line descriptions), in order from a first sales role to our own team, with
+     "all remote" said once */
   rolesLabel: 'Roles we hire for',
-  rolesWhere: 'Remote',
-  roles: [
-    { level: 'Entry level', title: 'Sales development representative', detail: 'Books qualified sales calls for international teams.' },
-    { level: 'Experienced', title: 'Account executive', detail: 'Leads the sales conversations that close larger deals.' },
-    { level: 'Leadership', title: 'Sales manager', detail: 'Leads, coaches and grows a remote sales team.' },
-    { level: 'Our team', title: 'Recruiter, client relationship manager', detail: 'Helps build SGI itself.' },
-  ],
+  rolesWhere: 'all remote',
+  roles: ['Sales development representative', 'Account executive', 'Sales manager', 'Recruiter', 'Client relationship manager'],
 } as const;
 
 export const howWeWork = {
