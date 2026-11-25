@@ -65,6 +65,10 @@ shadow puddle under each, all bobbing on a slow loop. Now every business has the
 name and a label, a title, one visual in its colour (Institute: modules complete; Sales: three
 figures and six weeks of coaching; Pathways: the brief's four steps), type no smaller than 12px,
 nothing pressable, and no looping motion: each builds once as its scene comes in.
+Then (same day) the cards became Liquid Glass, lit by two soft lights each (the business's blue
+and a brand glow: Institute deep and peach, Sales electric and sky, Pathways sky and peach), using
+the header's glass tokens; quiet text inside the card is darker (lowest measured 8.3:1); Reduce
+Transparency makes the card solid.
 
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,

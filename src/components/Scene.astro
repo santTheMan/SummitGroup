@@ -13,6 +13,14 @@
  * (Apple's guidance: no slow looping oscillation). Each builds once as its scene
  * comes in: the modules fill, the bars rise, the steps tick, on a strong ease-out
  * with short, uneven staggers; with reduced motion they simply appear.
+ *
+ * Liquid glass (Daniel, 25 Nov: "change the colour, or maybe liquid glass"):
+ * glass only reads with colour behind it, so each scene is lit by two soft
+ * lights, its business's blue and one of the brand glows (peach or sky), and the
+ * card is the site's own Liquid Glass (tokens.css: --glass-blur-large, sheen,
+ * thick edge and the 1px lit rim the header uses). Colour stays on solid marks
+ * (bars, segments, dots) on top of the glass; quiet text is darker inside the
+ * card, so it reads over the colour. Reduce Transparency makes the card solid.
  */
 import { businesses, illustrations } from '../content/site.ts';
 import Icon from './Icon.astro';
@@ -32,6 +40,7 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
 ---
 
 <div class:list={['scene', `scene--${which}`]}>
+  <span class="lights"></span>
   <div class="card">
     <p class="card-head">
       <span class="card-name"><i></i>{name}</span>
@@ -127,13 +136,54 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
     padding: 1.5rem;
   }
 
+  /* Each scene's two lights: its business's blue, and a brand glow opposite */
+  .scene--institute {
+    --light-a: color-mix(in srgb, var(--sgi-deep) 58%, transparent);
+    --light-b: var(--glow-b);
+  }
+
   .scene--sales {
     --accent: var(--c-sales);
+    --light-a: color-mix(in srgb, var(--sgi-electric) 58%, transparent);
+    --light-b: color-mix(in srgb, var(--sgi-sky) 80%, transparent);
   }
 
   /* Sky is too pale for marks on white: its ink shade carries them */
   .scene--pathways {
     --accent: var(--c-pathways-ink);
+    --light-a: color-mix(in srgb, var(--sgi-sky) 90%, transparent);
+    --light-b: var(--glow-b);
+  }
+
+  /* The lights: two soft pools behind the card (radial gradients, no blur filter,
+     so Safari never repaints a box around them) */
+  .lights {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* Centred near the card's opposite corners, so each spills past the glass edge
+     and shows through it */
+  .lights::before,
+  .lights::after {
+    content: '';
+    position: absolute;
+    width: min(64%, 24rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+  }
+
+  .lights::before {
+    left: 2%;
+    top: -2%;
+    background: radial-gradient(closest-side, var(--light-a), transparent);
+  }
+
+  .lights::after {
+    right: 0;
+    bottom: -4%;
+    background: radial-gradient(closest-side, var(--light-b), transparent);
   }
 
   /* Small screens: the card sits in the flow above its copy */
@@ -144,17 +194,60 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
     padding: 0;
   }
 
-  /* One card for all three: paper, a hairline, a soft layered shadow (no puddle) */
+  /* There, the light spills above and below the card, never past the page's sides */
+  :global(.feat-inline) > .scene .lights {
+    inset: -1.75rem 0;
+  }
+
+  :global(.feat-inline) > .scene .lights::before,
+  :global(.feat-inline) > .scene .lights::after {
+    width: 62%;
+  }
+
+  :global(.feat-inline) > .scene .lights::before {
+    left: -6%;
+  }
+
+  :global(.feat-inline) > .scene .lights::after {
+    right: -6%;
+  }
+
+  /* One card for all three, in Liquid Glass: the lights blur and brighten through
+     a milky body, a sheen from the top, a thick edge and a lit 1px rim */
   .card {
+    /* Quiet text a step darker than the page's --muted: it sits over colour here */
+    --muted: color-mix(in srgb, var(--ink) 72%, transparent);
+
+    position: relative;
     width: min(27rem, 100%);
     padding: 1.5rem 1.5rem 1.375rem;
-    border-radius: 20px;
-    background: var(--paper);
-    border: 1px solid var(--rule-soft);
+    border-radius: 22px;
+    background:
+      var(--glass-sheen),
+      linear-gradient(180deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.44));
+    -webkit-backdrop-filter: var(--glass-blur-large);
+    backdrop-filter: var(--glass-blur-large);
     box-shadow:
-      0 1px 2px rgb(7 27 52 / 0.04),
-      0 4px 10px -4px rgb(7 27 52 / 0.06),
-      0 28px 56px -28px rgb(7 27 52 / 0.24);
+      var(--glass-thick),
+      var(--glass-shadow-large);
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--glass-rim);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   .card-head {
@@ -499,6 +592,22 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
     .scene *,
     .segs i[data-done]::after {
       transition: none !important;
+    }
+  }
+
+  /* Reduce Transparency: a solid card; Increase Contrast: a defined edge */
+  @media (prefers-reduced-transparency: reduce) {
+    .card {
+      background: var(--paper);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .card {
+      background: var(--paper);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 45%, transparent);
     }
   }
 </style>
