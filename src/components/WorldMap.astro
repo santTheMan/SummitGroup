@@ -27,8 +27,9 @@
  *    rest to 0.4. `data-box` is the bounds of its largest landmass, which the
  *    camera frames on a click (France frames France, not French Guiana).
  *  - ChoroplethMarker: a point per market that keeps its size as the map zooms
- *    (ui.ts counter-scales it), with a ring on hover. Kept to a 5px pin where
- *    the links land, so it doesn't cover the flags, with an 18px hit area.
+ *    (ui.ts counter-scales it). Daniel removed the visible dots (25 Nov), so on
+ *    a flagged country it is only an 18px hit area where the links land; Malta's
+ *    is its flag badge, with a ring on hover.
  *  - ChoroplethTooltip: the popover panel that follows the cursor.
  *
  * Flags (Daniel, 25 Nov): each market country is filled with its national flag
@@ -309,12 +310,9 @@ const legendFlag = (id: string) => flags[id]!;
                             </g>
                             <circle class="map-marker-core map-marker-core--flag" r="6"></circle>
                           </Fragment>
-                        ) : (
-                          <Fragment>
-                            <circle class="map-marker-ring" r="2.5"></circle>
-                            <circle class="map-marker-core" r="2.5"></circle>
-                          </Fragment>
-                        )
+                        ) : null
+                        /* Daniel, 25 Nov: no dots on the flags; the hit area alone keeps a small
+                           market (Switzerland) easy to point at, click and tap */
                       }
                     </g>
                   </g>

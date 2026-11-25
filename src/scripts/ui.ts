@@ -580,7 +580,7 @@ function initMap() {
     let best: Element | null = null;
     let bestD = 18 * 18;
     for (const mk of markers) {
-      const r = mk.querySelector('.map-marker-core')!.getBoundingClientRect();
+      const r = mk.querySelector('.map-marker-hit')!.getBoundingClientRect();
       const d = (r.left + r.width / 2 - cx) ** 2 + (r.top + r.height / 2 - cy) ** 2;
       if (d < bestD) {
         bestD = d;

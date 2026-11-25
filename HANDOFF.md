@@ -23,8 +23,9 @@ of Daniel's list):
    with a tilted camera), rebuilt from bklit's source without React. Each market country is
    filled with its national flag (src/lib/flags.ts: official proportions and colours, drawn as
    SVG), kept to the flag's own proportions and cropped to the country; the US mainland and
-   Alaska each get a whole flag. Other countries are the empty tone. Markers are 5px pins where
-   the links land, so they don't cover the flags. Pointing at any
+   Alaska each get a whole flag. Other countries are the empty tone. No dots on the flags (Daniel
+   removed them): each market keeps an invisible 18px hit area where its link lands, so small
+   ones (Switzerland) are easy to point at, click and tap. Pointing at any
    country fades the rest and opens bklit's tooltip beside the cursor (name, then "Clients" /
    "Our talent", with "Tokyo" for Japan). Clicking a country flies the camera to it (a marker:
    4×), tilting 24° and turning 18° to look from its side; clicking it again, the empty map or
