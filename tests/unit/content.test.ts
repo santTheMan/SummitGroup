@@ -42,7 +42,8 @@ describe('approved copy', () => {
   });
 
   it('has one primary call to action', () => {
-    expect(site.cta.label).toBe('Book a conversation');
+    // Sam, 24 Nov 2026: clients are partners
+    expect(site.cta.label).toBe('Partner with us');
     const text = publishedStrings().join('\n');
     expect(text).not.toMatch(/get started/i);
   });

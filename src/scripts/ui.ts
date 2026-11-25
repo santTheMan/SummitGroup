@@ -350,21 +350,78 @@ function initHeatmap() {
 
 /* Where we work map: pointing at a country (its dots, link or label) keeps it
    bright and quietens the other marked countries */
+/* Where we work map, after bklit's Choropleth tooltip (25 Nov 2026): pointing at a
+   marked country (or tapping it on a phone) names it in a tooltip, with its city where
+   there is one, and quietens the other markets. */
 function initMap() {
   const map = $('[data-map]');
   if (!map) return;
-  const marks = $$<HTMLElement>('[data-map-id]', map);
+  const stage = $('.map-stage', map);
+  const svg = $<SVGSVGElement>('svg', map);
+  const tip = $('[data-map-tip]', map);
+  const marks = $$<Element>('[data-map-id]', map);
+  // Each marked country's dots, in the map's own units
+  const countries = $$<SVGGElement>('.map-hit', map).map((g) => ({
+    g,
+    pts: (g.dataset.pts ?? '').split(' ').map((p) => p.split(',').map(Number) as [number, number]),
+  }));
+  /* The marked country with a dot nearest the pointer, within about one grid step */
+  const nearest = (x: number, y: number) => {
+    if (!svg) return null;
+    const m = svg.getScreenCTM();
+    if (!m) return null;
+    const p = new DOMPoint(x, y).matrixTransform(m.inverse());
+    let best: SVGGElement | null = null;
+    let bestD = 12 * 12;
+    for (const c of countries) {
+      for (const [px, py] of c.pts) {
+        const d = (px - p.x) ** 2 + (py - p.y) ** 2;
+        if (d < bestD) {
+          bestD = d;
+          best = c.g;
+        }
+      }
+    }
+    return best;
+  };
   let focus: string | null = null;
   const set = (id: string | null) => {
     if (id === focus) return;
     focus = id;
     map.toggleAttribute('data-focus', Boolean(id));
-    marks.forEach((m) => m.toggleAttribute('data-active', m.dataset.mapId === id));
+    marks.forEach((m) => m.toggleAttribute('data-active', m.getAttribute('data-map-id') === id));
   };
-  map.addEventListener('pointerover', (e) => {
-    set((e.target as Element).closest<HTMLElement>('[data-map-id]')?.dataset.mapId ?? null);
+  const hide = () => {
+    set(null);
+    tip?.removeAttribute('data-on');
+  };
+  const show = (x: number, y: number) => {
+    const src = nearest(x, y);
+    const id = src?.getAttribute('data-map-id');
+    if (!src || !id) return hide();
+    set(id);
+    if (!tip || !stage) return;
+    const city = src.getAttribute('data-city');
+    const role = src.getAttribute('data-role') ?? '';
+    tip.querySelector('b')!.textContent = src.getAttribute('data-name');
+    tip.querySelector('small')!.textContent = city ? `${city} · ${role}` : role;
+    const r = stage.getBoundingClientRect();
+    tip.style.setProperty('--x', `${Math.round(x - r.left)}px`);
+    tip.style.setProperty('--y', `${Math.round(y - r.top)}px`);
+    tip.setAttribute('data-on', '');
+  };
+  map.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'mouse') show(e.clientX, e.clientY);
   });
-  map.addEventListener('pointerleave', () => set(null));
+  map.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'mouse') hide();
+  });
+  // Touch and pen: a tap names the country; a tap anywhere else puts the tooltip away
+  document.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse') return;
+    if (map.contains(e.target as Node)) show(e.clientX, e.clientY);
+    else hide();
+  });
 }
 
 /* Start with a conversation: optional needs build the client's brief (SGI stays

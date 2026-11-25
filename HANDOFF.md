@@ -1,5 +1,35 @@
 # Handoff: SGI website, Phase 1
 
+## 25 Nov 2026: changes from Daniel's meeting with Sam (24 Nov, Fathom recording)
+
+Sam reviewed the live preview, was happy with the design, and asked for these (items 1 to 6
+of Daniel's list):
+1. **Revenue:** the $9.7M+ commission estimate was too high. Managed clients average no less
+   than $600K and, at present, no more than $1M a month. The gauge shows **$600K+**, captioned
+   "Monthly average", 60% full ($600K of the $1M top), with the range in the note. Sam's final
+   figure is still to come.
+2. **Partner wording:** clients are partners. The button reads **"Partner with us"** everywhere
+   (hero, closing, footer) and the closing heading is **"Want to partner with us?"**.
+3. **"Want to work with us?":** the talent section, modelled on careers.netrevenue.io. "A role"
+   comes first and lists the roles SGI hires for (Sales development representative, Account
+   executive, Sales manager, Recruiter / client relationship manager), each with a level and
+   "Remote". Training is the second way in. Corporate role names, not "setter" or "closer"
+   (claims governance bans sales-floor jargon). The roles are kinds of role, not live openings.
+4. **"Speed to candidate":** a client's phrase Sam adopted. On the hero tablet ("Speed to
+   candidate: days, not weeks") and in Summit Pathways' summary.
+5. **Map:** Sam's client markets are the USA, United Kingdom, Switzerland, Malta, Germany and
+   Tokyo (Japan). Australia is gone. After bklit's Choropleth tooltip, client countries carry no
+   permanent label: pointing at one (tapping on a phone) names it, with "Tokyo" for Japan, and
+   the country nearest the pointer answers, so the crowded European four each work. A legend
+   under the map lists every market. South Africa keeps its label.
+6. **Tone:** SGI must read corporate and premium. Light pass: "Not sure yet? Get in touch
+   anyway, and we will shape the brief with you." and the FAQ answers. Sam is recording a Loom
+   with full copy feedback.
+
+Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
+(calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
+Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.
+
 ## 24 Nov 2026: stress test before Sam's preview
 
 Daniel asked for a stress test before sending Sam the preview link

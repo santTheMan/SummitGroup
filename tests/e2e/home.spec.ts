@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 const PROMISE = 'We recruit, develop and manage South African talent that takes your business higher.';
-const CTA = 'Book a conversation';
+const CTA = 'Partner with us';
 
 const isDesktop = (page: Page) => (page.viewportSize()?.width ?? 0) >= 1024;
 
@@ -178,12 +178,15 @@ test.describe('SGI home page', () => {
   });
 
   test('the client revenue gauge sweeps up and counts to its figure', async ({ page }) => {
-    // R12.8m+ commissions at 7.5% of each sale = R170.7m, at R17.5/$ (24 Nov 2026): $9.7M+
-    const gauge = page.getByRole('img', { name: /Revenue generated for clients in the past 3 months: \$9\.7 million plus/ });
+    // Sam, 24 Nov 2026: managed clients, $600K to $1M a month
+    const gauge = page.getByRole('img', {
+      name: /Revenue generated for the clients we manage, every month: \$600 thousand plus a month/,
+    });
     await gauge.scrollIntoViewIfNeeded();
-    await expect(gauge.locator('[data-gauge-count]')).toHaveText('9.7M', { timeout: 6000 });
-    await expect(gauge.locator('.revenue-value')).toHaveText('$9.7M+');
-    await expect(gauge.locator('path[data-on]')).toHaveCount(26);
+    await expect(gauge.locator('[data-gauge-count]')).toHaveText('600K', { timeout: 6000 });
+    await expect(gauge.locator('.revenue-value')).toHaveText('$600K+');
+    // 60% full: $600K of the $1M top of Sam's range
+    await expect(gauge.locator('path[data-on]')).toHaveCount(24);
     await expect(page.locator('.revenue')).toContainText('not SGI revenue');
   });
 
@@ -209,7 +212,7 @@ test.describe('SGI home page', () => {
     expect(look.gaugeWidth).toBeGreaterThanOrEqual(isDesktop(page) ? 320 : 260);
     // No tag above the label (Daniel removed "Estimate", 24 Nov); the note still says it is estimated
     await expect(revenue.locator('.revenue-flag')).toHaveCount(0);
-    await expect(revenue.locator('.revenue-note')).toContainText('Estimated');
+    await expect(revenue.locator('.revenue-note')).toContainText('between $600K and $1M a month');
     expect(look.pool).toContain('radial-gradient');
     expect(look.sectionRule).toBe(0);
     expect(look.hairlines).toBe(0);
@@ -229,19 +232,21 @@ test.describe('SGI home page', () => {
     await expect(section).not.toContainText(/shared|Johannesburg|working hours/i);
   });
 
-  test('the dot map marks South Africa and the three client markets', async ({ page }) => {
+  test('the dot map marks South Africa and Sam\u2019s six client markets', async ({ page }) => {
     const map = page.locator('[data-map]');
-    await expect(map.getByRole('img', { name: /South Africa.*United States.*United Kingdom.*Australia/ })).toBeVisible();
-    const pins = map.locator('.map-pin');
-    await expect(pins).toHaveCount(4);
-    for (const name of ['South Africa', 'United States', 'United Kingdom', 'Australia']) {
-      await expect(pins.filter({ hasText: name })).toHaveCount(1);
-    }
+    await expect(
+      map.getByRole('img', { name: /South Africa.*United States.*United Kingdom.*Germany.*Switzerland.*Malta.*Japan/ }),
+    ).toBeVisible();
+    // Only South Africa keeps a label on the map; the legend names every market
+    await expect(map.locator('.map-pin')).toHaveCount(1);
+    await expect(map.locator('.map-pin')).toContainText('South Africa');
+    await expect(map.locator('.map-legend')).toContainText('United States, United Kingdom, Germany, Switzerland, Malta, Japan');
+    await expect(map).not.toContainText('Australia');
     // Every marked country has dots of its own, and South Africa links to each client market
-    for (const id of ['710', '840', '826', '036']) {
+    for (const id of ['710', '840', '826', '276', '756', '470', '392']) {
       expect(await map.locator(`path.map-dots[data-map-id="${id}"]`).getAttribute('d')).toMatch(/h0/);
     }
-    await expect(map.locator('path.map-link')).toHaveCount(3);
+    await expect(map.locator('path.map-link')).toHaveCount(6);
   });
 
   test('the placements heatmap adds up to the approved 450', async ({ page }) => {
@@ -343,25 +348,28 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
 
   test('the talent chooser points to the right business', async ({ page }) => {
     const card = page.locator('[data-talent]');
-    await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeVisible();
-    await card.getByRole('button', { name: 'A role' }).click();
+    // "A role" comes first (Sam, 24 Nov 2026), then Training
     await expect(card.getByRole('button', { name: 'A role' })).toHaveAttribute('aria-pressed', 'true');
     await expect(card.getByRole('link', { name: 'Meet Summit Pathways' })).toBeVisible();
-    await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeHidden();
+    await card.getByRole('button', { name: 'Training' }).click();
+    await expect(card.getByRole('button', { name: 'Training' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(card.getByRole('link', { name: 'Meet Summit Institute' })).toBeVisible();
+    await expect(card.getByRole('link', { name: 'Meet Summit Pathways' })).toBeHidden();
   });
 
-  test('the talent heading records the choice, and the answer swaps in place', async ({ page }) => {
+  test('want to work with us: the roles SGI hires for, and the answer swaps in place', async ({ page }) => {
     const card = page.locator('[data-talent]');
-    const accent = 'rgb(34, 100, 210)';
-    const training = card.locator('[data-word="training"]');
-    const role = card.locator('[data-word="role"]');
-    await expect(training).toHaveText('training');
-    await expect(role).toHaveText('a role');
-    await expect(training).toHaveCSS('color', accent);
+    await expect(card.locator('#talent-title')).toHaveText('Want to work with us?');
+    await expect(card.locator('#talent-title .accent')).toHaveText('work');
+    await expect(card.locator('.role-title')).toHaveText([
+      'Sales development representative',
+      'Account executive',
+      'Sales manager',
+      'Recruiter, client relationship manager',
+    ]);
     const before = await card.locator('.answers').boundingBox();
-    await card.getByRole('button', { name: 'A role' }).click();
-    await expect(role).toHaveCSS('color', accent);
-    await expect(training).not.toHaveCSS('color', accent);
+    await card.getByRole('button', { name: 'Training' }).click();
+    await expect(card.locator('.roles')).toBeHidden();
     const after = await card.locator('.answers').boundingBox();
     // Both answers share one cell, so switching never moves the page below.
     expect(Math.round(after!.height)).toBe(Math.round(before!.height));
@@ -370,7 +378,7 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
   test('both sections stand on type alone, and the finale states SGI as the one contact', async ({ page }) => {
     await expect(page.locator('#book .call, #book .cta-grid, .op-sec .journey')).toHaveCount(0);
     await expect(page.locator('#book').getByText('SGI stays your point of contact while the work goes on.')).toBeVisible();
-    await expect(page.locator('#book-title .accent')).toHaveText('conversation.');
+    await expect(page.locator('#book-title .accent')).toHaveText('partner');
     const size = (id: string) => page.locator(id).evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
     // The finale headline is the page's closing word: never smaller than the hero's.
     expect(await size('#book-title')).toBeGreaterThanOrEqual(await size('#hero-title'));
@@ -379,7 +387,7 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
 
   test('the conversation picker builds a brief with SGI as the one contact', async ({ page }) => {
     const convo = page.locator('[data-convo]');
-    await expect(convo.getByText('Not sure yet? Book anyway and tell us on the call.')).toBeVisible();
+    await expect(convo.getByText('Not sure yet? Get in touch anyway, and we will shape the brief with you.')).toBeVisible();
     const row = () => convo.locator('[data-need]').evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().left)));
     const before = await row();
     await convo.getByRole('button', { name: 'Recruit' }).click();
@@ -420,13 +428,22 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     expect(look.fullWidth).toBe(true);
   });
 
-  test('pointing at a country label quietens the other marked countries', async ({ page }) => {
+  test('pointing at a country names it in a tooltip and quietens the other markets', async ({ page }) => {
     test.skip(!isDesktop(page), 'hover is for mouse screens');
     const map = page.locator('[data-map]');
     await map.scrollIntoViewIfNeeded();
-    await map.locator('.map-pin[data-map-id="036"]').hover();
+    // Point at Japan's label point (its last stored point), in screen pixels
+    const at = await map.evaluate((el) => {
+      const svg = el.querySelector('svg')!;
+      const pts = el.querySelector<SVGGElement>('.map-hit[data-map-id="392"]')!.dataset.pts!.split(' ');
+      const [x, y] = pts[pts.length - 1]!.split(',').map(Number);
+      const p = new DOMPoint(x, y).matrixTransform(svg.getScreenCTM()!);
+      return { x: p.x, y: p.y };
+    });
+    await page.mouse.move(at.x, at.y);
     await expect(map).toHaveAttribute('data-focus', '');
-    await expect(map.locator('path.map-dots[data-map-id="036"]')).toHaveCSS('opacity', '1');
+    await expect(map.locator('[data-map-tip]')).toHaveText(/Japan\s*Tokyo · Clients/);
+    await expect(map.locator('path.map-dots[data-map-id="392"]')).toHaveCSS('opacity', '1');
     await expect(map.locator('path.map-dots[data-map-id="840"]')).toHaveCSS('opacity', '0.35');
     await page.mouse.move(5, 5);
     await expect(map).not.toHaveAttribute('data-focus', /.*/);
@@ -449,7 +466,7 @@ test.describe('reduced motion', () => {
     await expect(page.locator('html')).not.toHaveAttribute('data-motion', 'on');
     await expect(page.locator('.hero-word').first()).toHaveCSS('transform', 'none');
     await expect(page.locator('.device-wrap')).toHaveCSS('opacity', '1');
-    await expect(page.locator('.revenue .revenue-value')).toHaveText('$9.7M+');
+    await expect(page.locator('.revenue .revenue-value')).toHaveText('$600K+');
     await expect(page.locator('[data-team-story] [data-seat][data-s="2"]')).toHaveCount(12);
     // No floating: the illustrations hold still.
     await page.locator('#businesses').scrollIntoViewIfNeeded();
@@ -518,7 +535,7 @@ test.describe('header navigation', () => {
     expect(g.buttons.length).toBeGreaterThan(0);
     for (const b of g.buttons) expect(b).toMatch(/^blur\(\d+px\).*\|none$/);
     for (const c of g.chips) expect(c).toMatch(/^blur\(\d+px\)/);
-    // ...except "Book a conversation", which stays solid electric blue
+    // ...except "Partner with us", which stays solid electric blue
     // The hero's and the closing's (the phone menu's went on 24 Nov)
     expect(g.primary.length).toBeGreaterThanOrEqual(2);
     for (const p of g.primary) expect(p).toBe('none|rgb(34, 100, 210)');
@@ -624,7 +641,7 @@ test.describe('header navigation', () => {
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await expect(nav.getByRole('link', { name: 'How we work' })).toBeVisible();
     // No booking button in the phone menu (Daniel, 24 Nov 2026)
-    await expect(nav.getByRole('link', { name: /book a conversation/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /partner with us/i })).toHaveCount(0);
 
     await page.keyboard.press('Escape');
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');

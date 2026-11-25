@@ -60,7 +60,7 @@ const revenueText = new Intl.NumberFormat('en-US', revenueFormat).format(clientR
               data-format={JSON.stringify(revenueFormat)}>{revenueText}</span
             ><span class="revenue-plus">{clientRevenue.suffix}</span></span
           >
-          <span class="revenue-caption">Client revenue</span>
+          <span class="revenue-caption">{clientRevenue.caption}</span>
         </Gauge>
         <div class="revenue-text">
           <p class="revenue-label" aria-hidden="true">{clientRevenue.label}</p>

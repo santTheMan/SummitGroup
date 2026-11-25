@@ -1,7 +1,13 @@
 ---
 /**
- * Looking for training or a role? For individuals: SGI works with companies,
- * and its specialist businesses work with people directly.
+ * Want to work with us? For individuals: SGI works with companies, and its
+ * specialist businesses work with people directly.
+ *
+ * Reworked after Daniel's meeting with Sam (24 Nov 2026): Sam wanted "want to work
+ * with us" rather than "looking for a role", then the options of what SGI hires for,
+ * from a setter to a strategic hire (his model was careers.netrevenue.io). "A role"
+ * now comes first and lists the roles SGI hires for (level, role, one line, remote),
+ * and "Training" is the second way in. The heading takes a fixed accent ("work").
  *
  * On 22 Nov 2026 Daniel removed the Summit-Ready journey card beside it so the
  * section could carry its own authority. It is now a question and an answer in
@@ -22,23 +28,12 @@
  * on every edge. Behaviour: src/scripts/ui.ts (initTalent).
  */
 import { businesses, talentNote } from '../content/site.ts';
+import { words } from '../lib/text.ts';
 import Icon from './Icon.astro';
 
 const first = talentNote.options[0];
 const nameOf: Record<string, string> = Object.fromEntries(businesses.map((b) => [b.id, b.name]));
-
-/* Split the heading around the option words ("training", "a role") so the chosen one can take the accent */
-const segments: { text: string; option?: string }[] = [];
-let rest: string = talentNote.heading;
-for (const o of talentNote.options) {
-  const at = rest.toLowerCase().indexOf(o.label.toLowerCase());
-  if (at < 0) continue;
-  if (at > 0) segments.push({ text: rest.slice(0, at) });
-  segments.push({ text: rest.slice(at, at + o.label.length), option: o.id });
-  rest = rest.slice(at + o.label.length);
-}
-if (rest) segments.push({ text: rest });
-
+const title = words(talentNote.heading);
 /* Each answer opens with its business's name, which is set in full ink */
 const answers = talentNote.options.map((o) => {
   const name = nameOf[o.business] ?? '';
@@ -51,7 +46,14 @@ const answers = talentNote.options.map((o) => {
   <div class="wrap">
     <div class="op" data-talent data-choice-index="0" data-business={first.business} data-reveal>
       <h2 class="h2 op-title" id="talent-title">
-        {segments.map((s) => (s.option ? <span class="op-word" data-word={s.option}>{s.text}</span> : s.text))}
+        {
+          title.map((w, i) => (
+            <>
+              {i > 0 && !w.glue && ' '}
+              {w.accent ? <span class="accent">{w.text}</span> : w.text}
+            </>
+          ))
+        }
       </h2>
 
       <div class="op-ask">
@@ -82,6 +84,21 @@ const answers = talentNote.options.map((o) => {
                 {o.lead && <strong>{o.lead}</strong>}
                 {o.tail}
               </p>
+              {o.id === 'role' && (
+                <div class="roles">
+                  <p class="roles-k">{talentNote.rolesLabel}</p>
+                  <ul>
+                    {talentNote.roles.map((r) => (
+                      <li class="role">
+                        <span class="role-level">{r.level}</span>
+                        <span class="role-title">{r.title}</span>
+                        <span class="role-detail">{r.detail}</span>
+                        <span class="role-where">{talentNote.rolesWhere}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <a class="link-arrow" href={`#business-${o.business}`}>
                 {o.link}
                 <Icon name="arrow" size={16} />
@@ -135,22 +152,13 @@ const answers = talentNote.options.map((o) => {
     align-items: end;
     column-gap: clamp(3rem, 1rem + 6vw, 7rem);
     row-gap: clamp(2rem, 1.25rem + 2vw, 3.25rem);
+    /* The answer is now taller (it lists the roles): the question sits level with its top */
+    align-items: start;
     color: var(--ink);
   }
 
   .op-title {
     grid-area: title;
-  }
-
-  /* The chosen word takes the accent, in step with the pill (colour only).
-     --accent-text is 3.9:1 on the glows, above the 3:1 large-text bar at 30px+. */
-  .op-word {
-    transition: color 240ms ease;
-  }
-
-  .op[data-choice-index='0'] .op-word[data-word='training'],
-  .op[data-choice-index='1'] .op-word[data-word='role'] {
-    color: var(--accent-text);
   }
 
   .op-ask {
@@ -297,11 +305,11 @@ const answers = talentNote.options.map((o) => {
       visibility 0s 150ms;
   }
 
-  .answer[data-answer='training'][hidden] {
+  .answer[data-answer='role'][hidden] {
     transform: translateX(-0.75rem);
   }
 
-  .answer[data-answer='role'][hidden] {
+  .answer[data-answer='training'][hidden] {
     transform: translateX(0.75rem);
   }
 
@@ -317,6 +325,73 @@ const answers = talentNote.options.map((o) => {
   .answer-text strong {
     font-weight: 500;
     color: var(--ink);
+  }
+
+  /* Roles SGI hires for, after NetRevenue's open positions but quieter: a level, the
+     role, one line, and where it is done. Hairlines between, no cards. The level is
+     --action-hover (4.5:1 on the glow); the line is 74% ink. */
+  .roles {
+    margin-top: 1.5rem;
+  }
+
+  .roles-k {
+    margin-bottom: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--ink) 74%, transparent);
+  }
+
+  .roles ul {
+    border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  .role {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'level title where'
+      'level detail where';
+    column-gap: 1.25rem;
+    align-items: baseline;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  .role-level {
+    grid-area: level;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--action-hover);
+  }
+
+  .role-title {
+    grid-area: title;
+    font-weight: 500;
+  }
+
+  .role-detail {
+    grid-area: detail;
+    font-size: 0.875rem;
+    color: color-mix(in srgb, var(--ink) 74%, transparent);
+  }
+
+  .role-where {
+    grid-area: where;
+    font-size: 0.8125rem;
+    color: color-mix(in srgb, var(--ink) 74%, transparent);
+  }
+
+  @media (max-width: 45rem) {
+    .role {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'level where'
+        'title title'
+        'detail detail';
+      row-gap: 0.125rem;
+    }
   }
 
   /* --action-hover, not --accent-text: small blue text needs 4.5:1 on the sky glow */

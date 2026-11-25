@@ -47,8 +47,10 @@ export const meta = {
     'We recruit, develop and manage South African talent that takes your business higher. One relationship with SGI, backed by three specialist businesses.',
 } as const;
 
+/* Sam, 24 Nov 2026: "we view our clients as partners", so the call to action invites a
+   partnership rather than booking a call */
 export const cta = {
-  label: 'Book a conversation',
+  label: 'Partner with us',
 } as const;
 
 /** The "Our businesses" fold-out lists `businesses`; these are the plain links beside it. */
@@ -91,7 +93,8 @@ export const businesses: readonly Business[] = [
     // "Pathways" is a working name: see signOffs.pathwaysName.
     name: 'Summit Pathways',
     role: 'Recruits and places talent',
-    summary: 'Finds and places South African talent in the roles you need to fill.',
+    /* "Speed to candidate": a client's phrase Sam adopted (24 Nov 2026) */
+    summary: 'Finds and places South African talent in the roles you need to fill. Speed to candidate: days, not weeks.',
     accent: 'sky',
   },
 ];
@@ -115,17 +118,22 @@ export const about = {
  * off: signOffs.clientRevenueFigure. The 66% fill is decorative.
  */
 export const clientRevenue = {
-  amount: 9_700_000,
-  /** Written around the counting figure: $9.7M+ */
+  /* Sam, 24 Nov 2026 meeting: managed clients average no less than $600K a month and,
+     at present, no more than $1M. The $9.7M+ commission estimate was too high. His
+     final figure is still to come (signOffs.clientRevenueFigure). */
+  amount: 600_000,
+  /** Written around the counting figure: $600K+ */
   prefix: '$',
   suffix: '+',
   /** What a screen reader hears */
-  spoken: '$9.7 million plus',
-  /** Gauge fill, 0 to 100. */
-  fill: 66,
-  label: 'Revenue generated for clients in the past 3 months',
+  spoken: '$600 thousand plus a month',
+  /** Under the figure, inside the gauge */
+  caption: 'Monthly average',
+  /** Gauge fill, 0 to 100: $600K of the $1M top of the current range */
+  fill: 60,
+  label: 'Revenue generated for the clients we manage, every month',
   /* No "earn", "income" or "commission" in published copy (claims governance, content.test.ts) */
-  note: 'Revenue our teams generated for clients, not SGI revenue. Estimated from the sales our talent made in that period.',
+  note: 'Currently between $600K and $1M a month for the clients whose sales teams we manage. Client revenue, not SGI revenue.',
 } as const;
 
 export const proof: readonly ProofPoint[] = [
@@ -169,12 +177,24 @@ export const businessesSection = {
 } as const;
 
 /** Talent note band (approved talent note, split into heading and body). */
+/* Sam, 24 Nov 2026: "want to work with us", then the options of what we are hiring
+   for, from a setter all the way to a strategic hire (his model: careers.netrevenue.io).
+   `*asterisks*` mark the accent. The roles are the kinds SGI hires for, not a list of
+   current openings, named the corporate way (no "setter" or "closer": claims
+   governance in content.test.ts bans sales-floor jargon). */
 export const talentNote = {
-  heading: 'Looking for training or a role?',
-  body: 'Our specialist businesses work with individuals directly. SGI works with companies and partners.',
+  heading: 'Want to *work* with us?',
+  body: 'From a first sales role to leading a team, there is a place to start. Our specialist businesses work with individuals directly.',
   /** Drafted for the redesign (part of the homepage copy sign-off). */
-  chooserLabel: 'What are you looking for?',
+  chooserLabel: 'Where would you like to start?',
   options: [
+    {
+      id: 'role',
+      label: 'A role',
+      business: 'pathways',
+      text: 'Summit Pathways places South African talent in remote roles with international companies, and hires for our own team.',
+      link: 'Meet Summit Pathways',
+    },
     {
       id: 'training',
       label: 'Training',
@@ -182,13 +202,14 @@ export const talentNote = {
       text: 'Summit Institute develops skills: training that prepares people for the work businesses need done.',
       link: 'Meet Summit Institute',
     },
-    {
-      id: 'role',
-      label: 'A role',
-      business: 'pathways',
-      text: 'Summit Pathways recruits and places talent in the roles companies need to fill.',
-      link: 'Meet Summit Pathways',
-    },
+  ],
+  rolesLabel: 'Roles we hire for',
+  rolesWhere: 'Remote',
+  roles: [
+    { level: 'Entry level', title: 'Sales development representative', detail: 'Books qualified sales calls for international teams.' },
+    { level: 'Experienced', title: 'Account executive', detail: 'Leads the sales conversations that close larger deals.' },
+    { level: 'Leadership', title: 'Sales manager', detail: 'Leads, coaches and grows a remote sales team.' },
+    { level: 'Our team', title: 'Recruiter, client relationship manager', detail: 'Helps build SGI itself.' },
   ],
 } as const;
 
@@ -242,13 +263,24 @@ export const audiences = {
    * confirmed markets (UK, US, Australia). Ids are ISO 3166-1 numeric, as in
    * world-atlas; `at` is where the label points ([longitude, latitude]).
    */
+  /* Sam's list of client markets (25 Nov 2026): USA, United Kingdom, Switzerland, Malta,
+     Germany and Tokyo. It replaces the earlier UK / US / Australia set (Australia is not
+     on it). Client countries carry no permanent label: as in bklit's Choropleth, a
+     tooltip names each on hover or tap, and the legend under the map lists them all.
+     `city` adds a city to the tooltip. */
   markets: {
-    caption: 'Our talent is in South Africa. Our international clients are in the United States, the United Kingdom and Australia.',
+    caption:
+      'Our talent is in South Africa. Our international clients are in the United States, the United Kingdom, Germany, Switzerland, Malta and Japan.',
+    legendHome: 'Our talent',
+    legendClients: 'Clients',
     home: { id: '710', name: 'South Africa', role: 'Our talent', at: [24, -29] },
     clients: [
       { id: '840', name: 'United States', role: 'Clients', at: [-97, 39] },
       { id: '826', name: 'United Kingdom', role: 'Clients', at: [-2, 53] },
-      { id: '036', name: 'Australia', role: 'Clients', at: [134, -25] },
+      { id: '276', name: 'Germany', role: 'Clients', at: [10.4, 51.2] },
+      { id: '756', name: 'Switzerland', role: 'Clients', at: [8.2, 46.8] },
+      { id: '470', name: 'Malta', role: 'Clients', at: [14.4, 35.9] },
+      { id: '392', name: 'Japan', city: 'Tokyo', role: 'Clients', at: [139.7, 35.7] },
     ],
   },
   groups: [
@@ -269,8 +301,10 @@ export const audiences = {
 } as const;
 
 export const closing = {
-  eyebrow: 'Book a conversation',
-  heading: 'Start with a *conversation.*',
+  eyebrow: 'Partner with us',
+  /* Sam, 24 Nov 2026: clients are partners. It answers the talent section's "Want to
+     work with us?" */
+  heading: 'Want to *partner* with us?',
   body: 'Tell us what your business needs, and we will bring in the right specialists.',
   /** Drafted for the redesign (part of the homepage copy sign-off). */
   needsLabel: 'What do you need?',
@@ -284,7 +318,7 @@ export const closing = {
   /** The "Your brief" card was removed on 22 Nov 2026; its lines now live in the section itself. */
   call: {
     /** Under the needs until something is picked. */
-    empty: 'Not sure yet? Book anyway and tell us on the call.',
+    empty: 'Not sure yet? Get in touch anyway, and we will shape the brief with you.',
     /** Under the needs once something is picked. {needs} is filled in by the page. */
     said: 'Your brief: {needs}.',
     /** Set in full ink at the end of the lead: the one-point-of-contact promise. */
@@ -294,7 +328,7 @@ export const closing = {
     summary: 'Your brief: {needs}. SGI is your one point of contact.',
   },
   /** Shown under the button until PUBLIC_BOOKING_URL is configured. */
-  pendingNotice: 'Pre-launch placeholder: the booking button appears here once its destination is approved.',
+  pendingNotice: 'Pre-launch placeholder: this button opens a booking page once its destination is approved.',
 } as const;
 
 /** Drafted for the redesign from approved lines (part of the homepage copy sign-off). */
@@ -305,7 +339,7 @@ export const faq = {
   items: [
     {
       q: 'Who does SGI work with?',
-      a: 'Companies and partners: South African corporates and banks, international clients, and partners and funders. Individuals looking for training or a role work with our specialist businesses directly.',
+      a: 'Companies and partners: South African corporates and banks, international clients, and partners and funders. Individuals who want to work with us, in a role or in training, work with our specialist businesses directly.',
     },
     {
       q: 'Do we need to contact each business separately?',
@@ -321,7 +355,7 @@ export const faq = {
     },
     {
       q: 'How do we start?',
-      a: 'Book a conversation. Tell us what your business needs, and we will bring in the right specialists.',
+      a: 'Choose Partner with us and tell us what your business needs. We will bring in the right specialists, and SGI stays your point of contact.',
     },
   ],
 } as const;
@@ -347,7 +381,7 @@ export const illustrations = {
     teamSize: 12,
     teamLabel: 'people',
     readyLabel: 'Summit-Ready',
-    speed: 'Placed in days, not weeks',
+    speed: 'Speed to candidate: days, not weeks',
     /** Shown on a seat before someone is placed in it. */
     openLabel: 'Open role',
     /**

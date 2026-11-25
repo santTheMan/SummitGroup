@@ -55,7 +55,7 @@ const countryAt = (lon: number, lat: number) => {
 
 /* The dot grid: one dot every `step` units, offset half a step from the edges */
 const step = 9;
-const marked = [
+const marked: { id: string; name: string; role: string; city?: string; at: readonly [number, number]; kind: 'home' | 'client' }[] = [
   { ...m.home, kind: 'home' as const },
   ...m.clients.map((c) => ({ ...c, kind: 'client' as const })),
 ];
@@ -127,9 +127,26 @@ const links = shapes
           <path class:list={['map-dots', `map-dots--${s.kind}`]} d={s.d} data-map-id={s.id} style={`--d:${s.delay}ms`} />
         ))
       }
+      {
+        /* Hover and tap, after bklit's Choropleth tooltip: each marked country's dots
+           (and its label point) for ui.ts to find the country nearest the pointer, so
+           crowded markets (UK, Germany, Switzerland, Malta) each answer for their own
+           ground */
+        shapes.map((s) => (
+          <g
+            class="map-hit"
+            data-map-id={s.id}
+            data-name={s.name}
+            data-city={s.city}
+            data-role={s.role}
+            data-pts={[...dots.get(s.id)!, s.anchor].map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')}
+          />
+        ))
+      }
     </svg>
+    <p class="map-tip" data-map-tip aria-hidden="true"><b></b><small></small></p>
     {
-      shapes.map((s) => (
+      shapes.filter((s) => s.kind === 'home').map((s) => (
         <span
           class:list={['map-pin', `map-pin--${s.kind}`, s.anchor[0] > width * 0.75 && 'map-pin--left']}
           style={`${pct(s.anchor)};--d:${s.delay + 200}ms`}
@@ -145,6 +162,10 @@ const links = shapes
       ))
     }
   </div>
+  <p class="map-legend" aria-hidden="true">
+    <span><i class="map-key map-key--home"></i><b>{m.legendHome}</b> {m.home.name}</span>
+    <span><i class="map-key map-key--client"></i><b>{m.legendClients}</b> {m.clients.map((c) => c.name).join(', ')}</span>
+  </p>
 </figure>
 
 <style>
@@ -291,6 +312,69 @@ const links = shapes
 
   .map-pin--home .map-tag b {
     font-weight: 600;
+  }
+
+  /* The tooltip, in the heatmap's style: an ink pill above the pointer */
+  .map-tip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    display: grid;
+    padding: 0.4375rem 0.75rem;
+    border-radius: 10px;
+    background: var(--ink);
+    color: var(--paper);
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(var(--x, 0), var(--y, 0)) translate(-50%, calc(-100% - 12px));
+    transition: opacity 120ms ease;
+  }
+
+  .map-tip[data-on] {
+    opacity: 1;
+  }
+
+  .map-tip b {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .map-tip small {
+    font-size: 0.75rem;
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  /* The legend names every market, for anyone who can't hover (phones) */
+  .map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: color-mix(in srgb, var(--ink) 74%, transparent);
+  }
+
+  .map-legend b {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .map-key {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.4375rem;
+    border-radius: 50%;
+    vertical-align: 0.0625rem;
+    background: var(--client);
+  }
+
+  .map-key--home {
+    background: var(--home);
   }
 
   /* Before the first view (motion.ts): marked countries wait as plain land, links undrawn, labels hidden */

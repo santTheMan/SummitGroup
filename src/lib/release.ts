@@ -21,7 +21,7 @@ export function getReleaseIssues(env: ReleaseEnv): ReleaseIssue[] {
     issues.push({
       id: 'booking-destination',
       message:
-        'PUBLIC_BOOKING_URL is not set. Every "Book a conversation" button needs an approved destination (booking page, contact page or address).',
+        'PUBLIC_BOOKING_URL is not set. Every "Partner with us" button needs an approved destination (booking page, contact page or address).',
     });
   } else if (booking.state === 'invalid') {
     issues.push({
@@ -59,7 +59,7 @@ export function getReleaseIssues(env: ReleaseEnv): ReleaseIssue[] {
     placementsFigure: 'The wording and scope of "450+ placements since June 2025" are not confirmed.',
     legalDetails: 'The registered company name and privacy/legal requirements are not confirmed.',
     clientRevenueFigure:
-      'The client revenue gauge shows $9.7M+: SSI’s R12.8m+ commissions in the last 3 months at 7.5% of each sale (R170.7m), at R17.5 to the dollar. Confirm the figure, rate and wording.',
+      'The client revenue gauge shows $600K+ a month (Sam, 24 Nov: $600K to $1M a month for managed clients). Confirm his final figure.',
   };
   for (const [key, approved] of Object.entries(signOffs) as [keyof typeof signOffs, boolean][]) {
     if (!approved) issues.push({ id: `sign-off:${key}`, message: labels[key] });
