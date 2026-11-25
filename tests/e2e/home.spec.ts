@@ -390,10 +390,11 @@ test.describe('interactions (reduced motion, so nothing moves under the pointer)
     await expect(card.getByRole('link', { name: 'Meet Summit Pathways' })).toBeHidden();
   });
 
-  test('want to work with us: the roles SGI hires for, and the answer swaps in place', async ({ page }) => {
+  test('grow with us: the roles SGI hires for, and the answer swaps in place', async ({ page }) => {
     const card = page.locator('[data-talent]');
-    await expect(card.locator('#talent-title')).toHaveText('Want to work with us?');
-    await expect(card.locator('#talent-title .accent')).toHaveText('work');
+    // Daniel, 25 Nov: "Grow with us." (was "Want to work with us?")
+    await expect(card.locator('#talent-title')).toHaveText('Grow with us.');
+    await expect(card.locator('#talent-title .accent')).toHaveText('Grow');
     // Daniel, 25 Nov: titles only, "all remote" said once
     await expect(card.locator('.role-title')).toHaveText([
       'Sales development representative',

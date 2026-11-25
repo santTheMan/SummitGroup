@@ -183,7 +183,9 @@ export const businessesSection = {
    current openings, named the corporate way (no "setter" or "closer": claims
    governance in content.test.ts bans sales-floor jargon). */
 export const talentNote = {
-  heading: 'Want to *work* with us?',
+  /* Daniel, 25 Nov: "Grow with us." (was "Want to work with us?", Sam's 24 Nov wording):
+     for individuals, and it fits both a role and training */
+  heading: '*Grow* with us.',
   body: 'From a first sales role to leading a team, there is a place to start. Our specialist businesses work with individuals directly.',
   /** Drafted for the redesign (part of the homepage copy sign-off). */
   chooserLabel: 'Where would you like to start?',
@@ -300,8 +302,8 @@ export const audiences = {
 
 export const closing = {
   eyebrow: 'Partner with us',
-  /* Sam, 24 Nov 2026: clients are partners. It answers the talent section's "Want to
-     work with us?" */
+  /* Sam, 24 Nov 2026: clients are partners. Companies partner with SGI; individuals
+     grow with it (the talent section's "Grow with us.") */
   heading: 'Want to *partner* with us?',
   body: 'Tell us what your business needs, and we will bring in the right specialists.',
   /** Drafted for the redesign (part of the homepage copy sign-off). */

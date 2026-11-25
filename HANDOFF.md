@@ -54,6 +54,10 @@ roles are now titles only, one line each (Sales development representative, Acco
 Sales manager, Recruiter, Client relationship manager), with "all remote" said once in the label;
 the level tags, one-line descriptions and repeated "Remote" are gone.
 
+Also 25 Nov (Daniel): the talent heading is now **"Grow with us."** ("Grow" in the accent),
+replacing Sam's "Want to work with us?". It fits both a role and training and stays clearly for
+individuals, beside the closing's "Want to partner with us?" for companies. Sam to see it.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.
