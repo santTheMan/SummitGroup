@@ -193,10 +193,16 @@ const answers = talentNote.options.map((o) => {
     display: inline-grid;
     padding: 4px;
     border-radius: 999px;
+    /* LiquidButton's edge and warp (Daniel, 26 Nov); no hover grow on a switch */
     background: var(--frost-sheen), var(--frost-body);
     -webkit-backdrop-filter: var(--frost-blur);
-    backdrop-filter: var(--refract,) var(--frost-blur);
-    box-shadow: var(--frost-edge), var(--frost-shadow);
+    backdrop-filter: var(--frost-blur);
+    box-shadow: var(--liquid-edge);
+  }
+
+  :global(html[data-refract]) .toggle {
+    background: transparent;
+    backdrop-filter: url(#liquid-glass);
   }
 
   .toggle-knob {

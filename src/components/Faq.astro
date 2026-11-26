@@ -97,9 +97,11 @@ import Icon from './Icon.astro';
       color: var(--accent-text);
     }
 
+    /* LiquidButton's hover: the glass grows 5% */
     .faq-list button:hover .plus {
       color: var(--action-hover);
-      box-shadow: var(--frost-edge-tint), var(--frost-shadow-tint);
+      box-shadow: var(--liquid-edge), var(--frost-shadow-tint);
+      scale: 1.05;
     }
   }
 
@@ -114,13 +116,12 @@ import Icon from './Icon.astro';
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 50%;
+    /* LiquidButton (Daniel, 26 Nov): its lens-like edge, no fill and its warp where
+       Chromium draws it */
     background: var(--frost-sheen), var(--frost-body);
     -webkit-backdrop-filter: var(--frost-blur);
-    backdrop-filter: var(--refract,) var(--frost-blur);
-    box-shadow:
-      var(--frost-edge),
-      0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent),
-      var(--frost-shadow);
+    backdrop-filter: var(--frost-blur);
+    box-shadow: var(--liquid-edge);
     color: var(--accent-text);
     transition:
       transform 250ms var(--ease-out),
@@ -129,11 +130,18 @@ import Icon from './Icon.astro';
       box-shadow 200ms ease;
   }
 
-  button[aria-expanded='true'] .plus {
+  :global(html[data-refract]) .plus {
+    background: transparent;
+    backdrop-filter: url(#liquid-glass);
+  }
+
+  /* Open: tinted electric, so the open question still shows */
+  button[aria-expanded='true'] .plus,
+  :global(html[data-refract]) button[aria-expanded='true'] .plus {
     transform: rotate(45deg);
     background: var(--frost-sheen), var(--frost-tint);
     color: var(--action-hover);
-    box-shadow: var(--frost-edge-tint), var(--frost-shadow-tint);
+    box-shadow: var(--liquid-edge), var(--frost-shadow-tint);
   }
 
   .faq-list button:active .plus {

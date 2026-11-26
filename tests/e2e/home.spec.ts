@@ -679,7 +679,7 @@ test.describe('header navigation', () => {
       };
     });
     expect(r.on).toBe(true);
-    expect(r.filters).toBeGreaterThan(2);
+    expect(r.filters).toBeGreaterThanOrEqual(2);
     // The rim map, then red, green and blue each displaced by its own amount, recombined
     expect(r.steps.filter((t) => t === 'feDisplacementMap')).toHaveLength(3);
     expect(r.steps[0]).toBe('feImage');
@@ -723,7 +723,7 @@ test.describe('header navigation', () => {
     // #liquid-glass; elsewhere they keep a frosted blur.
     expect(g.buttons.length).toBeGreaterThan(0);
     for (const b of g.buttons) expect(b).toMatch(/^(url\("#liquid-glass"\)|blur\(\d+px\).*)\|none$/);
-    for (const c of g.chips) expect(c).toMatch(/^(url\("#lg-\d+"\) )?blur\(\d+px\)/);
+    for (const c of g.chips) expect(c).toMatch(/^(url\("#liquid-glass"\)|blur\(\d+px\))/);
     // ...except "Partner with us", which stays solid electric blue
     // The hero's and the closing's (the phone menu's went on 24 Nov)
     expect(g.primary.length).toBeGreaterThanOrEqual(2);

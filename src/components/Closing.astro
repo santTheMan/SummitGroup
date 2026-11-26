@@ -267,22 +267,30 @@ const title = words(closing.heading);
     height: 2.75rem;
     padding: 0 1.125rem 0 0.875rem;
     border-radius: 999px;
+    /* LiquidButton (Daniel, 26 Nov: "all glass ones"): its lens-like edge, no fill
+       and its noise warp where Chromium draws it (global.css), a 5% grow on hover */
     background: var(--frost-sheen), var(--frost-body);
     -webkit-backdrop-filter: var(--frost-blur);
-    backdrop-filter: var(--refract,) var(--frost-blur);
-    box-shadow: var(--frost-edge), var(--frost-shadow);
+    backdrop-filter: var(--frost-blur);
+    box-shadow: var(--liquid-edge);
     font-size: 0.9375rem;
     font-weight: 500;
     color: var(--ink);
     transition:
       transform var(--glass-flex),
+      scale 300ms cubic-bezier(0.4, 0, 0.2, 1),
       background-color 180ms ease,
       color 180ms ease,
       box-shadow 180ms ease;
   }
 
+  :global(html[data-refract]) .chip {
+    background: transparent;
+    backdrop-filter: url(#liquid-glass);
+  }
+
   .chip:active {
-    box-shadow: var(--frost-edge), var(--glass-shadow-small);
+    box-shadow: var(--liquid-edge);
   }
 
   .chip-mark {
@@ -311,10 +319,12 @@ const title = words(closing.heading);
 
   /* Review, 24 Nov: picked reads at a glance (blue text, a firm blue edge and a tick)
      but stays clear glass, so it never competes with the solid booking button */
-  .chip[aria-pressed='true'] {
+  /* Picked: the same glass, tinted electric with a blue ring, so the choice still shows */
+  .chip[aria-pressed='true'],
+  :global(html[data-refract]) .chip[aria-pressed='true'] {
     background: var(--frost-sheen), var(--frost-tint);
     box-shadow:
-      var(--frost-edge-tint),
+      var(--liquid-edge),
       inset 0 0 0 1.5px color-mix(in srgb, var(--sgi-electric) 70%, transparent),
       var(--frost-shadow-tint);
     color: var(--action-hover);
@@ -331,8 +341,8 @@ const title = words(closing.heading);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .chip[aria-pressed='false']:hover {
-      background: var(--frost-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.2));
+    .chip:hover {
+      scale: 1.05;
     }
   }
 
@@ -421,6 +431,10 @@ const title = words(closing.heading);
     .chip[aria-pressed='true'] :global(.chip-plus),
     .chip :global(.chip-tick) {
       transform: none;
+    }
+
+    .chip:hover {
+      scale: none;
     }
   }
 </style>

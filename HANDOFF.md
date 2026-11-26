@@ -98,6 +98,10 @@ button (the links are not shown there).
 lens-like edge (tokens.css --liquid-edge, in navy rather than black), its noise-warp backdrop
 filter (#liquid-glass, added by refract.ts; Chromium only, gated by html[data-refract], with the
 frosted body kept elsewhere) and a 5% grow on hover. "Partner with us" stays solid electric blue.
+Then ("all glass ones") the same LiquidButton look went on the "What do you need?" chips, the
+"A role / Training" toggle (edge and warp, no hover grow on a switch) and the FAQ + buttons; a
+picked chip and an open question's + keep their electric tint. Rim refraction (refract.ts) now
+stays on the header bar and the business cards only.
 
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
