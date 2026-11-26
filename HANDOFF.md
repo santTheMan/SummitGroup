@@ -103,6 +103,14 @@ Then ("all glass ones") the same LiquidButton look went on the "What do you need
 picked chip and an open question's + keep their electric tint. Rim refraction (refract.ts) now
 stays on the header bar and the business cards only.
 
+26 Nov (Daniel): the "One relationship. Three specialists." cards are black glass, in the language
+of the two components he sent: LiquidButton's dark mode for the card (smoked navy-black body, white
+crescents inside the rim, a faint white inner glow, its noise warp over the lights in Chromium) and
+Nimbus "Waterline" water in its dark tone for the marks (segments, bars, step beads, progress bar,
+the "In progress" bead), in a light shade of each business's blue. Text is white, quiet text 68%
+white; every label measures at least 5:1. Reduce Transparency and Increase Contrast make the cards
+solid black with white text. Rim refraction now stays on the header bar only.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.

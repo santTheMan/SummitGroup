@@ -22,10 +22,10 @@
 
 const SVG = 'http://www.w3.org/2000/svg';
 
-/** The glass that rests on the page and refracts at its rim: the header bar and the
-    business cards. Menus that materialize keep their frost; the buttons, chips, toggle
-    and FAQ + buttons use LiquidButton's own warp instead (below). */
-const GLASS = ['.pill', '.scene .card'];
+/** The glass that rests on the page and refracts at its rim: the header bar. Menus that
+    materialize keep their frost; the buttons, chips, toggle, FAQ + buttons and the
+    business cards use LiquidButton's own warp instead (below). */
+const GLASS = ['.pill'];
 
 /* LiquidButton's glass (21st.dev "liquid-glass-button", Daniel, 26 Nov 2026): fractal
    noise, softened, displaces the backdrop by up to 70px, then a 4px blur. Used by the

@@ -21,6 +21,12 @@
  * thick edge and the 1px lit rim the header uses). Colour stays on solid marks
  * (bars, segments, dots) on top of the glass; quiet text is darker inside the
  * card, so it reads over the colour. Reduce Transparency makes the card solid.
+ *
+ * Black glass (Daniel, 26 Nov, kept): the cards are now smoked black glass in the
+ * language of the two components he sent, LiquidButton's dark mode for the card and
+ * Nimbus "Waterline" water (dark tone) for the marks; see the block "Black glass" in
+ * the styles below, which overrides the light glass above. Labels measure at least
+ * 5:1 on desktop and phone.
  */
 import { businesses, illustrations } from '../content/site.ts';
 import Icon from './Icon.astro';
@@ -550,6 +556,162 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
     transition: transform 700ms var(--enter) 380ms;
   }
 
+  /* ---------- Black glass, in the language of Daniel's two components (26 Nov 2026) ----------
+     The card is smoked black glass: LiquidButton's dark mode (21st.dev "liquid-glass-button":
+     white crescents inside the rim, a faint white inner glow) over a deep navy-black body, its
+     noise warp bending the lights behind where Chromium draws it. The marks are Nimbus water in
+     its dark tone (the "Waterline" navbar: deeper water, a bright rim): coloured marks are water
+     in a light shade of the business's blue (the brand's deep navy would vanish on black),
+     empty ones clear water. Text is white, quiet text 68% white. */
+  .scene {
+    --ink-on: #f1f7ff;
+    --quiet-on: rgb(241 247 255 / 0.68);
+    --rule-on: rgb(255 255 255 / 0.12);
+    --water-clear:
+      radial-gradient(120% 140% at 30% 0%, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0) 55%),
+      rgb(255 255 255 / 0.1);
+    --water-clear-edge:
+      inset 0 1px 1px rgb(255 255 255 / 0.5), inset 0 -2px 6px rgb(112 191 255 / 0.18),
+      inset 0 0 0 1px rgb(255 255 255 / 0.16), 0 4px 10px -5px rgb(0 0 0 / 0.5);
+    --water-tint:
+      radial-gradient(120% 140% at 30% 0%, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 55%),
+      var(--accent-on);
+    --water-tint-edge:
+      inset 0 1px 1px rgb(255 255 255 / 0.7), inset 0 -2px 5px rgb(0 20 60 / 0.35),
+      inset 0 0 0 1px rgb(255 255 255 / 0.25), 0 5px 14px -5px color-mix(in srgb, var(--accent-on) 60%, transparent);
+  }
+
+  /* Each business's blue, lightened to read on black */
+  .scene--institute {
+    --accent-on: color-mix(in srgb, var(--sgi-deep) 14%, #b9d8f8);
+  }
+
+  .scene--sales {
+    --accent-on: color-mix(in srgb, var(--sgi-electric) 72%, #ffffff);
+  }
+
+  .scene--pathways {
+    --accent-on: var(--sgi-sky);
+  }
+
+  .card {
+    --ink: var(--ink-on);
+    --muted: var(--quiet-on);
+    --rule-soft: var(--rule-on);
+
+    background:
+      radial-gradient(130% 90% at 30% -10%, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 60%),
+      rgb(6 13 28 / 0.8);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+    color: var(--ink-on);
+    box-shadow:
+      0 0 8px rgb(0 0 0 / 0.03),
+      0 2px 6px rgb(0 0 0 / 0.08),
+      inset 3px 3px 0.5px -3.5px rgb(255 255 255 / 0.09),
+      inset -3px -3px 0.5px -3.5px rgb(255 255 255 / 0.85),
+      inset 1px 1px 1px -0.5px rgb(255 255 255 / 0.6),
+      inset -1px -1px 1px -0.5px rgb(255 255 255 / 0.6),
+      inset 0 0 6px 6px rgb(255 255 255 / 0.12),
+      inset 0 0 2px 2px rgb(255 255 255 / 0.06),
+      0 0 12px rgb(0 0 0 / 0.15),
+      0 30px 60px -28px rgb(7 27 52 / 0.55);
+  }
+
+  :global(html[data-refract]) .card {
+    background:
+      radial-gradient(130% 90% at 30% -10%, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 60%),
+      rgb(6 13 28 / 0.76);
+    backdrop-filter: url(#liquid-glass) saturate(1.6);
+  }
+
+  .card::after {
+    display: none;
+  }
+
+  .card-name i {
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background: var(--water-tint);
+    box-shadow: var(--water-tint-edge);
+  }
+
+  .segs {
+    gap: 0.3125rem;
+  }
+
+  .segs i {
+    height: 0.625rem;
+    border-radius: 999px;
+    background: var(--water-clear);
+    box-shadow: var(--water-clear-edge);
+  }
+
+  .segs i[data-done]::after {
+    border-radius: inherit;
+    background: var(--water-tint);
+    box-shadow: var(--water-tint-edge);
+  }
+
+  .rows li[data-state='done'] .row-state {
+    color: var(--accent-on);
+  }
+
+  /* "In progress": a bead of the business's water with navy text, like the navbar's drop */
+  .rows li[data-state='now'] .row-state {
+    background: var(--water-tint);
+    box-shadow: var(--water-tint-edge);
+    color: var(--sgi-navy);
+  }
+
+  .bars i {
+    border-radius: 10px 10px 6px 6px;
+    background: var(--water-clear);
+    box-shadow: var(--water-clear-edge);
+  }
+
+  .bars i[data-last] {
+    background: var(--water-tint);
+    box-shadow: var(--water-tint-edge);
+  }
+
+  .step-dot {
+    border: 0;
+    color: var(--sgi-navy);
+    background: var(--water-clear);
+    box-shadow:
+      var(--water-clear-edge),
+      inset 0 0 0 1.5px color-mix(in srgb, var(--accent-on) 75%, transparent);
+  }
+
+  .steps li[data-state='done'] .step-dot {
+    background: var(--water-tint);
+    box-shadow: var(--water-tint-edge);
+  }
+
+  .steps li[data-state='now'] .step-dot {
+    box-shadow:
+      var(--water-clear-edge),
+      inset 0 0 0 1.5px var(--accent-on),
+      0 0 0 4px color-mix(in srgb, var(--accent-on) 22%, transparent);
+  }
+
+  .steps li[data-state='done']:not(:nth-last-child(2))::after {
+    background: var(--accent-on);
+  }
+
+  .meter {
+    height: 0.5rem;
+    background: var(--water-clear);
+    box-shadow: var(--water-clear-edge);
+  }
+
+  .meter i {
+    background: var(--water-tint);
+    box-shadow: var(--water-tint-edge);
+  }
+
   /* Before a scene comes in (its stage layer is off): the build's starting point.
      The inline scenes on small screens are always on, so they rest finished. */
   :global(:not([data-on])) > .scene .segs i[data-done]::after,
@@ -601,10 +763,10 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
     }
   }
 
-  /* Reduce Transparency: a solid card; Increase Contrast: a defined edge */
+  /* Reduce Transparency: solid black glass; Increase Contrast: solid, with a white edge */
   @media (prefers-reduced-transparency: reduce) {
     .card {
-      background: var(--paper);
+      background: rgb(6 13 28);
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
@@ -612,8 +774,9 @@ const title = { institute: s.institute.title, sales: s.sales.title, pathways: s.
 
   @media (prefers-contrast: more) {
     .card {
-      background: var(--paper);
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 45%, transparent);
+      --muted: rgb(241 247 255 / 0.86);
+      background: rgb(6 13 28);
+      box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.7);
     }
   }
 </style>

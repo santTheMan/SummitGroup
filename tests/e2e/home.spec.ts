@@ -662,9 +662,9 @@ test.describe('header navigation', () => {
   test('glass refracts at its rim in Chromium: one filter per size, the frost lightened', async ({ page }) => {
     // Daniel, 25 Nov: real glass bends light at its edge (refract.ts, after the reel he sent)
     await page.goto('/');
-    // The card on show: the desktop stage's, or the one inline on smaller screens
+    // Refraction switched on, and the header bar's filter fitted to it
     await page.waitForFunction(() =>
-      [...document.querySelectorAll<HTMLElement>('.scene .card')].some((c) => c.offsetWidth && c.style.getPropertyValue('--refract')),
+      Boolean(document.documentElement.hasAttribute('data-refract') && document.querySelector<HTMLElement>('.pill')?.style.getPropertyValue('--refract')),
     );
     const r = await page.evaluate(() => {
       const filters = [...document.querySelectorAll('svg filter[id^="lg-"]')];
@@ -679,12 +679,13 @@ test.describe('header navigation', () => {
       };
     });
     expect(r.on).toBe(true);
-    expect(r.filters).toBeGreaterThanOrEqual(2);
+    expect(r.filters).toBeGreaterThanOrEqual(1);
     // The rim map, then red, green and blue each displaced by its own amount, recombined
     expect(r.steps.filter((t) => t === 'feDisplacementMap')).toHaveLength(3);
     expect(r.steps[0]).toBe('feImage');
     expect(r.pill).toMatch(/^url\("#lg-\d+"\) blur\(7px\)/);
-    expect(r.card).toMatch(/^url\("#lg-\d+"\) blur\(12px\)/);
+    // The business cards are LiquidButton glass (26 Nov): its noise warp, not the rim map
+    expect(r.card).toMatch(/^url\("#liquid-glass"\)/);
     // Menus that materialize keep their frost: refraction is not animatable
     expect(r.menu).not.toContain('url(');
   });
