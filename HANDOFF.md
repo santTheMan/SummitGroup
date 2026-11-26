@@ -81,6 +81,18 @@ Increase Contrast. The fold-out menu and phone sheet keep their frost (they anim
 filter cannot be animated). The effect shows most where detail passes under the glass (headings
 and the map under the nav bar); over the site's soft washes it is subtle.
 
+26 Nov (Daniel): the header's selection is now Nimbus UI's "Waterline" liquid navbar by
+Guglielmo Giannattasio (MIT; the code Daniel pasted), ported from React to src/scripts/liquid-nav.ts
+(the WebGL water shader is verbatim, with Nimbus's CSS drop as the fallback). A drop of water marks
+the section being read (it replaces the glass lens), moves to "Our businesses" while its fold-out
+is open and to a link the moment it is clicked; long jumps stretch it, split it into droplets and
+merge it back with a ripple; the cursor lifts a meniscus and taps send a wave along the bar. Each
+link has an 18px line icon with a small scene on tap (Our businesses: the door lights; How we work:
+a pop; Who we work with: the globe spins; FAQ: a wiggle). Changes from Nimbus: the water is still
+when nobody is at the bar (no perpetual frame loop on a sticky header), no sound, no arrow-key
+takeover, and the bar keeps the site's own glass and refraction. Phones keep the logo and menu
+button (the links are not shown there).
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.

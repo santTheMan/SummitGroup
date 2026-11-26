@@ -1,5 +1,6 @@
 import { animate, inView, scroll } from 'motion';
 import { initGauges, replayGauge } from './gauge.ts';
+import { initLiquidNav } from './liquid-nav.ts';
 import { initRefraction } from './refract.ts';
 
 /**
@@ -21,129 +22,6 @@ function initHeader() {
   const update = () => nav.toggleAttribute('data-scrolled', window.scrollY > 8);
   update();
   window.addEventListener('scroll', update, { passive: true });
-}
-
-/*
- * Header selection: a liquid-glass lens under the section being read (the
- * section that crosses 40% of the screen), moving to the link under the
- * pointer, or to "Our businesses" while its fold-out is open. It travels on a
- * spring (interruptible, so quick hovers never queue up) and swells while
- * pressed, as Apple's Liquid Glass tab bars do.
- */
-function initNavGlass() {
-  const links = $('[data-nav-links]');
-  const glass = $('[data-nav-glass]');
-  if (!links || !glass) return;
-  const items = $$('[data-nav-item]', links);
-  const trigger = $('[data-biz-trigger]', links);
-  const sections = ['about', 'businesses', 'how-we-work', 'who-we-work-with', 'book', 'faq']
-    .map((id) => document.getElementById(id))
-    .filter((el): el is HTMLElement => Boolean(el));
-
-  let current: HTMLElement | null = null;
-  let hovered: HTMLElement | null = null;
-  let shown: HTMLElement | null = null;
-  let placed = false;
-  const spring = () =>
-    reduced.matches ? { duration: 0 } : ({ type: 'spring', visualDuration: 0.4, bounce: 0.22 } as const);
-
-  const target = () => hovered ?? (trigger?.getAttribute('aria-expanded') === 'true' ? trigger : current);
-  const render = (force = false) => {
-    items.forEach((item) => item.toggleAttribute('data-selected', item === current));
-    const next = target();
-    if (next === shown && !force) return;
-    shown = next;
-    if (!next) {
-      animate(glass, { opacity: 0, scale: 0.92 }, reduced.matches ? { duration: 0 } : { duration: 0.18 });
-      placed = false;
-      return;
-    }
-    const box = links.getBoundingClientRect();
-    const r = next.getBoundingClientRect();
-    const to = { x: r.left - box.left, width: r.width };
-    if (!placed) {
-      // Appear in place (no slide in from the left edge)
-      animate(glass, to, { duration: 0 });
-      animate(glass, { opacity: [0, 1], scale: [0.92, 1] }, reduced.matches ? { duration: 0 } : { duration: 0.22 });
-      placed = true;
-      return;
-    }
-    animate(glass, { ...to, opacity: 1, scale: 1 }, spring());
-  };
-
-  /* Scroll position: which section is being read. The nearest section top above the
-     reading line wins, so the result follows the page, whatever order the sections are in.
-     Sections with no header link (#book) hide the lens while they are read. */
-  const spy = () => {
-    const line = window.innerHeight * 0.4;
-    let id: string | null = null;
-    let nearest = -Infinity;
-    for (const s of sections) {
-      const top = s.getBoundingClientRect().top;
-      if (top <= line && top > nearest) {
-        nearest = top;
-        id = s.id;
-      }
-    }
-    const next = items.find((item) => item.dataset.navItem === id) ?? null;
-    if (next !== current) {
-      current = next;
-      render();
-    }
-  };
-  let ticking = false;
-  window.addEventListener(
-    'scroll',
-    () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        spy();
-      });
-    },
-    { passive: true },
-  );
-
-  if (fine.matches) {
-    items.forEach((item) =>
-      item.addEventListener('pointerenter', () => {
-        hovered = item;
-        render();
-      }),
-    );
-    links.addEventListener('pointerleave', () => {
-      hovered = null;
-      render();
-    });
-  }
-  items.forEach((item) => {
-    item.addEventListener('pointerdown', () => {
-      // Pressed, the selection lifts into a Liquid Glass lens (Nav.astro [data-lift])
-      glass.toggleAttribute('data-lift', true);
-      if (reduced.matches) return;
-      animate(glass, { scale: 1.08 }, { type: 'spring', visualDuration: 0.25, bounce: 0.3 });
-    });
-    item.addEventListener('focus', () => {
-      hovered = item;
-      render();
-    });
-    item.addEventListener('blur', () => {
-      if (hovered === item) hovered = null;
-      render();
-    });
-  });
-  const settle = () => {
-    glass.toggleAttribute('data-lift', false);
-    if (!reduced.matches && shown) animate(glass, { scale: 1 }, spring());
-  };
-  window.addEventListener('pointerup', settle);
-  window.addEventListener('pointercancel', settle);
-  if (trigger) new MutationObserver(() => render()).observe(trigger, { attributeFilter: ['aria-expanded'] });
-
-  /* Link widths change once the web fonts load and when the header reflows */
-  new ResizeObserver(() => render(true)).observe(links);
-  spy();
 }
 
 /* "Our businesses" fold-out: hover on mouse, click everywhere, Escape and outside click close */
@@ -818,7 +696,7 @@ initGlassPress();
 initGlassLight();
 initHeader();
 initBusinessesMenu();
-initNavGlass();
+initLiquidNav();
 initSheet();
 initStage();
 initInlineScenes();

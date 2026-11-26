@@ -645,7 +645,7 @@ test.describe('header navigation', () => {
     expect(pill!.y).toBeLessThan(24);
   });
 
-  test('the FAQ closes the page, and the header lens only marks it once it is reached', async ({ page }) => {
+  test('the FAQ closes the page, and the header\u2019s water drop only marks it once it is reached', async ({ page }) => {
     await page.goto('/');
     const order = await page.$$eval('main > section', (els) => els.map((el) => el.id || el.className.split(' ')[0]));
     expect(order.slice(-3)).toEqual(['book', 'op-sec', 'faq']);
@@ -704,7 +704,7 @@ test.describe('header navigation', () => {
       return {
         bar: filter(document.querySelector('.pill'), '::before'),
         barRing: getComputedStyle(document.querySelector('.pill')!, '::after').backgroundImage,
-        lens: filter(document.querySelector('[data-nav-glass]')),
+        water: filter(document.querySelector('[data-nav-water]')),
         burger: filter(document.querySelector('[data-burger]')),
         buttons: [...document.querySelectorAll('.button:not(.button--primary)')].map((b) => `${filter(b)}|${filter(b, '::before')}`),
         primary: [...document.querySelectorAll('.button--primary')].map((b) => `${filter(b)}|${getComputedStyle(b).backgroundColor}`),
@@ -715,8 +715,8 @@ test.describe('header navigation', () => {
     // The navigation layer is the glass, with a lit rim drawn as a ring
     expect(g.bar).toContain('blur');
     expect(g.barRing).toContain('linear-gradient');
-    // Never glass on glass: what sits on the bar is a fill at rest
-    expect(g.lens).toBe('none');
+    // Never glass on glass: the water on the bar is drawn, not another glass layer
+    expect(g.water).toBe('none');
     expect(g.burger).toBe('none');
     // Buttons and chips are transparent frosted glass at rest: the page behind them blurs through.
     // In Chromium the rim also refracts (refract.ts): an SVG filter comes before the blur.
@@ -758,16 +758,9 @@ test.describe('header navigation', () => {
     await expect.poll(() => cta.evaluate((el) => getComputedStyle(el, '::before').opacity)).toBe('0');
     await expect.poll(() => cta.evaluate((el) => getComputedStyle(el).transform)).toMatch(/^(none|matrix\(1, 0, 0, 1)/);
 
-    // The header selection lifts into a glass lens only while pressed
-    const lens = page.locator('[data-nav-glass]');
-    const how = (await page.locator('[data-nav-item="how-we-work"]').boundingBox())!;
-    await page.mouse.move(how.x + how.width / 2, how.y + how.height / 2);
-    await page.mouse.down();
-    await expect(lens).toHaveAttribute('data-lift', '');
-    expect(await lens.evaluate((el) => getComputedStyle(el).backdropFilter)).toContain('blur');
-    await page.mouse.move(5, 400);
-    await page.mouse.up();
-    await expect(lens).not.toHaveAttribute('data-lift', '');
+    // A header link, tapped, plays its icon's little scene (Nimbus "Waterline")
+    await page.locator('[data-nav-item="how-we-work"]').click();
+    await expect(page.locator('[data-nav-item="how-we-work"] .nv-ico')).toHaveAttribute('data-fx', 'pop');
   });
 
   test('the header carries no booking button', async ({ page }) => {
@@ -775,31 +768,32 @@ test.describe('header navigation', () => {
     await expect(page.locator('[data-nav] .pill > a.button, [data-nav] .nav-links a.button')).toHaveCount(0);
   });
 
-  test('desktop: a liquid-glass lens marks the section being read and follows the pointer', async ({ page }) => {
+  test('desktop: a water drop marks the section being read and moves to the link clicked', async ({ page }) => {
+    // Daniel, 26 Nov: Nimbus UI's "Waterline" liquid navbar (liquid-nav.ts)
     await page.goto('/');
     test.skip(!isDesktop(page), 'inline navigation is desktop-only');
-    const glass = page.locator('[data-nav-glass]');
-    await expect(glass).toHaveCSS('opacity', '0');
+    const pill = page.locator('[data-nav] .pill');
+    // Drawn in WebGL (a CSS drop stands in without it), on a canvas 14px past the bar all round
+    await expect(pill).toHaveAttribute('data-water', 'gl');
+    const [c, p] = await Promise.all([page.locator('[data-nav-water]').boundingBox(), pill.boundingBox()]);
+    expect(Math.round(c!.width - p!.width)).toBe(28);
+    // Every link carries an icon
+    await expect(page.locator('[data-nav-item] .nv-ico svg')).toHaveCount(4);
+    // At the top no link applies, so there is no drop
+    await expect(page.locator('[data-nav-item][data-selected]')).toHaveCount(0);
 
     await page.locator('#how-we-work').evaluate((el) => el.scrollIntoView());
-    const how = page.locator('[data-nav-item="how-we-work"]');
-    await expect(how).toHaveAttribute('data-selected', '');
-    await expect(glass).toHaveCSS('opacity', '1');
-    await expect
-      .poll(async () => {
-        const [g, l] = await Promise.all([glass.boundingBox(), how.boundingBox()]);
-        return Math.round(Math.abs(g!.x - l!.x) + Math.abs(g!.width - l!.width));
-      })
-      .toBeLessThan(2);
+    await expect(page.locator('[data-nav-item="how-we-work"]')).toHaveAttribute('data-selected', '');
 
+    // A click sends the drop to that link at once, and its icon plays its scene
     const faq = page.locator('[data-nav-item="faq"]');
-    await faq.hover();
-    await expect
-      .poll(async () => {
-        const [g, l] = await Promise.all([glass.boundingBox(), faq.boundingBox()]);
-        return Math.round(Math.abs(g!.x - l!.x));
-      })
-      .toBeLessThan(2);
+    await faq.click();
+    await expect(faq).toHaveAttribute('data-selected', '');
+    await expect(faq.locator('.nv-ico')).toHaveAttribute('data-fx', 'wave');
+
+    // Opening "Our businesses" brings the drop to it
+    await page.locator('[data-biz-trigger]').click();
+    await expect(page.locator('[data-biz-trigger]')).toHaveAttribute('data-selected', '');
   });
 
   test('desktop: keyboard order runs logo, then navigation', async ({ page }) => {
