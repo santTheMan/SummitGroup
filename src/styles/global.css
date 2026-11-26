@@ -345,20 +345,37 @@ main {
   mix-blend-mode: soft-light;
 }
 
-/* Clear frosted glass */
+/* Liquid glass buttons (Daniel, 26 Nov 2026): the 21st.dev "liquid-glass-button"
+   LiquidButton he pasted. No fill; a stack of fine inner shadows draws a thick,
+   lens-like edge (tokens.css --liquid-edge, its shadows in the site's navy rather than
+   black); what is behind is warped by a noise displacement and softly blurred
+   (#liquid-glass, created by refract.ts); and it grows 5% on hover. The warp is an SVG
+   backdrop filter, which only Chromium draws, so it is gated like the refraction
+   (html[data-refract]); elsewhere the button keeps its frosted body under the same edge. */
 .button--soft,
 .button--ghost {
   background: var(--frost-sheen), var(--frost-body);
   color: var(--ink);
   -webkit-backdrop-filter: var(--frost-blur);
-  /* --refract: the rim's refraction, where the browser can draw it (refract.ts) */
-  backdrop-filter: var(--refract,) var(--frost-blur);
-  box-shadow: var(--frost-edge), var(--frost-shadow);
+  backdrop-filter: var(--frost-blur);
+  box-shadow: var(--liquid-edge);
+  transition:
+    transform var(--glass-flex),
+    scale 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease;
+}
+
+html[data-refract] .button--soft,
+html[data-refract] .button--ghost {
+  background: transparent;
+  backdrop-filter: url(#liquid-glass);
 }
 
 .button--soft:active,
 .button--ghost:active {
-  box-shadow: var(--frost-edge), var(--glass-shadow-small);
+  box-shadow: var(--liquid-edge);
 }
 
 .button--small {
@@ -387,9 +404,10 @@ main {
     transform: translateX(2px);
   }
 
+  /* LiquidButton's hover: the glass grows 5% */
   .button--soft:hover,
   .button--ghost:hover {
-    background: var(--frost-sheen), linear-gradient(180deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.2));
+    scale: 1.05;
   }
 }
 
@@ -397,6 +415,11 @@ main {
   .button:active,
   [data-glass]:active {
     transform: none;
+  }
+
+  .button--soft:hover,
+  .button--ghost:hover {
+    scale: none;
   }
 }
 

@@ -22,8 +22,21 @@
 
 const SVG = 'http://www.w3.org/2000/svg';
 
-/** The glass that rests on the page (menus that materialize keep their frost) */
-const GLASS = ['.pill', '.button--soft', '.button--ghost', '[data-need]', '.toggle', '.plus', '.scene .card'];
+/** The glass that rests on the page (menus that materialize keep their frost; the
+    frosted buttons have LiquidButton's own warp instead, below) */
+const GLASS = ['.pill', '[data-need]', '.toggle', '.plus', '.scene .card'];
+
+/* LiquidButton's glass (21st.dev "liquid-glass-button", Daniel, 26 Nov 2026): fractal
+   noise, softened, displaces the backdrop by up to 70px, then a 4px blur. Used by the
+   frosted buttons (global.css), in the box of whichever button uses it. */
+const LIQUID_BUTTON = `
+  <filter id="liquid-glass" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence"/>
+    <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise"/>
+    <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
+    <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur"/>
+    <feComposite in="finalBlur" in2="finalBlur" operator="over"/>
+  </filter>`;
 
 const supported = () => {
   const brands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands;
@@ -102,6 +115,7 @@ export function initRefraction() {
   host.setAttribute('height', '0');
   host.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;pointer-events:none';
   const defs = document.createElementNS(SVG, 'defs');
+  defs.innerHTML = LIQUID_BUTTON;
   host.append(defs);
   document.body.append(host);
 

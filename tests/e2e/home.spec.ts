@@ -718,10 +718,11 @@ test.describe('header navigation', () => {
     // Never glass on glass: the water on the bar is drawn, not another glass layer
     expect(g.water).toBe('none');
     expect(g.burger).toBe('none');
-    // Buttons and chips are transparent frosted glass at rest: the page behind them blurs through.
-    // In Chromium the rim also refracts (refract.ts): an SVG filter comes before the blur.
+    // Buttons and chips are transparent glass at rest: the page behind them shows through.
+    // The frosted buttons are LiquidButton's (26 Nov): in Chromium the backdrop is warped by
+    // #liquid-glass; elsewhere they keep a frosted blur.
     expect(g.buttons.length).toBeGreaterThan(0);
-    for (const b of g.buttons) expect(b).toMatch(/^(url\("#lg-\d+"\) )?blur\(\d+px\).*\|none$/);
+    for (const b of g.buttons) expect(b).toMatch(/^(url\("#liquid-glass"\)|blur\(\d+px\).*)\|none$/);
     for (const c of g.chips) expect(c).toMatch(/^(url\("#lg-\d+"\) )?blur\(\d+px\)/);
     // ...except "Partner with us", which stays solid electric blue
     // The hero's and the closing's (the phone menu's went on 24 Nov)

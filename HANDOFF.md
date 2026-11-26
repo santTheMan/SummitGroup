@@ -93,6 +93,12 @@ when nobody is at the bar (no perpetual frame loop on a sticky header), no sound
 takeover, and the bar keeps the site's own glass and refraction. Phones keep the logo and menu
 button (the links are not shown there).
 
+26 Nov (Daniel): the frosted button style (today the hero's "Our businesses") is now the 21st.dev
+"liquid-glass-button" LiquidButton he pasted: no fill, its stack of inner shadows for a thick,
+lens-like edge (tokens.css --liquid-edge, in navy rather than black), its noise-warp backdrop
+filter (#liquid-glass, added by refract.ts; Chromium only, gated by html[data-refract], with the
+frosted body kept elsewhere) and a 5% grow on hover. "Partner with us" stays solid electric blue.
+
 Still waiting on Sam: the final revenue figure, the copy Loom, and the booking destination
 (calendar link or email) for "Partner with us". Later: separate pages for Summit Institute,
 Summit Sales (Sam as figurehead, his YouTube, VSLs) and Summit Pathways.
